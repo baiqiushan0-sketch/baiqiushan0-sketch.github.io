@@ -21,17 +21,32 @@ body{background:#0a0a14;overflow:hidden;touch-action:none;user-select:none;-webk
 #speed-bar{color:rgba(255,255,255,.4);font-size:.7rem}
 #player-name-hud{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:10;pointer-events:none;color:rgba(255,255,255,.3);font-size:.65rem;letter-spacing:1px}
 
-/* ===== Name Input Overlay ===== */
-#name-overlay{position:fixed;top:0;left:0;width:100%;height:100%;z-index:25;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(10,10,40,.9),rgba(0,0,0,.97))}
+/* ===== Main Menu ===== */
+#name-overlay{position:fixed;top:0;left:0;width:100%;height:100%;z-index:25;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;background:radial-gradient(ellipse at center,rgba(10,10,40,.9),rgba(0,0,0,.97));overflow-y:auto;padding:clamp(16px,4vh,40px) 16px 40px}
 #name-overlay.hidden{display:none}
-#name-overlay h2{font-size:clamp(1.5rem,4vw,2.5rem);background:linear-gradient(135deg,#00e5ff,#7c4dff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
-#name-overlay .sub{color:#7c8aa0;font-size:.8rem;margin-bottom:20px}
-#name-input{background:rgba(255,255,255,.05);border:2px solid rgba(0,229,255,.3);color:#fff;padding:12px 20px;font-size:1rem;border-radius:8px;text-align:center;width:min(280px,80vw);outline:none;transition:border-color .3s;font-family:inherit}
+#name-overlay h2{font-size:clamp(1.5rem,4vw,2.5rem);background:linear-gradient(135deg,#00e5ff,#7c4dff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:2px}
+#name-overlay .sub{color:#7c8aa0;font-size:.75rem;margin-bottom:16px;letter-spacing:4px}
+#name-input{background:rgba(255,255,255,.05);border:2px solid rgba(0,229,255,.3);color:#fff;padding:10px 20px;font-size:1rem;border-radius:8px;text-align:center;width:min(260px,75vw);outline:none;transition:border-color .3s;font-family:inherit}
 #name-input:focus{border-color:#00e5ff}
 #name-input::placeholder{color:rgba(255,255,255,.2)}
-#name-btn{padding:12px 40px;font-size:1rem;border:2px solid #00e5ff;background:rgba(0,229,255,.1);color:#00e5ff;border-radius:30px;cursor:pointer;letter-spacing:2px;margin-top:16px;transition:all .3s;font-weight:bold}
+#name-btn{padding:10px 36px;font-size:.95rem;border:2px solid #00e5ff;background:rgba(0,229,255,.1);color:#00e5ff;border-radius:30px;cursor:pointer;letter-spacing:2px;margin:12px 0;transition:all .3s;font-weight:bold}
 #name-btn:hover{background:rgba(0,229,255,.25);box-shadow:0 0 30px rgba(0,229,255,.2)}
-#name-error{color:#ff5252;font-size:.7rem;margin-top:8px;display:none}
+#name-error{color:#ff5252;font-size:.65rem;margin-top:2px;display:none}
+
+/* Shop inside main menu */
+#main-shop{width:min(320px,90vw);margin-top:8px;text-align:left}
+#main-shop h3{color:#ffd740;font-size:.85rem;margin-bottom:8px;text-align:center;letter-spacing:1px}
+#main-shop .skin-card{display:flex;align-items:center;padding:8px 10px;margin-bottom:4px;border-radius:8px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);cursor:pointer;transition:all .2s}
+#main-shop .skin-card.owned{border-color:rgba(0,229,255,.1)}
+#main-shop .skin-card.equipped{border-color:#ffd740;background:rgba(255,215,0,.04)}
+#main-shop .skin-preview{width:30px;height:30px;border-radius:50%;margin-right:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1rem}
+#main-shop .skin-info{flex:1;min-width:0}
+#main-shop .skin-name{font-size:.7rem;color:#ddd}
+#main-shop .skin-price{font-size:.55rem;color:#ffd740}
+#main-shop .skin-price.owned{color:rgba(0,229,255,.4)}
+#main-shop .skin-action{font-size:.55rem;padding:4px 10px;border-radius:10px;cursor:pointer;border:1px solid rgba(255,215,0,.25);background:rgba(255,215,0,.05);color:#ffd740;white-space:nowrap}
+#main-shop .skin-action.equipped{background:rgba(0,229,255,.1);border-color:rgba(0,229,255,.25);color:#00e5ff}
+#main-shop .skin-action.locked{background:transparent;border-color:rgba(255,255,255,.08);color:rgba(255,255,255,.2)}
 
 /* ===== Game Over Overlay ===== */
 #overlay{position:fixed;top:0;left:0;width:100%;height:100%;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(10,10,40,.85),rgba(0,0,0,.95));pointer-events:none}
@@ -48,26 +63,6 @@ body{background:#0a0a14;overflow:hidden;touch-action:none;user-select:none;-webk
 #overlay .btn-secondary{border-color:rgba(255,255,255,.2);color:rgba(255,255,255,.4);font-size:.7rem;padding:10px 30px;letter-spacing:1px}
 #overlay .btn-secondary:hover{background:rgba(255,255,255,.05);box-shadow:none}
 
-/* ===== Shop ===== */
-#shop{position:fixed;top:0;right:-320px;width:min(300px,85vw);height:100%;z-index:18;background:rgba(5,5,20,.95);border-left:1px solid rgba(255,215,0,.1);transition:right .4s cubic-bezier(.4,0,.2,1);overflow-y:auto;padding:16px}
-#shop.open{right:0}
-#shop-toggle{position:fixed;top:50%;right:0;z-index:19;transform:translateY(-50%);background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.2);color:#ffd740;padding:12px 6px;border-radius:8px 0 0 8px;cursor:pointer;font-size:.6rem;writing-mode:vertical-rl;letter-spacing:2px;transition:right .4s cubic-bezier(.4,0,.2,1)}
-#shop-toggle.shifted{right:min(300px,85vw)}
-#shop h3{color:#ffd740;font-size:.9rem;margin-bottom:4px;letter-spacing:2px;text-align:center}
-#shop .shop-balance{text-align:center;color:#ffd740;font-size:.75rem;margin-bottom:12px}
-#shop .skin-card{display:flex;align-items:center;padding:10px;margin-bottom:6px;border-radius:8px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);transition:all .3s;cursor:pointer}
-#shop .skin-card.owned{border-color:rgba(0,229,255,.15)}
-#shop .skin-card.equipped{border-color:#ffd740;background:rgba(255,215,0,.05)}
-#shop .skin-card:hover{background:rgba(255,255,255,.04)}
-#shop .skin-preview{width:36px;height:36px;border-radius:50%;margin-right:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.2rem}
-#shop .skin-info{flex:1;min-width:0}
-#shop .skin-name{font-size:.75rem;color:#ddd;margin-bottom:1px}
-#shop .skin-price{font-size:.6rem;color:#ffd740}
-#shop .skin-price.owned{color:rgba(0,229,255,.5)}
-#shop .skin-action{font-size:.6rem;padding:5px 12px;border-radius:12px;cursor:pointer;border:1px solid rgba(255,215,0,.3);background:rgba(255,215,0,.05);color:#ffd740;white-space:nowrap;transition:all .2s}
-#shop .skin-action:hover{background:rgba(255,215,0,.15)}
-#shop .skin-action.equipped{background:rgba(0,229,255,.15);border-color:rgba(0,229,255,.3);color:#00e5ff}
-#shop .skin-action.locked{background:transparent;border-color:rgba(255,255,255,.1);color:rgba(255,255,255,.25)}
 
 /* ===== Misc ===== */
 #hint{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:10;pointer-events:none;display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
@@ -90,13 +85,17 @@ body{background:#0a0a14;overflow:hidden;touch-action:none;user-select:none;-webk
 
 <div id="hint"><span>⬅➡ 切道</span><span>⬆ 跳跃</span><span>⬇ 下滑</span></div>
 
-<!-- Name Input -->
+<!-- Main Menu -->
 <div id="name-overlay">
-  <h2>✦ 输入你的名字 ✦</h2>
-  <div class="sub">加入全球排行榜</div>
-  <input id="name-input" type="text" maxlength="12" placeholder="请输入昵称…" autocomplete="off">
+  <h2>🚇 地铁酷跑</h2>
+  <div class="sub">NEON RUNNER</div>
+  <input id="name-input" type="text" maxlength="12" placeholder="输入昵称…" autocomplete="off">
   <div id="name-error"></div>
   <button id="name-btn">开始游戏</button>
+  <div id="main-shop">
+    <h3>🛒 皮肤商店 <span id="main-shop-balance" style="font-size:.7rem;color:#ffd740">💰 0</span></h3>
+    <div id="main-skin-list"></div>
+  </div>
 </div>
 
 <!-- Game Over -->
@@ -113,13 +112,7 @@ body{background:#0a0a14;overflow:hidden;touch-action:none;user-select:none;-webk
   <button class="btn-secondary" id="change-name-btn">换个名字</button>
 </div>
 
-<!-- Shop -->
-<div id="shop-toggle">🛒 商店</div>
-<div id="shop">
-  <h3>🛒 皮肤商店</h3>
-  <div class="shop-balance" id="shop-balance">🪙 0</div>
-  <div id="skin-list"></div>
-</div>
+<!-- Shop now integrated into main menu -->
 
 <div id="back"><a href="../index.html">← 返回合集</a></div>
 
@@ -143,8 +136,7 @@ const finalBest=overlay.querySelector('.final-best');
 const finalRank=overlay.querySelector('.final-rank');
 const subEl=overlay.querySelector('.sub');
 const hintEl=document.getElementById('hint'),flashEl=document.getElementById('flash');
-const shopToggle=document.getElementById('shop-toggle'),shopPanel=document.getElementById('shop');
-const skinList=document.getElementById('skin-list'),shopBalance=document.getElementById('shop-balance');
+const skinList=document.getElementById('main-skin-list'),shopBalance=document.getElementById('main-shop-balance');
 
 // ==================== 皮肤系统 ====================
 const SKINS=[
@@ -194,7 +186,7 @@ function applySkin(skinId){
 
 function renderShop(){
   skinList.innerHTML='';
-  shopBalance.textContent='🪙 '+coins;
+  shopBalance.textContent='💰 '+totalCoins;
   SKINS.forEach(skin=>{
     const owned=ownedSkins.includes(skin.id);
     const equipped=equippedSkin===skin.id;
@@ -210,26 +202,20 @@ function renderShop(){
       if(equipped)return;
       if(owned){
         equippedSkin=skin.id;saveEquippedSkin(skin.id);applySkin(skin.id);renderShop();
-      }else if(coins>=skin.price){
-        coins-=skin.price;ownedSkins.push(skin.id);saveOwnedSkins(ownedSkins);
+      }else if(totalCoins>=skin.price){
+        totalCoins-=skin.price;localStorage.setItem('nr_total_coins',totalCoins);
+        ownedSkins.push(skin.id);saveOwnedSkins(ownedSkins);
         equippedSkin=skin.id;saveEquippedSkin(skin.id);applySkin(skin.id);
-        coinsEl.textContent='🪙 '+coins;renderShop();
+        coinsEl.textContent='🪙 +'+coins+' | 💰'+totalCoins;renderShop();
       }
     });
     skinList.appendChild(div);
   });
 }
 
-let shopOpen=false;
-shopToggle.addEventListener('click',()=>{
-  shopOpen=!shopOpen;
-  shopPanel.classList.toggle('open',shopOpen);
-  shopToggle.classList.toggle('shifted',shopOpen);
-  if(shopOpen)renderShop();
-});
-
+// 主菜单商店始终可见（在 name-overlay 内）
 function showCoinEarned(earned){
-  finalCoins.textContent='🪙 +'+earned+' (余额: '+coins+')';
+  finalCoins.textContent='🪙 +'+earned+' (余额: '+totalCoins+')';
 }
 
 
@@ -475,6 +461,7 @@ const GRAVITY=30,JUMP_VEL=12,SLIDE_DURATION=.55,PLAYER_Y=1;
 // ==================== Game State ====================
 let state='WAITING',bestScore=0;
 let score=0,coins=0,combo=0,comboTimer=0;
+let totalCoins=parseInt(localStorage.getItem('nr_total_coins'))||0;
 let speed=14;
 let lane=1,targetX=LANE_X[1];
 let playerVelY=0,playerY=PLAYER_Y;
@@ -651,7 +638,7 @@ function initWorld(){
 function resetGame(){
   score=0;coins=0;combo=0;comboTimer=0;speed=14;
   spawnTimer=0;coinTimer=0;difficultyTimer=0;
-  scoreEl.textContent='0';coinsEl.textContent='🪙 0';
+  scoreEl.textContent='0';coinsEl.textContent='🪙 +0 | 💰'+totalCoins;
   comboEl.textContent='';comboEl.classList.remove('show');speedEl.textContent='';
   nameHud.textContent=playerName;
   ownedSkins=getOwnedSkins();equippedSkin=getEquippedSkin();
@@ -681,11 +668,13 @@ function gameOver(){
 
   const pts=Math.floor(score);
   const earned=coins;
+  totalCoins+=earned;
+  localStorage.setItem('nr_total_coins',totalCoins);
   if(pts>bestScore){bestScore=pts;if(playerName)localStorage.setItem('nr_best_'+playerName,bestScore);}
 
   finalScore.textContent='得分: '+pts;
   finalScore.style.display='block';
-  showCoinEarned(earned);
+  finalCoins.textContent='🪙 +'+earned+' (总余额: '+totalCoins+')';
   finalCoins.style.display='block';
   finalBest.textContent='最高分: '+bestScore;
   finalBest.style.display='block';
@@ -695,7 +684,6 @@ function gameOver(){
   overlay.classList.remove('hidden');
   hintEl.style.display='none';
   flashEl.classList.add('pop');setTimeout(()=>flashEl.classList.remove('pop'),150);
-  if(shopOpen)renderShop();
 }
 
 function startGame(){
@@ -798,7 +786,7 @@ function update(dt){
     c.mesh.position.y=c.baseY+Math.sin(animTime*6+c.mesh.position.x)*.25;c.mesh.rotation.z+=realDt*4;c.glow.position.y=c.mesh.position.y;
     if(Math.abs(playerGroup.position.x-c.mesh.position.x)<.7&&Math.abs(playerGroup.position.z-c.mesh.position.z)<.6&&Math.abs(playerY-c.mesh.position.y)<1.5){
       scene.remove(c.mesh);scene.remove(c.glow);coinItems.splice(i,1);
-      coins++;combo++;comboTimer=2;coinsEl.textContent='🪙 '+coins;score+=10+combo*2;
+      coins++;combo++;comboTimer=2;coinsEl.textContent='🪙 +'+coins+' | 💰'+totalCoins;score+=10+combo*2;
       burstParticles(c.mesh.position.x,c.mesh.position.y,c.mesh.position.z,'#ffd740',8);
     }
   }
