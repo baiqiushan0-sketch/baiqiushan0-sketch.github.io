@@ -141,40 +141,58 @@ const hintEl=document.getElementById('hint'),flashEl=document.getElementById('fl
 const lbToggle=document.getElementById('lb-toggle'),leaderboard=document.getElementById('leaderboard');
 const lbList=document.getElementById('lb-list'),lbEmpty=document.getElementById('lb-empty');
 
-// ==================== Leaderboard (localStorage) ====================
-const LB_KEY='neon_runner_leaderboard';
+// ==================== Leaderboard (在线云同步 + 本地缓存) ====================
+const LB_API='https://jsonblob.com/api/jsonBlob/019ec211-5932-72f4-ad3a-1c6be43f3de3';
+const LB_KEY='neon_runner_lb_local';
 const LB_MAX=20;
 let playerName='';
 let lbOpen=false;
+let lbCache=null;
 
-function loadLB(){
+async function loadLB(){
   try{
-    let lb=JSON.parse(localStorage.getItem(LB_KEY))||[];
-    // 去重：同名只保留最高分（清理旧数据+防止重复）
+    const res=await fetch(LB_API);
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const data=await res.json();
+    if(!Array.isArray(data))return[];
+    let lb=data;
+    // 去重：同名只保留最高分
     const map=new Map();
     for(const e of lb){
       const prev=map.get(e.name);
       if(!prev||e.score>prev.score)map.set(e.name,e);
     }
     const dedup=Array.from(map.values());
-    if(dedup.length!==lb.length)saveLB(dedup); // 有变化才写回
+    if(dedup.length!==lb.length)saveLB(dedup);
+    localStorage.setItem(LB_KEY,JSON.stringify(dedup));
+    lbCache=dedup;
     return dedup;
-  }catch(e){return[];}
-}
-function saveLB(data){localStorage.setItem(LB_KEY,JSON.stringify(data));}
-function addScore(name,pts,coinCount){
-  const lb=loadLB();
-  const newScore=Math.floor(pts);
-  // 同名只保留最高分
-  const exist=lb.find(e=>e.name===name);
-  if(exist){
-    if(newScore>exist.score){
-      exist.score=newScore;exist.coins=coinCount;exist.time=Date.now();
-    }
-  }else{
-    lb.push({name,score:newScore,coins:coinCount,time:Date.now()});
+  }catch(e){
+    console.warn('云端排行榜读取失败，用本地缓存:',e.message);
+    try{return JSON.parse(localStorage.getItem(LB_KEY))||[];}catch{return[];}
   }
+}
+async function saveLB(data){
+  const top=data.sort((a,b)=>b.score-a.score).slice(0,LB_MAX);
+  lbCache=top;
+  localStorage.setItem(LB_KEY,JSON.stringify(top));
+  try{
+    await fetch(LB_API,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(top)});
+  }catch(e){console.warn('云端排行榜写入失败:',e.message);}
+}
+async function addScore(name,pts,coinCount){
+  const lb=await loadLB();
+  const newScore=Math.floor(pts);
+  const exist=lb.find(e=>e.name===name);
+  if(exist){if(newScore>exist.score){exist.score=newScore;exist.coins=coinCount;exist.time=Date.now();}}
+  else{lb.push({name,score:newScore,coins:coinCount,time:Date.now()});}
   lb.sort((a,b)=>b.score-a.score);
+  await saveLB(lb);
+  return lb.slice(0,LB_MAX).findIndex(e=>e.name===name&&e.score===newScore);
+}
+
+async function renderLB(highlightName){
+  const lb=await loadLB();
   const top=lb.slice(0,LB_MAX);
   saveLB(top);
   return top.findIndex(e=>e.name===name&&e.score===newScore);
@@ -642,13 +660,13 @@ function checkCollision(ob){
 }
 
 // ==================== Game Flow ====================
-function gameOver(){
+async function gameOver(){
   state='OVER';
   burstParticles(playerGroup.position.x,playerY,playerGroup.position.z,'#ff4081',40);
   burstParticles(playerGroup.position.x,playerY,playerGroup.position.z,'#00e5ff',20);
 
   const pts=Math.floor(score);
-  const rank=addScore(playerName||'无名',pts,coins);
+  const rank=await addScore(playerName||'无名',pts,coins);
   if(pts>bestScore)bestScore=pts;
 
   finalScore.textContent='得分: '+pts;
@@ -664,7 +682,7 @@ function gameOver(){
   overlay.classList.remove('hidden');
   hintEl.style.display='none';
   flashEl.classList.add('pop');setTimeout(()=>flashEl.classList.remove('pop'),150);
-  renderLB(playerName);
+  await renderLB(playerName);
 }
 
 function startGame(){
@@ -681,7 +699,7 @@ changeNameBtn.addEventListener('click',()=>{
 });
 
 // ==================== Name Input ====================
-nameBtn.addEventListener('click',()=>{
+nameBtn.addEventListener('click',async ()=>{
   const n=nameInput.value.trim();
   if(!n||n.length<1){nameErr.textContent='请输入名字';nameErr.style.display='block';return;}
   if(n.length>12){nameErr.textContent='名字最多12个字';nameErr.style.display='block';return;}
@@ -690,7 +708,7 @@ nameBtn.addEventListener('click',()=>{
   nameOverlay.classList.add('hidden');
   nameHud.textContent=playerName;
   bestScore=0;
-  const lb=loadLB();
+  const lb=await loadLB();
   for(const e of lb)if(e.name===playerName&&e.score>bestScore)bestScore=e.score;
   startGame();
 });
