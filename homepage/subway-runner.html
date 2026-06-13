@@ -188,13 +188,13 @@ function spawnObstacle(){
 
   let h,w,mat;
   if(type==='low'){
-    // 低障碍：高0.6，中心0.3 → 占据y=0~0.6，用跳跃躲避
+    // 低障碍：高0.6，中心0.3 → 占据y=0~0.6，✅跳跃可过 ❌下滑撞
     h=.6;w=.7;mat=matObstacle;
   }else if(type==='high'){
-    // 高障碍：高1.6，中心1.5 → 占据y=0.7~2.3，用下滑躲避
-    h=1.6;w=.7;mat=matObstacleHigh;
+    // 高障碍：高1.4，中心1.6 → 占据y=0.9~2.3，✅下滑可过 ❌跳跃撞
+    h=1.4;w=.7;mat=matObstacleHigh;
   }else{
-    // 路障：高2.0，中心1.0 → 占据y=0~2.0，用切道躲避
+    // 路障：高2.0，中心1.0 → 占据y=0~2.0，✅切道可避 ❌跳跃/下滑均撞
     h=2.0;w=.7;mat=matObstacle;
   }
 
