@@ -114,6 +114,12 @@ body{background:#0a0a14;overflow:hidden;touch-action:none;user-select:none;-webk
 <div id="leaderboard">
   <h3>🏆 排行榜 TOP 20</h3>
   <ul id="lb-list"><li id="lb-empty">暂无记录，成为第一个！</li></ul>
+  <div style="margin-top:14px;padding-top:10px;border-top:1px solid rgba(255,255,255,.05)">
+    <div style="font-size:.55rem;color:rgba(255,255,255,.15);margin-bottom:4px">☁️ 在线同步（仅拥有者设置一次即可）</div>
+    <input id="lb-token-input" type="password" placeholder="GitHub Token (gist scope)" style="width:100%;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);color:#ccc;padding:5px 8px;font-size:.55rem;border-radius:4px;font-family:monospace;margin-bottom:3px">
+    <button id="lb-token-save" style="width:100%;padding:4px;font-size:.55rem;background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.15);color:#00e5ff;border-radius:4px;cursor:pointer">💾 保存并开启在线同步</button>
+    <div id="lb-token-status" style="font-size:.5rem;color:rgba(255,255,255,.12);margin-top:3px"></div>
+  </div>
 </div>
 
 <div id="back"><a href="../index.html">← 返回合集</a></div>
@@ -142,7 +148,9 @@ const lbToggle=document.getElementById('lb-toggle'),leaderboard=document.getElem
 const lbList=document.getElementById('lb-list'),lbEmpty=document.getElementById('lb-empty');
 
 // ==================== Leaderboard (在线云同步 + 本地缓存) ====================
-const LB_API='https://jsonblob.com/api/jsonBlob/019ec211-5932-72f4-ad3a-1c6be43f3de3';
+const LB_GIST='0cb0cecdd34884ac334c513ffb513125';
+const LB_READ_API=`https://api.github.com/gists/${LB_GIST}`;
+let LB_TOKEN=localStorage.getItem('neon_runner_lb_token')||'';
 const LB_KEY='neon_runner_lb_local';
 const LB_MAX=20;
 let playerName='';
@@ -151,11 +159,13 @@ let lbCache=null;
 
 async function loadLB(){
   try{
-    const res=await fetch(LB_API);
+    const res=await fetch(LB_READ_API);
     if(!res.ok)throw new Error('HTTP '+res.status);
-    const data=await res.json();
-    if(!Array.isArray(data))return[];
-    let lb=data;
+    const gist=await res.json();
+    const raw=gist.files&&gist.files['leaderboard.json']&&gist.files['leaderboard.json'].content;
+    if(!raw)return[];
+    let lb=JSON.parse(raw);
+    if(!Array.isArray(lb))return[];
     // 去重：同名只保留最高分
     const map=new Map();
     for(const e of lb){
@@ -176,9 +186,14 @@ async function saveLB(data){
   const top=data.sort((a,b)=>b.score-a.score).slice(0,LB_MAX);
   lbCache=top;
   localStorage.setItem(LB_KEY,JSON.stringify(top));
-  try{
-    await fetch(LB_API,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(top)});
-  }catch(e){console.warn('云端排行榜写入失败:',e.message);}
+  if(LB_TOKEN){
+    try{
+      await fetch(LB_READ_API,{method:'PATCH',
+        headers:{'Authorization':'Bearer '+LB_TOKEN,'Content-Type':'application/json'},
+        body:JSON.stringify({files:{'leaderboard.json':{content:JSON.stringify(top)}}})
+      });
+    }catch(e){console.warn('云端排行榜写入失败:',e.message);}
+  }
 }
 async function addScore(name,pts,coinCount){
   const lb=await loadLB();
@@ -212,6 +227,19 @@ function renderLB(highlightName){
   });
 }
 function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+
+// Token management
+const lbTokenInput=document.getElementById('lb-token-input');
+const lbTokenSave=document.getElementById('lb-token-save');
+const lbTokenStatus=document.getElementById('lb-token-status');
+if(LB_TOKEN){lbTokenInput.value=LB_TOKEN;lbTokenStatus.textContent='✅ 在线同步已启用';}
+lbTokenSave.addEventListener('click',()=>{
+  const t=lbTokenInput.value.trim();
+  if(!t){LB_TOKEN='';localStorage.removeItem('neon_runner_lb_token');lbTokenStatus.textContent='';return;}
+  LB_TOKEN=t;localStorage.setItem('neon_runner_lb_token',t);
+  lbTokenStatus.textContent='✅ 已保存！在线同步已启用';
+  setTimeout(()=>{lbTokenStatus.textContent='✅ 在线同步已启用';},2000);
+});
 
 // Leaderboard toggle
 lbToggle.addEventListener('click',()=>{
