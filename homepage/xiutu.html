@@ -131,11 +131,28 @@ const EQUIP_TEMPLATES=[{n:'铁剑',atk:5,icon:'🗡️',cost:80},{n:'青锋剑',
   {n:'斩龙刀',atk:50,icon:'🔪',cost:600},{n:'玄铁重剑',atk:120,icon:'⛏️',cost:1500},
   {n:'名刀·离',atk:300,icon:'🗡️',cost:4000},{n:'人皇剑',atk:800,icon:'👑',cost:15000}];
 
-const CELL_TYPES={train:{icon:'🧘',n:'修炼点',desc:'获得修为'},enemy:{icon:'👹',n:'敌人',desc:'遭遇战斗'},
-  treasure:{icon:'📦',n:'宝箱',desc:'随机奖励'},shop:{icon:'🏪',n:'行脚商',desc:'购买物品'},
-  secret:{icon:'🏛️',n:'秘境',desc:'探索秘境'},boss:{icon:'💀',n:'BOSS',desc:'强敌'},
-  beast:{icon:'🐾',n:'灵兽',desc:'发现灵兽'},equip:{icon:'🗡️',n:'装备',desc:'获得装备'},
-  skill:{icon:'📜',n:'功法',desc:'习得功法'},empty:{icon:'·',n:'空地',desc:''}};
+const CELL_TYPES={
+  train:{icon:'🧘',n:'修炼点',desc:'灵气充沛之地，适合修炼'},
+  enemy:{icon:'👹',n:'妖兽',desc:'前方有妖兽出没'},
+  treasure:{icon:'📦',n:'宝箱',desc:'不知何人遗留的宝箱'},
+  shop:{icon:'🏪',n:'行脚商',desc:'游历四方的行脚商人'},
+  secret:{icon:'🏛️',n:'秘境',desc:'上古修士遗留的洞府秘境'},
+  boss:{icon:'💀',n:'守护者',desc:'此层的镇守BOSS'},
+  beast:{icon:'🐾',n:'灵兽',desc:'一只灵兽在此徘徊'},
+  equip:{icon:'🗡️',n:'遗物',desc:'前人留下的兵器'},
+  skill:{icon:'📜',n:'功法碑',desc:'刻有功法口诀的石碑'},
+  adventure:{icon:'🎲',n:'奇遇',desc:'意想不到的事情发生了'},
+  legacy:{icon:'🏛️',n:'传承',desc:'远古大能的传承之地'},
+  partner:{icon:'💕',n:'道侣',desc:'一位修士在此等候'},
+  furnace:{icon:'🧪',n:'炼丹炉',desc:'一座古老的炼丹炉'},
+  mine:{icon:'⛏️',n:'灵矿脉',desc:'裸露的灵石矿脉'},
+  spring:{icon:'🌊',n:'灵泉',desc:'涌动着灵气的泉水'},
+  ruin:{icon:'🏚️',n:'遗迹',desc:'远古宗门的废墟'},
+  tribulation:{icon:'⚡',n:'渡劫台',desc:'古人渡劫留下的法台'},
+  stele:{icon:'📖',n:'悟道碑',desc:'刻满大道符文的古碑'},
+  garden:{icon:'🌿',n:'药园',desc:'野生灵药生长的园圃'},
+  demon:{icon:'👺',n:'心魔',desc:'内心深处的执念所化'},
+  empty:{icon:'·',n:'空地',desc:''}};
 
 // ==================== 玩家 ====================
 let P={name:'无名修士',realm:0,exp:0,hp:40,maxHp:40,atk:2,def:1,gold:100,
@@ -167,14 +184,12 @@ function healAfterBattle(){if(P.path==='body')return.3;if(P.beastDeployed&&P.bea
 
 // ==================== 地图生成 ====================
 function genMap(){
-  P.mapCells=[];const types=Object.keys(CELL_TYPES).filter(t=>t!=='empty');
-  for(let i=0;i<600;i++){
-    let type;const r=Math.random();
-    if(r<.25)type='train';else if(r<.45)type='enemy';else if(r<.55)type='treasure';
-    else if(r<.62)type='shop';else if(r<.7)type='secret';else if(r<.73)type='beast';
-    else if(r<.78)type='equip';else if(r<.82)type='skill';else type='train';
-    // Boss every 15-20 cells
-    if(i>0&&i%18===0)type='boss';
+  P.mapCells=[];
+  const pool=['train','train','enemy','enemy','treasure','shop','secret','beast','equip','skill',
+    'adventure','legacy','partner','furnace','mine','spring','ruin','tribulation','stele','garden','demon'];
+  for(let i=0;i<800;i++){
+    let type=pool[Math.floor(Math.random()*pool.length)];
+    if(i>0&&i%20===0)type='boss';
     P.mapCells.push({type,done:false});
   }
 }
@@ -234,17 +249,15 @@ function moveTo(idx){
 
 function encounter(idx){
   const c=cellAt(idx);if(c.done)return;
-  switch(c.type){
-    case'train':doTrain(idx);break;
-    case'enemy':doBattle(idx);break;
-    case'treasure':doTreasure(idx);break;
-    case'shop':doShopEnc(idx);break;
-    case'secret':doSecret(idx);break;
-    case'boss':doBoss(idx);break;
-    case'beast':doBeastEnc(idx);break;
-    case'equip':doEquipEnc(idx);break;
-    case'skill':doSkillEnc(idx);break;
-  }
+  const handlers={
+    train:doTrain,enemy:doBattle,treasure:doTreasure,shop:doShopEnc,secret:doSecret,
+    boss:doBoss,beast:doBeastEnc,equip:doEquipEnc,skill:doSkillEnc,
+    adventure:doAdventure,legacy:doLegacy,partner:doPartner,furnace:doFurnace,
+    mine:doMine,spring:doSpring,ruin:doRuin,tribulation:doTribulation,
+    stele:doStele,garden:doGarden,demon:doDemon
+  };
+  if(handlers[c.type])handlers[c.type](idx);
+  else doTrain(idx);
 }
 
 // ==================== 事件 ====================
@@ -373,6 +386,116 @@ function doSkillEnc(idx){
     {text:'离开',cls:'',fn:()=>{completeCell(idx);renderMap();}}]);
 }
 
+// ==================== 新增事件 ====================
+function story(title,text,buttons){showModal(title,`<p style="line-height:2;text-align:left">${text}</p>`,buttons);}
+function rand(min,max){return Math.floor(min+Math.random()*(max-min+1));}
+
+function doAdventure(idx){
+  const events=[
+    {t:'悬崖奇遇',p:'你行至一处悬崖边，发现崖壁上刻着古老的符文。仔细辨认后，竟是一篇残缺的修炼心得。<br><br>你盘膝而坐，按照符文所述运转灵力…',b:[{t:'潜心参悟',fn:()=>{const e=rand(40,120)*expBonus();P.exp+=e;showToast(`参悟 +${nval(e)}修为`);}},{t:'抄录带走',fn:()=>{P.gold+=rand(30,80);showToast(`卖了抄本 +${nval(P.gold)}💎`);}}]},
+    {t:'山洞探险',p:'你发现一个隐蔽的山洞，洞中有微弱的灵光闪烁。深入后看见一具骸骨，旁边放着一封遗书和一个储物袋。<br><br>遗书写道："吾乃散修，寿元将尽，留此机缘于有缘人。"',b:[{t:'取储物袋',fn:()=>{const g=rand(50,200);P.gold+=g;showToast(`遗物 +${nval(g)}💎`);}},{t:'安葬骸骨',fn:()=>{P.exp+=rand(60,150)*expBonus();showToast(`善举 +${nval(rand(60,150)*expBonus())}修为`);}}]},
+    {t:'天降流星',p:'一道流星划破天际，坠落在不远处。你赶过去查看，发现是一块天外陨铁，散发着奇异的光芒。<br><br>陨铁表面刻着看不懂的文字，但蕴含着强大的灵力。',b:[{t:'吸收灵力',fn:()=>{const e=rand(80,200)*expBonus();P.exp+=e;showToast(`吸收 +${nval(e)}修为`);}},{t:'炼化成器',fn:()=>{const eq=EQUIP_TEMPLATES[Math.min(5,Math.floor(rand(2,5)))];if(!P.bag)P.bag=[];P.bag.push({...eq,type:'weapon'});showToast(`炼成 ${eq.n}`);}}]},
+    {t:'迷路老者',p:'一位白发苍苍的老者拦住你的去路，自称是某派太上长老，因走火入魔而迷失方向。<br><br>他请求你护送他到最近的传送阵，承诺必有重谢。',b:[{t:'欣然护送',fn:()=>{const e=rand(30,100)*expBonus();P.exp+=e;P.gold+=rand(40,120);showToast(`谢礼 +${nval(e)}修 +${nval(P.gold)}💎`);}},{t:'婉拒离开',fn:()=>{showToast('你继续前行');}}]},
+    {t:'拍卖大会',p:'你路过一座仙城，正赶上一年一度的修仙拍卖大会。修士们云集于此，各种奇珍异宝令人眼花缭乱。<br><br>一位神秘卖家拿出一件压轴宝物——一枚丹药，号称可助人突破瓶颈。',b:[{t:'竞拍丹药 (💎200)',fn:()=>{if(P.gold>=200){P.gold-=200;const e=Math.floor(nrd().exp*.3)*expBonus();P.exp+=e;showToast(`丹药 +${nval(e)}修为`);}else showToast('灵石不足');}},{t:'看看就好',fn:()=>{P.exp+=rand(10,30)*expBonus();showToast('开眼界 +少量修为');}}]},
+  ];
+  const e=events[rand(0,events.length-1)];
+  story(`🎲 ${e.t}`,`<em>第${P.currentLayer+1}层 · 奇遇</em><br><br>${e.p}`,e.b.map(b=>({text:b.t,cls:'pri',fn:()=>{b.fn();completeCell(idx);renderMap();}})));
+}
+
+function doLegacy(idx){
+  const e=rand(0,2);
+  if(e===0){
+    story('🏛️ 远古传承',`<em>第${P.currentLayer+1}层 · 传承之地</em><br><br>你踏入一座古墓，正中悬浮着一团金色光球。一道苍老的声音在脑海中响起：<br><br>"吾乃上古真仙，留此传承于有缘人。接受传承，可获得吾毕生所学。"<br><br>光球中蕴含着磅礴的灵力与功法传承。`,
+      [{text:'接受传承',cls:'pri',fn:()=>{const ee=rand(150,500)*expBonus();P.exp+=ee;if(!P.equippedSkills)P.equippedSkills=[];const s=SKILLS[rand(3,SKILLS.length-1)];if(!P.equippedSkills.find(es=>es.n===s.n))P.equippedSkills.push({...s,lvl:1});showToast(`传承！+${nval(ee)}修 + ${s.n}`);completeCell(idx);renderMap();}},
+       {text:'谨慎退后',cls:'',fn:()=>{showToast('你选择了谨慎');completeCell(idx);renderMap();}}]);
+  }else if(e===1){
+    story('🏛️ 剑仙传承',`<em>第${P.currentLayer+1}层 · 万剑冢</em><br><br>你误入一处剑冢，无数残剑插在地上。中央有一柄通体晶莹的长剑，剑身刻着"诛仙"二字。<br><br>剑气纵横，似乎在挑选它的主人…`,
+      [{text:'尝试拔剑',cls:'pri',fn:()=>{if(rand(0,100)<40+effAtk()/10){const eq={n:'诛仙剑',atk:rand(200,500),icon:'🗡️',type:'weapon'};if(!P.bag)P.bag=[];P.bag.push(eq);showToast('拔出诛仙剑！');}else{P.hp=Math.floor(P.hp*.6);showToast('剑气反噬…受伤');}completeCell(idx);renderMap();}},
+       {text:'敬畏离开',cls:'',fn:()=>{P.exp+=rand(30,80)*expBonus();showToast('感悟剑气');completeCell(idx);renderMap();}}]);
+  }else{
+    story('🏛️ 丹圣遗府',`<em>第${P.currentLayer+1}层 · 丹圣洞府</em><br><br>你发现了一座上古丹圣的洞府。丹炉尚有余温，架上还有几枚完好的丹药和一张丹方。<br><br>丹方上写着能永久提升属性的秘法…`,
+      [{text:'服用丹药',cls:'pri',fn:()=>{const t=rand(0,2);if(t===0){P.permAtk+=rand(5,20);showToast(`永攻+${P.permAtk}`);}else if(t===1){P.permDef+=rand(3,10);showToast(`永防+${P.permDef}`);}else{P.permHp+=rand(20,80);showToast(`永血+${P.permHp}`);}completeCell(idx);renderMap();}},
+       {text:'抄录丹方',cls:'ok',fn:()=>{P.exp+=rand(50,150)*expBonus();showToast('丹方感悟');completeCell(idx);renderMap();}}]);
+  }
+}
+
+function doPartner(idx){
+  const names=['素衣女修','青衫剑客','红衣仙子','玄衣道姑','白衣书生'];
+  const n=names[rand(0,names.length-1)];
+  story('💕 道侣奇缘',`<em>第${P.currentLayer+1}层 · 邂逅</em><br><br>你在山间小径遇到一位${n}，正在被妖兽围攻。你出手相助，击退了妖兽。<br><br>${n}感激地看着你："多谢道友相救！我观道友修为精深，不如结伴同行，也好有个照应。"<br><br>修仙之路漫长，有同道相伴或许能走得更远…`,
+    [{text:'结伴同行',cls:'pri',fn:()=>{const b=rand(10,30);P.permAtk+=b;P.permDef+=Math.floor(b/2);P.exp+=rand(50,200)*expBonus();showToast(`道侣加成！永攻+${b} 永防+${Math.floor(b/2)}`);completeCell(idx);renderMap();}},
+     {text:'婉言谢绝',cls:'',fn:()=>{P.gold+=rand(20,60);showToast(`${n}留下谢礼后离去`);completeCell(idx);renderMap();}}]);
+}
+
+function doFurnace(idx){
+  const recipes=['聚灵丹','淬体丹','回春丹','破境丹'];
+  const r=recipes[rand(0,recipes.length-1)];
+  story('🧪 炼丹炉',`<em>第${P.currentLayer+1}层 · 古炼丹炉</em><br><br>你发现一座古老的炼丹炉，炉火居然还在燃烧。旁边放着几份药材和一本泛黄的丹方，正是炼制<strong>${r}</strong>的配方。<br><br>你按照丹方所述，将药材投入炉中…`,
+    [{text:'开炉炼丹',cls:'pri',fn:()=>{if(rand(0,100)<70){const e=rand(60,200)*expBonus();P.exp+=e;P.hp=Math.min(effMaxHp(),P.hp+rand(50,200));showToast(`炼丹成功！+${nval(e)}修 恢复气血`);}else{showToast('丹炉炸了…但获得经验');P.exp+=rand(20,60)*expBonus();}completeCell(idx);renderMap();}},
+     {text:'取走丹方',cls:'ok',fn:()=>{P.exp+=rand(30,100)*expBonus();showToast('研究丹方');completeCell(idx);renderMap();}}]);
+}
+
+function doMine(idx){
+  const g=rand(30,150);const r=rand(0,100);
+  let msg='';if(r<30){P.gold+=g;msg=`挖到灵石 +${nval(g)}💎`;}
+  else if(r<70){P.gold+=Math.floor(g*1.5);msg=`发现富矿！+${nval(Math.floor(g*1.5))}💎`;}
+  else{const eq=EQUIP_TEMPLATES[rand(0,3)];if(!P.bag)P.bag=[];P.bag.push({...eq,type:'weapon'});msg=`挖出古物！${eq.n}`;}
+  story('⛏️ 灵矿脉',`<em>第${P.currentLayer+1}层 · 矿脉</em><br><br>你发现一处裸露的灵石矿脉，闪烁着诱人的光芒。<br><br>你抡起法器开始挖掘…矿脉中不仅有灵石，偶尔还能挖到前人遗留的古物。<br><br>${msg}`, [{text:'继续上路',cls:'pri',fn:()=>{showToast(msg);completeCell(idx);renderMap();}}]);
+}
+
+function doSpring(idx){
+  const heal=Math.floor(effMaxHp()*.5+rand(0,effMaxHp()*.3));
+  P.hp=Math.min(effMaxHp(),P.hp+heal);
+  const buff=rand(0,2);let buffMsg='';if(buff===0){P.permAtk+=rand(3,10);buffMsg='攻击力+'+P.permAtk;}else if(buff===1){P.permDef+=rand(2,6);buffMsg='防御力+'+P.permDef;}else{P.permHp+=rand(10,40);buffMsg='气血+'+P.permHp;}
+  story('🌊 灵泉',`<em>第${P.currentLayer+1}层 · 灵泉</em><br><br>你发现一处涌动着灵气的泉眼，泉水清澈见底，散发着淡淡的光辉。<br><br>你捧起泉水饮下，一股暖流涌入四肢百骸，旧伤尽愈，体质也有所增强。<br><br>❤️ 恢复 ${nval(heal)} 气血<br>⬆ ${buffMsg}`,[{text:'继续前行',cls:'pri',fn:()=>{showToast('灵泉滋养！');completeCell(idx);renderMap();}}]);
+}
+
+function doRuin(idx){
+  const r=rand(0,2);
+  if(r===0){
+    story('🏚️ 远古遗迹',`<em>第${P.currentLayer+1}层 · 废墟</em><br><br>你踏入一片废墟，断壁残垣间依稀可见昔日大宗门的气派。你在瓦砾中翻找…<br><br>发现一块完整的玉简，里面记载着上古时期的修炼心得。`, [{text:'研读玉简',cls:'pri',fn:()=>{const e=rand(80,250)*expBonus();P.exp+=e;showToast(`研读 +${nval(e)}修`);completeCell(idx);renderMap();}},{text:'寻找更多',cls:'ok',fn:()=>{P.gold+=rand(40,120);showToast(`搜刮 +💎`);completeCell(idx);renderMap();}}]);
+  }else if(r===1){
+    story('🏚️ 藏经阁残址',`<em>第${P.currentLayer+1}层 · 藏经阁</em><br><br>你发现一座半塌的藏经阁，大部分典籍已经腐朽。但在最深处，你找到一本保存完好的功法秘籍！`,[{text:'学习秘籍',cls:'pri',fn:()=>{const s=SKILLS[rand(1,SKILLS.length-1)];if(!P.equippedSkills)P.equippedSkills=[];if(!P.equippedSkills.find(es=>es.n===s.n))P.equippedSkills.push({...s,lvl:1});showToast(`习得 ${s.n}`);completeCell(idx);renderMap();}},{text:'搜索宝物',cls:'ok',fn:()=>{const eq=EQUIP_TEMPLATES[rand(2,4)];if(!P.bag)P.bag=[];P.bag.push({...eq,type:'weapon'});showToast(`发现 ${eq.n}`);completeCell(idx);renderMap();}}]);
+  }else{
+    story('🏚️ 古传送阵',`<em>第${P.currentLayer+1}层 · 传送阵</em><br><br>你在废墟中发现一座半损毁的传送阵。传送符纹尚在微微发光，似乎还能使用。<br><br>也许它能将你传送到更远的层数，但也可能传送到危险之地…`,[{text:'激活传送(前进5-15层)',cls:'pri',fn:()=>{const skip=rand(5,15);P.playerPos+=skip*5;P.currentLayer=Math.floor(P.playerPos/5);showToast(`传送！前进${skip}层`);completeCell(idx);renderMap();}},{text:'修复阵法(+修为)',cls:'ok',fn:()=>{P.exp+=rand(100,300)*expBonus();showToast('研究阵法');completeCell(idx);renderMap();}}]);
+  }
+}
+
+function doTribulation(idx){
+  if(P.realm<3){showToast('修为不够，无法引动天劫');completeCell(idx);renderMap();return;}
+  story('⚡ 渡劫台',`<em>第${P.currentLayer+1}层 · 渡劫</em><br><br>你发现一座古老的渡劫台，台上的雷击痕迹诉说着无数修士在此与天争命的往事。<br><br>台上残留的雷劫之力可以引动小天劫。若能扛过，修为大增；若失败，也会有所感悟。<br><br>⚠️ 当前境界: ${rd().n} | 成功率约${60+P.realm*2}%`,[
+    {text:'引动天劫！',cls:'dan',fn:()=>{const ok=rand(0,100)<(60+P.realm*2);if(ok){const e=rand(200,600)*expBonus();P.exp+=e;const nr=nrd();if(!isMax()&&P.exp>=nr.exp){P.realm++;P.atk=nr.atk;P.def=nr.def;P.maxHp=nr.hp;P.hp=nr.hp;showToast(`⚡ 突破！→ ${nr.n}`);}showToast(`渡劫成功！+${nval(e)}修`);}else{P.hp=Math.floor(P.hp*.4);P.exp+=rand(50,150)*expBonus();showToast('渡劫失败…但有所感悟');}completeCell(idx);renderMap();}},
+    {text:'谨慎离开',cls:'',fn:()=>{showToast('你选择稳妥修行');completeCell(idx);renderMap();}}]);
+}
+
+function doStele(idx){
+  story('📖 悟道碑',`<em>第${P.currentLayer+1}层 · 古碑</em><br><br>你看到一块巨大的古碑，上面刻满了深奥的大道符文。碑文散发着淡淡的光芒，仿佛在诉说着天地至理。<br><br>你凝神细看，心神沉浸其中…<br><br>不知不觉中，你对修炼之道有了更深的理解。`,[
+    {text:'深度参悟 (+修为)',cls:'pri',fn:()=>{const e=rand(100,300)*expBonus();P.exp+=e;showToast(`参悟 +${nval(e)}修`);completeCell(idx);renderMap();}},
+    {text:'临摹碑文 (+灵石)',cls:'ok',fn:()=>{P.gold+=rand(60,180);showToast('临摹变卖');completeCell(idx);renderMap();}}]);
+}
+
+function doGarden(idx){
+  const herbs=['百年灵芝','千年人参','龙涎草','凤凰花','天星草','血菩提'];
+  const h=herbs[rand(0,herbs.length-1)];
+  const g=rand(1,3);
+  if(!P.bag)P.bag=[];
+  P.bag.push({n:h,icon:'🌿',type:'mat'});
+  if(g>1)P.bag.push({n:h,icon:'🌿',type:'mat'});
+  story('🌿 药园',`<em>第${P.currentLayer+1}层 · 药园</em><br><br>你发现一片隐秘的药园，各种灵药在此生长。其中最引人注目的是<strong>${h}</strong>×${g}。<br><br>这些灵药年份不短，药力充沛，可用于炼丹或直接服用。`,
+    [{text:'采集灵药',cls:'pri',fn:()=>{showToast(`采集 ${h}×${g}`);completeCell(idx);renderMap();}},
+     {text:'就地服用',cls:'ok',fn:()=>{const e=rand(40,120)*expBonus();P.exp+=e;P.hp=Math.min(effMaxHp(),P.hp+rand(30,100));showToast(`服用 +${nval(e)}修 恢复气血`);completeCell(idx);renderMap();}}]);
+}
+
+function doDemon(idx){
+  if(P.realm<4){showToast('修为不够，心魔未生');completeCell(idx);renderMap();return;}
+  const demonAtk=Math.floor(effAtk()*.7);
+  const demonHp=Math.floor(effMaxHp()*.8);
+  story('👺 心魔',`<em>第${P.currentLayer+1}层 · 心魔</em><br><br>你突然感到一阵心悸，眼前景象扭曲。一个与你一模一样的身影出现在面前——那是你内心深处的执念所化的心魔。<br><br>"放弃吧，修仙之路太过艰难…"心魔低语道。<br><br>你必须战胜它，才能继续前行！<br><br>心魔战力: ⚔️${nval(demonAtk)} ❤️${nval(demonHp)}`,[
+    {text:'正面对抗',cls:'dan',fn:()=>{const ok=effAtk()*2>demonHp+demonAtk||rand(0,100)<40+P.realm*3;if(ok){const e=rand(100,400)*expBonus();P.exp+=e;P.talentPts=(P.talentPts||0)+1;showToast(`战胜心魔！天赋+1 +${nval(e)}修`);}else{P.hp=Math.floor(P.hp*.5);showToast('被心魔侵蚀…');}completeCell(idx);renderMap();}},
+    {text:'坚守本心',cls:'pri',fn:()=>{P.exp+=rand(50,150)*expBonus();showToast('信念坚定');completeCell(idx);renderMap();}}]);
+}
+
+// ==================== 面板 ====================
 // ==================== 面板 ====================
 function openChar(){
   let h=`<p><strong>${P.name}</strong> · ${rd().n}</p>
