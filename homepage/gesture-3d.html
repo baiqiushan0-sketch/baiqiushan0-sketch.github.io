@@ -437,8 +437,9 @@ function onHandResults(results){
     const lm=results.multiHandLandmarks[0];
     handData = lm;
 
-    // 骨骼叠加到摄像头上（透明背景，只画骨骼）
+    // 先把视频帧画到 canvas 作不透明底（手机端透明canvas叠video有合成bug）
     sctx.clearRect(0,0,sc.width,sc.height);
+    sctx.drawImage(V,0,0,sc.width,sc.height);
     drawSkeletonNative(sctx, lm, sc.width, sc.height);
 
     const g=detectGestureFromLandmarks(lm);
@@ -472,11 +473,12 @@ function onHandResults(results){
     const elapsed=Date.now()-(window._lastHand||0);
     const timeout=isMobile?2000:800;
     if(elapsed>timeout){
-      // 超时才清状态 + 擦除骨骼覆盖层
+      // 超时才清状态 + 擦除骨骼
       window._hasHand=false;dot.className='on';handDot.className='';stEl.textContent='待机';
       gsEl.textContent='--';opEl.textContent='--';
       lastGesture='';gestureStable=0;
       sctx.clearRect(0,0,sc.width,sc.height);
+      sctx.drawImage(V,0,0,sc.width,sc.height);
     }
     // 未超时：保留最后一帧骨骼，只更新帧计数
     sctx.fillStyle='rgba(255,255,255,.25)';
