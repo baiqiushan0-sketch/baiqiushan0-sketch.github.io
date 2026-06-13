@@ -148,8 +148,18 @@ let playerName='';
 let lbOpen=false;
 
 function loadLB(){
-  try{return JSON.parse(localStorage.getItem(LB_KEY))||[];}
-  catch(e){return[];}
+  try{
+    let lb=JSON.parse(localStorage.getItem(LB_KEY))||[];
+    // 去重：同名只保留最高分（清理旧数据+防止重复）
+    const map=new Map();
+    for(const e of lb){
+      const prev=map.get(e.name);
+      if(!prev||e.score>prev.score)map.set(e.name,e);
+    }
+    const dedup=Array.from(map.values());
+    if(dedup.length!==lb.length)saveLB(dedup); // 有变化才写回
+    return dedup;
+  }catch(e){return[];}
 }
 function saveLB(data){localStorage.setItem(LB_KEY,JSON.stringify(data));}
 function addScore(name,pts,coinCount){
