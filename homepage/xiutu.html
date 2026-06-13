@@ -6,543 +6,465 @@
 <title>仙途 · 文字修仙</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#0a0a14;color:#c8b896;font-family:'PingFang SC','Microsoft YaHei',serif;overflow:hidden;height:100vh;user-select:none;-webkit-user-select:none}
-#app{display:flex;flex-direction:column;height:100vh;max-width:500px;margin:0 auto}
-#header{background:linear-gradient(180deg,rgba(15,10,25,.98),rgba(10,8,20,.95));padding:8px 12px;text-align:center;border-bottom:1px solid rgba(180,140,80,.08);flex-shrink:0}
-#header .realm{font-size:1.3rem;font-weight:bold;background:linear-gradient(180deg,#ffd700,#b8860b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-#header .stats{font-size:.55rem;color:rgba(200,180,140,.4);display:flex;justify-content:center;gap:12px;margin-top:2px}
-#header .stats span{color:rgba(200,180,140,.6)}
-#content{flex:1;overflow-y:auto;padding:10px;-webkit-overflow-scrolling:touch}
-#tabs{display:flex;background:rgba(10,8,20,.98);border-top:1px solid rgba(180,140,80,.08);flex-shrink:0}
-#tabs button{flex:1;padding:8px 2px;background:none;border:none;color:rgba(180,140,80,.35);font-size:.55rem;cursor:pointer;transition:all .2s;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:1px}
-#tabs button.active{color:#ffd700;background:rgba(180,140,80,.04)}
-#tabs button .ti{font-size:1rem}
+body{background:#0d0d1a;color:#c8b896;font-family:'PingFang SC','Microsoft YaHei',serif;overflow:hidden;height:100vh;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+#app{display:flex;flex-direction:column;height:100vh;max-width:500px;margin:0 auto;position:relative}
 
-.card{background:rgba(15,13,28,.7);border:1px solid rgba(180,140,80,.06);border-radius:10px;padding:12px;margin-bottom:8px}
-.card h3{font-size:.8rem;color:#d4b060;margin-bottom:6px;letter-spacing:1px}
-.card .sub{font-size:.6rem;color:rgba(200,180,140,.4);line-height:1.5}
-.card .row{display:flex;justify-content:space-between;align-items:center;font-size:.65rem;margin:3px 0}
+/* Top Bar */
+#topbar{background:linear-gradient(180deg,rgba(15,10,25,.98),rgba(10,8,20,.95));padding:6px 10px;border-bottom:1px solid rgba(180,140,80,.08);flex-shrink:0;text-align:center}
+#topbar .realm{font-size:1.1rem;font-weight:bold;background:linear-gradient(180deg,#ffd700,#b8860b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+#topbar .bars{display:flex;justify-content:center;gap:10px;font-size:.5rem;color:rgba(200,180,140,.4);margin-top:1px}
+#topbar .bars span{color:rgba(200,180,140,.6)}
+#topbar .layer{font-size:.5rem;color:rgba(200,180,140,.3)}
+
+/* Grid Map */
+#map-wrap{flex:1;overflow-y:auto;overflow-x:hidden;padding:8px;-webkit-overflow-scrolling:touch;scroll-behavior:smooth}
+#map{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding-bottom:60px}
+.cell{aspect-ratio:1;border-radius:8px;background:rgba(20,18,35,.6);border:1px solid rgba(180,140,80,.05);display:flex;align-items:center;justify-content:center;font-size:1.4rem;cursor:pointer;transition:all .15s;position:relative}
+.cell:active{transform:scale(.92);background:rgba(180,140,80,.1)}
+.cell.done{opacity:.35;pointer-events:none}
+.cell.current{border-color:rgba(0,229,255,.4);box-shadow:0 0 8px rgba(0,229,255,.1)}
+.cell .mark{position:absolute;top:2px;right:3px;font-size:.35rem;color:rgba(255,255,255,.2)}
+.cell .hp-bar{position:absolute;bottom:2px;left:2px;right:2px;height:2px;background:rgba(255,255,255,.05);border-radius:1px}
+.cell .hp-bar div{height:100%;background:#e57373;border-radius:1px}
+
+/* Player marker */
+#player-marker{background:rgba(0,229,255,.15)!important;border-color:rgba(0,229,255,.4)!important;font-size:.8rem!important}
+
+/* Bottom panel */
+#bpanel{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:500px;background:rgba(10,8,20,.97);border-top:1px solid rgba(180,140,80,.08);padding:6px 10px;z-index:10;display:flex;gap:4px}
+#bpanel button{flex:1;padding:8px 2px;background:rgba(180,140,80,.05);border:1px solid rgba(180,140,80,.1);color:rgba(200,180,140,.5);font-size:.55rem;border-radius:6px;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:1px;transition:all .2s}
+#bpanel button:active{background:rgba(180,140,80,.12)}
+#bpanel button .bi{font-size:.9rem}
+
+/* Modal */
+#modal{position:fixed;top:0;left:0;width:100%;height:100%;z-index:50;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center}
+#modal.hidden{display:none}
+.modal-in{background:#1a1530;border:1px solid rgba(180,140,80,.15);border-radius:12px;padding:20px;max-width:360px;width:90%;max-height:80vh;overflow-y:auto;text-align:center}
+.modal-in h2{color:#ffd700;font-size:1rem;margin-bottom:8px}
+.modal-in p{font-size:.7rem;color:rgba(200,180,140,.5);line-height:1.7;margin-bottom:12px}
+.modal-in .btn{margin:4px 0}
 
 .btn{display:block;width:100%;padding:10px;margin:4px 0;border-radius:7px;border:1px solid rgba(180,140,80,.15);background:rgba(180,140,80,.06);color:#d4b060;font-size:.7rem;cursor:pointer;transition:all .2s;font-family:inherit;text-align:center;letter-spacing:1px}
 .btn:active{transform:scale(.97)}
 .btn.pri{background:rgba(180,140,80,.12);border-color:rgba(180,140,80,.35);color:#ffd700;font-weight:bold}
 .btn.dan{background:rgba(200,50,50,.08);border-color:rgba(200,50,50,.2);color:#e57373}
 .btn.ok{background:rgba(50,180,80,.08);border-color:rgba(50,180,80,.2);color:#81c784}
-.btn:disabled{opacity:.3;pointer-events:none}
-.btn-sm{padding:5px 10px;font-size:.55rem;width:auto;display:inline-block;margin:2px}
+.btn.cy{background:rgba(0,200,255,.08);border-color:rgba(0,200,255,.2);color:#4dd0e1}
 
-.progress{height:6px;background:rgba(255,255,255,.04);border-radius:3px;overflow:hidden;margin:2px 0}
-.progress div{height:100%;border-radius:3px;transition:width .3s}
+.row{display:flex;justify-content:space-between;align-items:center;font-size:.65rem;margin:3px 0}
+.progress{height:4px;background:rgba(255,255,255,.04);border-radius:2px;overflow:hidden;margin:2px 0}
+.progress div{height:100%;border-radius:2px;transition:width .3s}
 .progress .exp{background:linear-gradient(90deg,#b8860b,#ffd700)}
 .progress .hp{background:linear-gradient(90deg,#c62828,#ef5350)}
-.progress .mp{background:linear-gradient(90deg,#1565c0,#42a5f5)}
-
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px}
-
-.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.5rem;margin:1px}
-.badge.gold{background:rgba(255,215,0,.1);color:#ffd700;border:1px solid rgba(255,215,0,.2)}
-.badge.red{background:rgba(244,67,54,.1);color:#e57373;border:1px solid rgba(244,67,54,.2)}
-.badge.blue{background:rgba(66,165,245,.1);color:#64b5f6;border:1px solid rgba(66,165,245,.2)}
-.badge.green{background:rgba(129,199,132,.1);color:#81c784;border:1px solid rgba(129,199,132,.2)}
-.badge.purple{background:rgba(156,39,176,.1);color:#ce93d8;border:1px solid rgba(156,39,176,.2)}
-
-#log-box{font-size:.55rem;color:rgba(200,180,140,.35);line-height:1.7;max-height:80px;overflow-y:auto}
-#battle-log{font-size:.6rem;color:rgba(200,180,140,.5);line-height:1.7;max-height:180px;overflow-y:auto}
-#battle-log .hit{color:#e57373}#battle-log .heal{color:#81c784}#battle-log .gold{color:#ffd700}
 
 #toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:60;padding:8px 18px;border-radius:20px;font-size:.65rem;color:#ffd700;background:rgba(15,10,25,.95);border:1px solid rgba(180,140,80,.25);opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
 #toast.show{opacity:1}
-#back-link{position:fixed;top:10px;left:10px;z-index:5}
-#back-link a{color:rgba(200,180,140,.15);text-decoration:none;font-size:.55rem}
+
+#back-link{position:fixed;top:8px;left:8px;z-index:5}
+#back-link a{color:rgba(200,180,140,.15);text-decoration:none;font-size:.5rem}
+
+.battle-log{font-size:.55rem;color:rgba(200,180,140,.4);line-height:1.7;max-height:150px;overflow-y:auto;text-align:left}
+.battle-log .hit{color:#e57373}.battle-log .heal{color:#81c784}.battle-log .gold{color:#ffd700}
 </style>
 </head>
 <body>
 
 <div id="app">
-<div id="header">
+<div id="topbar">
   <div class="realm" id="hdr-realm">凡人</div>
-  <div class="stats">
-    <span>⚔️<span id="hdr-atk">5</span></span>
-    <span>🛡️<span id="hdr-def">2</span></span>
-    <span>❤️<span id="hdr-hp">50</span></span>
+  <div class="bars">
+    <span>⚔️<span id="hdr-atk">3</span></span>
+    <span>🛡️<span id="hdr-def">1</span></span>
+    <span>❤️<span id="hdr-hp">40</span></span>
     <span>💎<span id="hdr-gold">0</span></span>
-    <span>☯Lv.<span id="hdr-lv">1</span></span>
   </div>
+  <div class="layer">第 <span id="hdr-layer">1</span> 层</div>
 </div>
-<div id="content"></div>
-<div id="tabs">
-  <button class="active" data-tab="home"><span class="ti">🏠</span>洞府</button>
-  <button data-tab="battle"><span class="ti">⚔️</span>历练</button>
-  <button data-tab="sect"><span class="ti">🏛️</span>宗门</button>
-  <button data-tab="craft"><span class="ti">⚒️</span>丹器</button>
-  <button data-tab="more"><span class="ti">📜</span>功法</button>
+<div id="map-wrap"><div id="map"></div></div>
+<div id="bpanel">
+  <button onclick="openChar()"><span class="bi">👤</span>人物</button>
+  <button onclick="openSkills()"><span class="bi">📜</span>功法</button>
+  <button onclick="openBag()"><span class="bi">🎒</span>背包</button>
+  <button onclick="openBeast()"><span class="bi">🐾</span>灵兽</button>
+  <button onclick="openShop()"><span class="bi">🏪</span>坊市</button>
 </div>
 </div>
+
+<div id="modal" class="hidden"><div class="modal-in" id="modal-in"></div></div>
 <div id="toast"></div>
 <div id="back-link"><a href="../index.html">← 返回合集</a></div>
 
 <script>
-// ==================== 数据定义 ====================
+// ==================== 数据 ====================
 const REALMS=[
-  {n:'凡人',exp:0,atk:3,def:1,hp:40,sp:0,desc:'凡人之躯，仙途之始'},
-  {n:'炼气一层',exp:50,atk:6,def:2,hp:60,sp:10,desc:'初感天地灵气'},
-  {n:'炼气三层',exp:150,atk:10,def:4,hp:90,sp:25,desc:'灵气入体，经脉初通'},
-  {n:'炼气六层',exp:350,atk:18,def:7,hp:140,sp:45,desc:'气海渐盈'},
-  {n:'炼气九层',exp:700,atk:30,def:12,hp:200,sp:70,desc:'炼气圆满，筑基在即'},
-  {n:'筑基初期',exp:1500,atk:55,def:22,hp:320,sp:120,desc:'筑就道基，脱胎换骨'},
-  {n:'筑基中期',exp:3200,atk:90,def:36,hp:500,sp:200,desc:'根基渐固，法力精纯'},
-  {n:'筑基后期',exp:6000,atk:150,def:60,hp:780,sp:320,desc:'道基圆满，金丹有望'},
-  {n:'金丹初期',exp:12000,atk:260,def:100,hp:1200,sp:550,desc:'金丹凝结，法力质变'},
-  {n:'金丹中期',exp:25000,atk:430,def:170,hp:1900,sp:900,desc:'金丹稳固，神通初显'},
-  {n:'金丹后期',exp:50000,atk:700,def:280,hp:3000,sp:1500,desc:'金丹大成，元婴在望'},
-  {n:'元婴初期',exp:100000,atk:1150,def:460,hp:4800,sp:2500,desc:'元婴凝结，神念千里'},
-  {n:'元婴中期',exp:200000,atk:1900,def:760,hp:7600,sp:4200,desc:'元婴成长，神通广大'},
-  {n:'元婴后期',exp:400000,atk:3100,def:1250,hp:12000,sp:7000,desc:'元婴圆满，化神可期'},
-  {n:'化神期',exp:800000,atk:5100,def:2050,hp:20000,sp:12000,desc:'化神归一，神魂不灭'},
-  {n:'合体期',exp:1600000,atk:8400,def:3400,hp:33000,sp:20000,desc:'法体合一，天人感应'},
-  {n:'大乘期',exp:3200000,atk:13800,def:5600,hp:55000,sp:34000,desc:'大道将成，举霞飞升'},
-  {n:'渡劫期',exp:6400000,atk:22800,def:9300,hp:90000,sp:57000,desc:'天劫降临，九死一生'},
-  {n:'真仙',exp:99999999,atk:37000,def:15000,hp:999999,sp:99999,desc:'飞升仙界，万寿无疆'},
+  {n:'凡人',exp:0,atk:2,def:1,hp:30,layer:0},{n:'炼气一层',exp:60,atk:5,def:2,hp:50,layer:5},
+  {n:'炼气三层',exp:180,atk:10,def:4,hp:80,layer:12},{n:'炼气六层',exp:420,atk:18,def:7,hp:130,layer:20},
+  {n:'炼气九层',exp:850,atk:32,def:12,hp:200,layer:30},{n:'筑基初期',exp:1700,atk:58,def:22,hp:340,layer:42},
+  {n:'筑基中期',exp:3600,atk:100,def:38,hp:550,layer:55},{n:'筑基后期',exp:7000,atk:170,def:65,hp:880,layer:70},
+  {n:'结丹初期',exp:14000,atk:290,def:110,hp:1400,layer:88},{n:'结丹中期',exp:28000,atk:490,def:190,hp:2300,layer:108},
+  {n:'结丹后期',exp:55000,atk:820,def:320,hp:3700,layer:130},{n:'元婴初期',exp:110000,atk:1380,def:540,hp:6000,layer:155},
+  {n:'元婴中期',exp:220000,atk:2300,def:900,hp:9800,layer:182},{n:'元婴后期',exp:430000,atk:3800,def:1500,hp:16000,layer:210},
+  {n:'化神期',exp:850000,atk:6300,def:2500,hp:27000,layer:245},{n:'炼虚期',exp:1700000,atk:10500,def:4200,hp:45000,layer:285},
+  {n:'合体期',exp:3400000,atk:17500,def:7000,hp:75000,layer:330},{n:'大乘期',exp:6800000,atk:29000,def:11800,hp:125000,layer:385},
+  {n:'渡劫期',exp:13600000,atk:48000,def:19600,hp:210000,layer:450},{n:'地仙',exp:99999999,atk:80000,def:33000,hp:500000,layer:520},
 ];
-const ELEMENTS=['金','木','水','火','土'];
-const ELEM_COLORS=['#ffd740','#81c784','#64b5f6','#e57373','#ff8a65'];
-const EQ_SLOTS=['武器','防具','头盔','戒指','项链','靴子'];
 
-const SKILLS=[{id:'qigong',n:'基础气功',desc:'修炼效率+20%',cost:30,eff:{expB:.2},icon:'🫁'},
-  {id:'tiandun',n:'天罡盾',desc:'防御+30%',cost:80,eff:{defB:.3},icon:'🛡️'},
-  {id:'jianjue',n:'剑诀',desc:'攻击+25%',cost:80,eff:{atkB:.25},icon:'⚔️'},
-  {id:'jinshen',n:'金身术',desc:'气血上限+40%',cost:120,eff:{hpB:.4},icon:'💪'},
-  {id:'tunshi',n:'吞噬苍穹',desc:'修炼效率+50%',cost:250,eff:{expB:.5},icon:'🌌'},
-  {id:'leiting',n:'雷霆万钧',desc:'暴击率+20%',cost:200,eff:{critB:.2},icon:'⚡'},
-  {id:'buzhou',n:'不周山体',desc:'防御+50%,气血+30%',cost:400,eff:{defB:.5,hpB:.3},icon:'⛰️'},
-  {id:'fenghuo',n:'风火轮',desc:'战斗先手攻击',cost:150,eff:{first:true},icon:'🔥'},
-  {id:'tianyan',n:'天眼通',desc:'历练掉落率+30%',cost:180,eff:{dropB:.3},icon:'👁️'},
-  {id:'xuanyuan',n:'轩辕剑意',desc:'攻击+40%,暴击+15%',cost:500,eff:{atkB:.4,critB:.15},icon:'🗡️'}];
+const PATHS={spirit:{n:'精修',desc:'战斗前降低敌方20%攻击',icon:'🧠',eff:{enemyAtkDebuff:.2}},
+  magic:{n:'法修',desc:'修炼速度+50%',icon:'🔮',eff:{expBonus:.5}},
+  body:{n:'体修',desc:'气血翻倍，战后恢复30%',icon:'💪',eff:{hpDouble:true,healAfter:.3}}};
 
-const ALCHEMY_RECIPES=[{id:'hpd_s',n:'小还丹',desc:'恢复30%气血',cost:20,mats:[{n:'灵草',q:2}],icon:'💊',act:'heal',v:.3},
-  {id:'hpd_m',n:'大还丹',desc:'恢复60%气血',cost:60,mats:[{n:'灵草',q:4},{n:'灵石碎片',q:1}],icon:'💊',act:'heal',v:.6},
-  {id:'expd',n:'聚灵丹',desc:'获得当前等级15%修为',cost:80,mats:[{n:'灵草',q:3},{n:'妖核',q:1}],icon:'✨',act:'exp',v:.15},
-  {id:'atkd',n:'龙血丹',desc:'永久攻击+8',cost:200,mats:[{n:'妖核',q:3},{n:'龙涎草',q:1}],icon:'🐉',act:'patk',v:8},
-  {id:'defd',n:'玄武丹',desc:'永久防御+4',cost:200,mats:[{n:'妖核',q:3},{n:'玄铁矿',q:1}],icon:'🐢',act:'pdef',v:4},
-  {id:'hpp',n:'长生丹',desc:'永久气血+40',cost:300,mats:[{n:'灵草',q:5},{n:'龙涎草',q:2}],icon:'🧬',act:'php',v:40},
-  {id:'spd',n:'回灵丹',desc:'灵力+50',cost:40,mats:[{n:'灵草',q:2}],icon:'🔮',act:'sp',v:50},
-  {id:'tribd',n:'渡劫丹',desc:'渡劫成功率+10%',cost:500,mats:[{n:'龙涎草',q:3},{n:'玄铁矿',q:2},{n:'妖核',q:5}],icon:'⚡',act:'trib',v:.1}];
+const BEASTS=[{n:'汐极鱼',icon:'🐟',type:'assist',desc:'修炼速度+30%',eff:{expBonus:.3},deployDesc:'修炼时自动加成'},
+  {n:'青梧貂',icon:'貂',type:'spirit',desc:'战斗前降低敌方10%攻击',eff:{enemyAtkDebuff:.1},deployDesc:'⚠️ 战斗点击出战生效'},
+  {n:'赤阳岩兽',icon:'🦎',type:'heal',desc:'战斗后恢复10%最大气血',eff:{healAfter:.1},deployDesc:'⚠️ 战斗点击出战生效'}];
 
-const SHOP_ITEMS=[{id:'hpd_s',n:'小还丹',desc:'恢复30%气血',cost:30,icon:'💊',type:'heal',v:.3},
-  {id:'hpd_m',n:'大还丹',desc:'恢复60%气血',cost:80,icon:'💊',type:'heal',v:.6},
-  {id:'expd',n:'聚灵丹',desc:'获得15%修为',cost:100,icon:'✨',type:'exp',v:.15},
-  {id:'atkd',n:'龙血丹',desc:'永久攻击+8',cost:250,icon:'🐉',type:'patk',v:8},
-  {id:'defd',n:'玄武丹',desc:'永久防御+4',cost:250,icon:'🐢',type:'pdef',v:4},
-  {id:'hpp',n:'长生丹',desc:'永久气血+40',cost:350,icon:'🧬',type:'php',v:40},
-  {id:'spd',n:'回灵丹',desc:'灵力+50',cost:50,icon:'🔮',type:'sp',v:50},
-  {id:'tribd',n:'渡劫丹',desc:'渡劫成功率+10%',cost:600,icon:'⚡',type:'trib',v:.1}];
+const SKILLS=[{n:'吐纳术',grade:'黄阶下品',atk:3,def:2,hp:5,cost:60,icon:'🫁',lvl:1,maxLvl:9},
+  {n:'铁布衫',grade:'黄阶中品',atk:0,def:8,hp:10,cost:100,icon:'🛡️',lvl:1,maxLvl:9},
+  {n:'金刚掌',grade:'玄阶下品',atk:12,def:3,hp:0,cost:200,icon:'✋',lvl:1,maxLvl:9},
+  {n:'天罡剑气',grade:'玄阶上品',atk:25,def:0,hp:0,cost:400,icon:'⚔️',lvl:1,maxLvl:9},
+  {n:'紫血御诀',grade:'地阶中品',atk:5,def:20,hp:30,cost:800,icon:'🩸',lvl:1,maxLvl:9},
+  {n:'纵横狱般若罩',grade:'天阶上品',atk:0,def:45,hp:50,cost:1500,icon:'🔮',lvl:1,maxLvl:9},
+  {n:'太虚剑意',grade:'圣阶下品',atk:60,def:10,hp:20,cost:3000,icon:'🗡️',lvl:1,maxLvl:9},
+  {n:'混沌吞天诀',grade:'帝阶中品',atk:100,def:30,hp:80,cost:8000,icon:'🌌',lvl:1,maxLvl:9}];
 
-const SECT_MISSIONS=[{n:'巡山',desc:'巡逻山门',d:1,rew:{gold:30,exp:20,contrib:10}},
-  {n:'采药',desc:'采集灵草',d:1,rew:{gold:20,exp:15,contrib:8,mats:[{n:'灵草',q:2}]}},
-  {n:'除妖',desc:'清除山门附近妖兽',d:1,rew:{gold:50,exp:40,contrib:18,mats:[{n:'妖核',q:1}]}},
-  {n:'护送',desc:'护送商队',d:2,rew:{gold:100,exp:80,contrib:35}},
-  {n:'矿洞',desc:'采集玄铁矿',d:2,rew:{gold:60,exp:50,contrib:25,mats:[{n:'玄铁矿',q:2}]}},
-  {n:'秘境',desc:'探索上古秘境',d:3,rew:{gold:200,exp:180,contrib:60,mats:[{n:'龙涎草',q:1},{n:'妖核',q:2}]}}];
+const EQUIP_TEMPLATES=[{n:'铁剑',atk:5,icon:'🗡️',cost:80},{n:'青锋剑',atk:15,icon:'⚔️',cost:200},
+  {n:'斩龙刀',atk:50,icon:'🔪',cost:600},{n:'玄铁重剑',atk:120,icon:'⛏️',cost:1500},
+  {n:'名刀·离',atk:300,icon:'🗡️',cost:4000},{n:'人皇剑',atk:800,icon:'👑',cost:15000}];
 
-const SECT_SHOP=[{n:'宗门功法·残卷',desc:'随机习得一门功法',cost:80,icon:'📜',type:'skill'},
-  {n:'筑基丹',desc:'突破筑基成功率+20%',cost:150,icon:'💊',type:'trib_item',v:.2},
-  {n:'下品灵器',desc:'随机装备一件',cost:200,icon:'🗡️',type:'equip'},
-  {n:'灵兽蛋',desc:'孵化随机灵兽',cost:300,icon:'🥚',type:'beast_egg'},
-  {n:'经脉丹',desc:'自动打通一条经脉',cost:250,icon:'🧬',type:'meridian'}];
+const CELL_TYPES={train:{icon:'🧘',n:'修炼点',desc:'获得修为'},enemy:{icon:'👹',n:'敌人',desc:'遭遇战斗'},
+  treasure:{icon:'📦',n:'宝箱',desc:'随机奖励'},shop:{icon:'🏪',n:'行脚商',desc:'购买物品'},
+  secret:{icon:'🏛️',n:'秘境',desc:'探索秘境'},boss:{icon:'💀',n:'BOSS',desc:'强敌'},
+  beast:{icon:'🐾',n:'灵兽',desc:'发现灵兽'},equip:{icon:'🗡️',n:'装备',desc:'获得装备'},
+  skill:{icon:'📜',n:'功法',desc:'习得功法'},empty:{icon:'·',n:'空地',desc:''}};
 
-const MERIDIANS=[{n:'任脉',desc:'气血+20%',cost:50,eff:{hpB:.2}},
-  {n:'督脉',desc:'攻击+15%',cost:60,eff:{atkB:.15}},
-  {n:'冲脉',desc:'防御+15%',cost:60,eff:{defB:.15}},
-  {n:'带脉',desc:'修炼速度+10%',cost:80,eff:{expB:.1}},
-  {n:'阴跷脉',desc:'灵力上限+25%',cost:70,eff:{spB:.25}},
-  {n:'阳跷脉',desc:'战斗先手概率+20%',cost:100,eff:{firstB:.2}},
-  {n:'阴维脉',desc:'历练掉落率+15%',cost:120,eff:{dropB:.15}},
-  {n:'阳维脉',desc:'全属性+5%',cost:200,eff:{allB:.05}}];
+// ==================== 玩家 ====================
+let P={name:'无名修士',realm:0,exp:0,hp:40,maxHp:40,atk:2,def:1,gold:100,
+  path:'',equippedWeapon:null,equippedSkills:[],beast:null,beastDeployed:false,
+  layer:0,currentLayer:0,maxLayer:0,mapCells:[],playerPos:0,cultivationCount:0,
+  permAtk:0,permDef:0,permHp:0,kills:0};
 
-const BEASTS=[{n:'灵猫',icon:'🐱',atk:3,def:1,hp:20,desc:'敏捷的小型灵兽'},
-  {n:'玄龟',icon:'🐢',atk:1,def:5,hp:50,desc:'防御极强的上古血脉'},
-  {n:'火凤',icon:'🦅',atk:8,def:2,hp:30,desc:'烈焰中诞生的神鸟'},
-  {n:'白虎',icon:'🐯',atk:6,def:3,hp:40,desc:'西方庚金之精'},
-  {n:'青龙',icon:'🐉',atk:7,def:4,hp:45,desc:'东方甲乙之神兽'}];
-
-const MONSTERS_BASE=[{n:'山野精怪',hp:25,atk:3,def:1,exp:12,gold:6,icon:'👹',drops:[{n:'灵草',q:1,r:.4}]},
-  {n:'毒蛇妖',hp:40,atk:6,def:2,exp:22,gold:10,icon:'🐍',drops:[{n:'妖核',q:1,r:.3}]},
-  {n:'石魔',hp:60,atk:8,def:5,exp:35,gold:16,icon:'🗿',drops:[{n:'玄铁矿',q:1,r:.25}]},
-  {n:'幽魂',hp:45,atk:10,def:3,exp:30,gold:14,icon:'👻',drops:[{n:'灵草',q:2,r:.35}]},
-  {n:'邪修',hp:55,atk:12,def:4,exp:40,gold:20,icon:'🧙',drops:[{n:'妖核',q:1,r:.4}]}];
-
-function getMonsters(){
-  const r=P.realm;
-  return MONSTERS_BASE.map(m=>({
-    ...m,hp:Math.floor(m.hp*(1+r*.4)),atk:Math.floor(m.atk*(1+r*.3)),
-    def:Math.floor(m.def*(1+r*.25)),exp:Math.floor(m.exp*(1+r*.3)),
-    gold:Math.floor(m.gold*(1+r*.3))
-  }));
-}
-
-// ==================== 玩家状态 ====================
-let P={
-  name:'无名修士',realm:0,exp:0,hp:50,maxHp:50,sp:5,maxSp:5,atk:3,def:2,gold:50,lv:1,
-  skills:[],bag:[],equipment:{},beast:null,beastLv:0,
-  sect:'',sectContrib:0,missionTimer:0,completedMissions:0,
-  spiritRoots:{金:50,木:50,水:50,火:50,土:50}, // 随机灵根值0-100
-  talents:{根骨:5,悟性:5,气感:5,机缘:5,神识:5},talentPts:0,
-  meridians:[], // 已打通的经脉
-  permAtk:0,permDef:0,permHp:0,permSp:0,luckBonus:0,tribBonus:0,
-  mats:{灵草:3,妖核:1,玄铁矿:0,龙涎草:0},
-  innerDemonDefeated:false,autoTrain:false,
-};
-function save(){localStorage.setItem('xiutu2_save',JSON.stringify(P));}
-function load(){try{const d=JSON.parse(localStorage.getItem('xiutu2_save'));if(d)Object.assign(P,d);}catch(e){}}
+function save(){localStorage.setItem('xiutu3_save',JSON.stringify(P));}
+function load(){try{const d=JSON.parse(localStorage.getItem('xiutu3_save'));if(d)Object.assign(P,d);}catch(e){}}
 load();
-
-// 首次初始化
-if(!localStorage.getItem('xiutu2_inited')){
-  P.spiritRoots={};for(const e of ELEMENTS)P.spiritRoots[e]=20+Math.floor(Math.random()*80);
-  P.name=prompt('请输入道号：','无名修士')||'无名修士';
-  P.name=P.name.substring(0,8);
-  localStorage.setItem('xiutu2_inited','1');
+if(!localStorage.getItem('xiutu3_inited')){
+  P.name=(prompt('请输入道号：','无名修士')||'无名修士').substring(0,8);
+  localStorage.setItem('xiutu3_inited','1');save();
 }
 
 function rd(){return REALMS[Math.min(P.realm,REALMS.length-1)];}
 function nrd(){return REALMS[Math.min(P.realm+1,REALMS.length-1)];}
 function isMax(){return P.realm>=REALMS.length-1;}
 
-function effAtk(){let b=1;for(const s of P.skills){const sk=SKILLS.find(k=>k.id===s);if(sk&&sk.eff.atkB)b+=sk.eff.atkB;}
-  for(const m of P.meridians){const mk=MERIDIANS.find(k=>k.n===m);if(mk&&mk.eff.atkB)b+=mk.eff.atkB;if(mk&&mk.eff.allB)b+=mk.eff.allB;}
-  let e=0;for(const eq of Object.values(P.equipment))if(eq&&eq.atk)e+=eq.atk;
-  return Math.floor((P.atk+P.permAtk+e)*b);}
-function effDef(){let b=1;for(const s of P.skills){const sk=SKILLS.find(k=>k.id===s);if(sk&&sk.eff.defB)b+=sk.eff.defB;}
-  for(const m of P.meridians){const mk=MERIDIANS.find(k=>k.n===m);if(mk&&mk.eff.defB)b+=mk.eff.defB;if(mk&&mk.eff.allB)b+=mk.eff.allB;}
-  let e=0;for(const eq of Object.values(P.equipment))if(eq&&eq.def)e+=eq.def;
-  return Math.floor((P.def+P.permDef+e)*b);}
-function effMaxHp(){let b=1;for(const s of P.skills){const sk=SKILLS.find(k=>k.id===s);if(sk&&sk.eff.hpB)b+=sk.eff.hpB;}
-  for(const m of P.meridians){const mk=MERIDIANS.find(k=>k.n===m);if(mk&&mk.eff.hpB)b+=mk.eff.hpB;if(mk&&mk.eff.allB)b+=mk.eff.allB;}
-  let e=0;for(const eq of Object.values(P.equipment))if(eq&&eq.hp)e+=eq.hp;
-  return Math.floor((P.maxHp+P.permHp+e)*b);}
-function effMaxSp(){let b=1;for(const m of P.meridians){const mk=MERIDIANS.find(k=>k.n===m);if(mk&&mk.eff.spB)b+=mk.eff.spB;if(mk&&mk.eff.allB)b+=mk.eff.allB;}
-  return Math.floor((P.maxSp+P.permSp)*b);}
-function expBonus(){let b=P.talents.气感*.01+getSpiritBonus();for(const s of P.skills){const sk=SKILLS.find(k=>k.id===s);if(sk&&sk.eff.expB)b+=sk.eff.expB;}
-  for(const m of P.meridians){const mk=MERIDIANS.find(k=>k.n===m);if(mk&&mk.eff.expB)b+=mk.eff.expB;if(mk&&mk.eff.allB)b+=mk.eff.allB;}
-  return 1+b;}
-function dropBonus(){let b=P.talents.机缘*.01+P.luckBonus;for(const s of P.skills){const sk=SKILLS.find(k=>k.id===s);if(sk&&sk.eff.dropB)b+=sk.eff.dropB;}
-  for(const m of P.meridians){const mk=MERIDIANS.find(k=>k.n===m);if(mk&&mk.eff.dropB)b+=mk.eff.dropB;if(mk&&mk.eff.allB)b+=mk.eff.allB;}
-  return b;}
-function critChance(){let b=0;for(const s of P.skills){const sk=SKILLS.find(k=>k.id===s);if(sk&&sk.eff.critB)b+=sk.eff.critB;}
-  for(const m of P.meridians){const mk=MERIDIANS.find(k=>k.n===m);if(mk&&mk.eff.critB)b+=mk.eff.critB;}
-  return b;}
-function hasSkill(id){return P.skills.includes(id);}
-function getSpiritBonus(){const vals=Object.values(P.spiritRoots);const avg=vals.reduce((a,b)=>a+b,0)/vals.length;if(avg>=80)return.4;if(avg>=60)return.25;if(avg>=40)return.1;return 0;}
-function firstStrikeChance(){let b=0;for(const s of P.skills){const sk=SKILLS.find(k=>k.id===s);if(sk&&sk.eff.first)b+=1;}
-  for(const m of P.meridians){const mk=MERIDIANS.find(k=>k.n===m);if(mk&&mk.eff.firstB)b+=mk.eff.firstB;}
-  return b;}
+// 计算属性
+function effAtk(){let a=P.atk+P.permAtk+(P.equippedWeapon?P.equippedWeapon.atk:0);
+  for(const s of(P.equippedSkills||[]))if(s)a+=s.atk*s.lvl;return a;}
+function effDef(){let d=P.def+P.permDef;for(const s of(P.equippedSkills||[]))if(s)d+=s.def*s.lvl;return d;}
+function effMaxHp(){let h=P.maxHp+P.permHp;for(const s of(P.equippedSkills||[]))if(s)h+=s.hp*s.lvl;
+  if(P.path==='body')h*=2;return h;}
+function expBonus(){let b=1;if(P.path==='magic')b+=.5;
+  if(P.beast&&P.beast.type==='assist')b+=P.beast.eff.expBonus;return b;}
+function healAfterBattle(){if(P.path==='body')return.3;if(P.beastDeployed&&P.beast&&P.beast.type==='heal')return P.beast.eff.healAfter;return 0;}
+
+// ==================== 地图生成 ====================
+function genMap(){
+  P.mapCells=[];const types=Object.keys(CELL_TYPES).filter(t=>t!=='empty');
+  for(let i=0;i<600;i++){
+    let type;const r=Math.random();
+    if(r<.25)type='train';else if(r<.45)type='enemy';else if(r<.55)type='treasure';
+    else if(r<.62)type='shop';else if(r<.7)type='secret';else if(r<.73)type='beast';
+    else if(r<.78)type='equip';else if(r<.82)type='skill';else type='train';
+    // Boss every 15-20 cells
+    if(i>0&&i%18===0)type='boss';
+    P.mapCells.push({type,done:false});
+  }
+}
+
+function cellAt(idx){return P.mapCells[idx]||{type:'empty',done:true};}
 
 // ==================== UI ====================
-const content=document.getElementById('content');
-const toast=document.getElementById('toast');
-let currentTab='home',battleState=null,missionActive=null;
+const mapEl=document.getElementById('map'),modal=document.getElementById('modal');
+const modalIn=document.getElementById('modal-in'),toast=document.getElementById('toast');
+const mapWrap=document.getElementById('map-wrap');
+let battleBS=null,secretStep=0;
 
 function showToast(msg){toast.textContent=msg;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),2000);}
+function nval(v){return v<1000?String(v):v<1000000?(v/1000).toFixed(1)+'K':(v/1000000).toFixed(1)+'M';}
+function showModal(title,body,buttons){
+  modalIn.innerHTML=`<h2>${title}</h2><div>${body}</div>${buttons.map((b,i)=>`<button class="btn ${b.cls||''}" id="modal-btn-${i}">${b.text}</button>`).join('')}`;
+  modal.classList.remove('hidden');
+  buttons.forEach((b,i)=>{document.getElementById('modal-btn-'+i).onclick=()=>{modal.classList.add('hidden');if(b.fn)b.fn();};});
+}
+modal.addEventListener('click',e=>{if(e.target===modal)modal.classList.add('hidden');});
+
 function uh(){
-  document.getElementById('hdr-realm').textContent=rd().n;
-  document.getElementById('hdr-atk').textContent=effAtk();document.getElementById('hdr-def').textContent=effDef();
-  document.getElementById('hdr-hp').textContent=P.hp+'/'+effMaxHp();
-  document.getElementById('hdr-gold').textContent=P.gold;document.getElementById('hdr-lv').textContent=P.lv;
+  document.getElementById('hdr-realm').textContent=rd().n+(P.path?` [${PATHS[P.path].n}]`:'');
+  document.getElementById('hdr-atk').textContent=nval(effAtk());
+  document.getElementById('hdr-def').textContent=nval(effDef());
+  document.getElementById('hdr-hp').textContent=nval(P.hp)+'/'+nval(effMaxHp());
+  document.getElementById('hdr-gold').textContent=nval(P.gold);
+  document.getElementById('hdr-layer').textContent=P.currentLayer+1;
 }
 
-document.querySelectorAll('#tabs button').forEach(btn=>{btn.addEventListener('click',()=>{
-  document.querySelectorAll('#tabs button').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');currentTab=btn.dataset.tab;render();
-});});
-
-function render(){uh();switch(currentTab){
-  case'home':rHome();break;case'battle':rBattle();break;
-  case'sect':rSect();break;case'craft':rCraft();break;case'more':rMore();break;
-}save();}
-
-// ==================== 洞府 ====================
-function rHome(){
-  const r=rd(),nr=nrd();
-  const expPct=isMax()?100:Math.min(100,Math.floor((P.exp-r.exp)/(nr.exp-r.exp)*100));
-  const expNeed=isMax()?'∞':nr.exp-P.exp;
-  let h=`
-  <div class="card" style="text-align:center">
-    <div style="font-size:2rem">🧘</div><h3>${r.n}</h3>
-    <div class="sub">${P.name} · ${r.desc}</div>
-    <div class="progress"><div class="exp" style="width:${expPct}%"></div></div>
-    <div style="font-size:.55rem;color:rgba(200,180,140,.4);margin-top:2px">还需 ${expNeed} 修为突破</div>
-    <div class="row" style="margin-top:4px"><span>⚔️${effAtk()}</span><span>🛡️${effDef()}</span><span>❤️${effMaxHp()}</span><span>🔮${effMaxSp()}</span></div>
-    <div class="row" style="font-size:.55rem;color:rgba(200,180,140,.4)"><span>修炼:${Math.floor(expBonus()*100)}%</span><span>掉落:${Math.floor(dropBonus()*100)}%</span><span>暴击:${Math.floor(critChance()*100)}%</span></div>
-  </div>
-  <button class="btn pri" onclick="cultivate()">🧘 修炼 (+${Math.floor(10*expBonus())}修为)</button>
-  <button class="btn ok" onclick="breakthrough()" ${isMax()||P.exp<nr.exp?'disabled':''}>⚡ 突破${isMax()?' (已达巅峰)':P.exp<nr.exp?' (修为不足)':' → '+nr.n}</button>
-  <button class="btn" onclick="meditate()">💆 打坐 (恢复气血灵力)</button>
-
-  <div class="card"><h3>🌿 灵根</h3><div class="grid3">`;
-  for(let i=0;i<ELEMENTS.length;i++){
-    const e=ELEMENTS[i],v=P.spiritRoots[e];
-    h+=`<div style="text-align:center;font-size:.6rem;color:${ELEM_COLORS[i]}">${e}<br><strong>${v}</strong></div>`;
+function renderMap(){
+  uh();mapEl.innerHTML='';
+  const start=P.currentLayer*5,end=start+50; // 显示10行
+  for(let i=start;i<Math.min(end,P.mapCells.length);i++){
+    const c=cellAt(i);const div=document.createElement('div');
+    div.className='cell'+(c.done?' done':'')+(i===P.playerPos?' current':'');
+    div.innerHTML=CELL_TYPES[c.type].icon;
+    if(i===P.playerPos){div.id='player-marker';div.innerHTML='🧘';}
+    if(!c.done)div.onclick=()=>moveTo(i);
+    // Mark done cells
+    if(c.done)div.innerHTML+=`<span class="mark">✓</span>`;
+    mapEl.appendChild(div);
   }
-  h+=`</div><div class="sub" style="margin-top:4px">灵根均值 ${Math.floor(Object.values(P.spiritRoots).reduce((a,b)=>a+b,0)/5)} · ${getSpiritBonus()>.2?'修炼天赋优秀':getSpiritBonus()>.1?'资质尚可':'资质平平'}</div></div>
+  // 滚动到玩家位置
+  setTimeout(()=>{
+    const pm=document.getElementById('player-marker');
+    if(pm)pm.scrollIntoView({behavior:'smooth',block:'center'});
+  },100);
+}
 
-  <div class="card"><h3>⭐ 天赋 (剩余点数:${P.talentPts})</h3><div class="sub">每升5级获得1天赋点</div>`;
-  for(const[t,v]of Object.entries(P.talents)){
-    h+=`<div class="row"><span>${t} Lv.${v}</span><button class="btn-sm btn ok" onclick="addTalent('${t}')" ${P.talentPts<=0?'disabled':''}>+</button></div>`;
+function moveTo(idx){
+  if(idx<P.playerPos||cellAt(idx).done)return;
+  P.playerPos=idx;P.currentLayer=Math.floor(idx/5);
+  if(P.currentLayer>P.maxLayer)P.maxLayer=P.currentLayer;
+  encounter(idx);renderMap();save();
+}
+
+function encounter(idx){
+  const c=cellAt(idx);if(c.done)return;
+  switch(c.type){
+    case'train':doTrain(idx);break;
+    case'enemy':doBattle(idx);break;
+    case'treasure':doTreasure(idx);break;
+    case'shop':doShopEnc(idx);break;
+    case'secret':doSecret(idx);break;
+    case'boss':doBoss(idx);break;
+    case'beast':doBeastEnc(idx);break;
+    case'equip':doEquipEnc(idx);break;
+    case'skill':doSkillEnc(idx);break;
   }
-  h+=`</div>
+}
 
-  <div class="card"><h3>🔮 经脉</h3><div class="sub">已打通: ${P.meridians.length}/${MERIDIANS.length}</div>`;
-  for(const m of MERIDIANS){
-    const done=P.meridians.includes(m.n);
-    h+=`<div class="row"><span>${done?'✅':''}${m.n}</span><span style="font-size:.55rem;color:rgba(200,180,140,.4)">${m.desc}</span>${done?'':`<button class="btn-sm" onclick="openMeridian('${m.n}')" ${P.gold>=m.cost?'':'disabled'}>💎${m.cost}</button>`}</div>`;
+// ==================== 事件 ====================
+function completeCell(idx){P.mapCells[idx].done=true;renderMap();}
+
+function doTrain(idx){
+  const gain=Math.floor((15+P.realm*5)*expBonus());
+  P.exp+=gain;P.hp=Math.min(effMaxHp(),P.hp+Math.floor(effMaxHp()*.05));
+  P.cultivationCount++;
+  // 自动突破判定
+  if(!isMax()&&P.exp>=nrd().exp){
+    const nr=nrd();P.realm++;P.atk=nr.atk;P.def=nr.def;P.maxHp=nr.hp;P.hp=nr.hp;
+    showToast(`⚡ 突破！→ ${nr.n}`);
   }
-  h+=`</div>
-
-  <div class="card"><h3>👹 心魔</h3><div class="sub">${P.innerDemonDefeated?'已战胜心魔 ✅':'击败心魔可获得大道感悟'}</div>
-  ${!P.innerDemonDefeated?`<button class="btn dan" onclick="fightInnerDemon()" ${P.realm<4?'disabled':''}>⚔️ 挑战心魔 ${P.realm<4?'(需筑基期以上)':'(战力:'+Math.floor(effAtk()*.8)+')'}</button>`:''}
-  </div>
-
-  <div class="card"><h3>🐾 灵兽</h3>`;
-  if(P.beast){const b=P.beast;h+=`<div class="row"><span>${b.icon} ${b.n} Lv.${P.beastLv}</span><span>⚔️${Math.floor(b.atk*(1+P.beastLv*.2))} 🛡️${Math.floor(b.def*(1+P.beastLv*.1))}</span></div><button class="btn-sm ok" onclick="upgradeBeast()" ${P.gold<100?'disabled':''}>升级 💎100</button>`;}
-  else{h+=`<div class="sub">尚未拥有灵兽，可在宗门兑换灵兽蛋</div>`;}
-  h+=`</div>`;
-
-  content.innerHTML=h;
+  showToast(`🧘 修炼 +${nval(gain)}修为`);
+  completeCell(idx);
 }
 
-function cultivate(){
-  const gain=Math.floor(10*expBonus());
-  P.exp+=gain;P.sp=Math.min(effMaxSp(),P.sp+2);P.lv=Math.floor(P.exp/30)+1;
-  if(P.lv%5===0&&P.lv>0&&P.talentPts<Math.floor(P.lv/5))P.talentPts++;
-  if(Math.random()<.06+P.talents.机缘*.005){const g=Math.floor(15+P.realm*8);P.gold+=g;showToast(`修炼 +${gain}修为 | 🎁 意外获得灵石+${g}`);}
-  else if(Math.random()<.04){const g=Math.floor(40*expBonus());P.exp+=g;showToast(`修炼 +${gain}修为 | 💡 顿悟！额外+${g}修为`);}
-  else showToast(`修炼 +${gain}修为`);
-  render();
-}
+function doBattle(idx){
+  const r=rd();const lvl=P.currentLayer;
+  const enemy={n:`${['小','中','大','精英','首领'][Math.min(4,Math.floor(lvl/30))]}${['妖','魔','鬼怪','妖兽','凶兽'][Math.floor(Math.random()*5)]}`,
+    hp:Math.floor((30+P.realm*20+lvl*5)*(.7+Math.random()*.6)),
+    atk:Math.floor((effAtk()*.3+effAtk()*.7*Math.random())*(.5+lvl*.02)),
+    def:Math.floor(effDef()*.3+lvl*.8),
+    exp:Math.floor((20+P.realm*8+lvl*3)*expBonus()),
+    gold:Math.floor((10+P.realm*5+lvl*2)),icon:'👹'};
+  // 精修debuff
+  if(P.path==='spirit')enemy.atk=Math.floor(enemy.atk*.8);
+  if(P.beastDeployed&&P.beast&&P.beast.type==='spirit')enemy.atk=Math.floor(enemy.atk*.9);
 
-function breakthrough(){
-  if(isMax())return;const nr=nrd();if(P.exp<nr.exp)return;
-  // 天劫判定
-  const baseRate=P.realm<4?.8:.5; // 炼气80%，筑基后50%
-  const tribRate=Math.min(.95,baseRate+P.tribBonus);
-  const success=Math.random()<tribRate;
-  if(!success&&P.realm>=4){
-    P.exp=Math.floor(P.exp*.7);showToast('💀 渡劫失败！修为损失30%');
-    render();return;
+  let pHp=P.hp,eHp=enemy.hp,log=[`⚔️ 遭遇 ${enemy.icon} ${enemy.n}`,''],turn=0;
+  while(pHp>0&&eHp>0&&turn<30){
+    turn++;const pd=Math.max(1,effAtk()-enemy.def+Math.floor(Math.random()*6));eHp-=pd;
+    log.push(`${turn}. 你造成 <span class="hit">${pd}</span> 伤害`);
+    if(eHp<=0){log.push(`<span class="gold">🎉 胜利！+${nval(enemy.exp)}修 +${nval(enemy.gold)}💎</span>`);break;}
+    const ed=Math.max(1,enemy.atk-effDef()+Math.floor(Math.random()*4));pHp-=ed;
+    log.push(`   ${enemy.n}反击 <span class="hit">${ed}</span> 伤害`);if(pHp<=0)break;
   }
-  P.realm++;P.atk=nr.atk;P.def=nr.def;P.maxHp=nr.hp;P.maxSp=nr.sp;P.hp=nr.hp;P.sp=nr.sp;
-  P.gold+=P.realm*40;P.innerDemonDefeated=false;
-  const msgs=['天地轰鸣，灵气疯狂涌入体内！','周身金光大放，境界壁垒轰然破碎！','天道垂青，一道仙光笼罩全身！'];
-  showToast(`⚡ ${msgs[Math.floor(Math.random()*msgs.length)]} → ${nr.n}！`);
-  render();
+  const won=eHp<=0;P.hp=Math.max(1,pHp);P.kills++;
+  if(won){P.exp+=enemy.exp;P.gold+=enemy.gold;
+    const heal=healAfterBattle();if(heal>0){const hh=Math.floor(effMaxHp()*heal);P.hp=Math.min(effMaxHp(),P.hp+hh);log.push(`<span class="heal">战后恢复 +${nval(hh)}气血</span>`);}
+    // 掉率
+    if(Math.random()<.2){const mats=['灵草','妖核','玄铁矿','龙涎草'];const m=mats[Math.floor(Math.random()*mats.length)];log.push(`<span class="gold">📦 掉落: ${m}</span>`);if(!P.bag)P.bag=[];P.bag.push({n:m,icon:'📦',type:'mat'});}
+    if(!isMax()&&P.exp>=nrd().exp){const nr=nrd();P.realm++;P.atk=nr.atk;P.def=nr.def;P.maxHp=nr.hp;P.hp=nr.hp;log.push(`<span class="gold">⚡ 突破！→ ${nr.n}</span>`);}
+    completeCell(idx);
+  }else{showToast('💀 战败…回退一格');P.playerPos=Math.max(0,idx-1);P.currentLayer=Math.floor(P.playerPos/5);}
+  showModal(won?'战斗胜利':'战斗结果','<div class="battle-log">'+log.join('<br>')+'</div>',[{text:'确定',cls:'pri',fn:()=>renderMap()}]);
 }
 
-function meditate(){const hh=Math.floor(effMaxHp()*.4);const ss=Math.floor(effMaxSp()*.5);P.hp=Math.min(effMaxHp(),P.hp+hh);P.sp=Math.min(effMaxSp(),P.sp+ss);showToast(`打坐恢复 +${hh}气血 +${ss}灵力`);render();}
-function addTalent(t){if(P.talentPts<=0)return;P.talents[t]++;P.talentPts--;showToast(`${t}+1 → Lv.${P.talents[t]}`);render();}
-function openMeridian(n){const m=MERIDIANS.find(k=>k.n===n);if(!m||P.gold<m.cost)return;P.gold-=m.cost;P.meridians.push(n);showToast(`✅ 打通${n}！${m.desc}`);render();}
+function doTreasure(idx){
+  const r=Math.random();let msg='';
+  if(r<.4){const g=Math.floor((30+P.realm*15)*(.5+Math.random()));P.gold+=g;msg=`💎 灵石 +${nval(g)}`;}
+  else if(r<.7){const e=Math.floor((40+P.realm*20)*expBonus());P.exp+=e;msg=`✨ 修为 +${nval(e)}`;}
+  else if(r<.85){const eq=EQUIP_TEMPLATES[Math.floor(Math.random()*EQUIP_TEMPLATES.length)];if(!P.bag)P.bag=[];P.bag.push({...eq,type:'weapon'});msg=`🗡️ 获得 ${eq.n}！`;}
+  else{const hh=effMaxHp();P.hp=hh;msg='❤️ 气血回满！';}
+  showToast(msg);completeCell(idx);
+}
 
-function fightInnerDemon(){
-  const demon={hp:Math.floor(effAtk()*.8*5),atk:Math.floor(effAtk()*.6),def:Math.floor(effDef()*.5),n:'心魔'};
-  let pHp=effMaxHp(),dHp=demon.hp,log=[];
-  for(let r=1;r<=20;r++){
-    const pd=Math.max(1,effAtk()-demon.def+Math.floor(Math.random()*8));dHp-=pd;
-    log.push(`第${r}回合: 你造成 ${pd} 伤害`);
-    if(dHp<=0){P.innerDemonDefeated=true;P.talentPts+=2;P.exp+=Math.floor(nrd().exp*.2);
-      showToast(`👹 战胜心魔！天赋+2,修为大涨`);render();return;}
-    const md=Math.max(1,demon.atk-effDef()+Math.floor(Math.random()*6));pHp-=md;
-    log.push(`心魔反击 ${md} 伤害`);
-    if(pHp<=0){P.hp=1;showToast('💀 被心魔击败…需要更强实力');render();return;}
+function doShopEnc(idx){
+  let items='';const shopItems=[];
+  for(let i=0;i<3;i++){const eq=EQUIP_TEMPLATES[Math.floor(Math.random()*EQUIP_TEMPLATES.length)];shopItems.push(eq);}
+  shopItems.forEach((eq,i)=>{items+=`<div class="row"><span>${eq.icon} ${eq.n} ⚔+${eq.atk}</span><button class="btn ok" style="width:auto;padding:4px 8px;font-size:.55rem" onclick="buyEquipEnc(${i},${idx})">💎${eq.cost}</button></div>`;});
+  showModal('🏪 行脚商','<p>路过此地的行脚商人</p>'+items,[{text:'离开',cls:'',fn:()=>{completeCell(idx);renderMap();}}]);
+  window._shopItems=shopItems;
+}
+
+function buyEquipEnc(i,idx){const eq=window._shopItems[i];if(!eq||P.gold<eq.cost)return;P.gold-=eq.cost;if(!P.bag)P.bag=[];P.bag.push({...eq,type:'weapon'});showToast(`购买 ${eq.n}`);completeCell(idx);renderMap();modal.classList.add('hidden');}
+
+function doSecret(idx){
+  secretStep=0;doSecretStep(idx);
+}
+
+function doSecretStep(idx){
+  const events=[
+    {l:'左',desc:'感悟天地法则',fn:()=>{const e=Math.floor((50+P.realm*30)*expBonus());P.exp+=e;showToast(`左·感悟 +${nval(e)}修为`);}},
+    {l:'中',desc:'收集灵石矿脉',fn:()=>{const g=Math.floor(60+P.realm*20);P.gold+=g;showToast(`中·矿脉 +${nval(g)}💎`);}},
+    {l:'右',desc:'灵泉恢复伤势',fn:()=>{P.hp=effMaxHp();showToast('右·灵泉 气血回满！');}}];
+  if(secretStep>=3){completeCell(idx);showToast('秘境探索完毕');if(!isMax()&&P.exp>=nrd().exp){const nr=nrd();P.realm++;P.atk=nr.atk;P.def=nr.def;P.maxHp=nr.hp;P.hp=nr.hp;showToast(`⚡ 突破！→ ${nr.n}`);}renderMap();return;}
+  secretStep++;
+  let btns=events.map(e=>({text:`${e.l} - ${e.desc}`,cls:'pri',fn:()=>{e.fn();doSecretStep(idx);}}));
+  showModal(`🏛️ 秘境 第${secretStep}层`,'<p>选择一条路径…</p>',btns);
+}
+
+function doBoss(idx){
+  const lvl=P.currentLayer;const boss={n:`第${P.currentLayer+1}层守护者`,
+    hp:Math.floor((100+P.realm*50+lvl*20)*(.8+Math.random()*.4)),
+    atk:Math.floor(effAtk()*.5+lvl*3),def:Math.floor(effDef()*.5+lvl*2),
+    exp:Math.floor((150+P.realm*40+lvl*15)*expBonus()),gold:Math.floor(100+P.realm*20+lvl*10),icon:'💀'};
+  if(P.path==='spirit')boss.atk=Math.floor(boss.atk*.8);
+  if(P.beastDeployed&&P.beast&&P.beast.type==='spirit')boss.atk=Math.floor(boss.atk*.9);
+
+  let pHp=P.hp,eHp=boss.hp,log=[`💀 BOSS战！${boss.n}`,``],turn=0;
+  while(pHp>0&&eHp>0&&turn<40){turn++;
+    const pd=Math.max(1,effAtk()-boss.def+Math.floor(Math.random()*8));eHp-=pd;
+    log.push(`${turn}. 你造成 <span class="hit">${pd}</span> 伤害`);
+    if(eHp<=0){log.push(`<span class="gold">🎉 击败BOSS！+${nval(boss.exp)}修 +${nval(boss.gold)}💎</span>`);break;}
+    const ed=Math.max(1,boss.atk-effDef()+Math.floor(Math.random()*5));pHp-=ed;
+    log.push(`   BOSS反击 <span class="hit">${ed}</span> 伤害`);if(pHp<=0)break;
   }
-  showToast('战斗僵持…心魔暂时退去');
-  render();
-}
-function upgradeBeast(){if(!P.beast||P.gold<100)return;P.gold-=100;P.beastLv++;showToast(`🐾 ${P.beast.n}升级到 Lv.${P.beastLv}`);render();}
-
-// ==================== 历练 ====================
-function rBattle(){
-  if(battleState){rBattleActive();return;}
-  const ms=getMonsters();let h=`<div class="card"><h3>⚔️ 历练</h3><div class="sub">选择敌人进行战斗 ${P.beast?'| 🐾'+P.beast.icon+P.beast.n+'助战':''}</div></div>`;
-  ms.forEach((m,i)=>{h+=`<div class="card" style="cursor:pointer" onclick="startBattle(${i})">
-    <div style="display:flex;align-items:center;gap:8px"><span style="font-size:1.5rem">${m.icon}</span>
-    <div style="flex:1"><strong>${m.n}</strong><div style="font-size:.55rem;color:rgba(200,180,140,.4)">❤️${m.hp} ⚔️${m.atk} 🛡️${m.def} | 胜:${m.exp}修 💎${m.gold}</div></div></div></div>`;});
-  content.innerHTML=h;
+  const won=eHp<=0;P.hp=Math.max(1,pHp);
+  if(won){P.exp+=boss.exp;P.gold+=boss.gold;P.kills++;
+    const heal=healAfterBattle();if(heal>0)P.hp=Math.min(effMaxHp(),P.hp+Math.floor(effMaxHp()*heal));
+    if(!isMax()&&P.exp>=nrd().exp){const nr=nrd();P.realm++;P.atk=nr.atk;P.def=nr.def;P.maxHp=nr.hp;P.hp=nr.hp;log.push(`<span class="gold">⚡ 突破！→ ${nr.n}</span>`);}
+    completeCell(idx);
+  }else{showToast('💀 BOSS太强了…回退两格');P.playerPos=Math.max(0,idx-2);P.currentLayer=Math.floor(P.playerPos/5);}
+  showModal(won?'BOSS战胜利':'BOSS战结果','<div class="battle-log">'+log.join('<br>')+'</div>',[{text:'确定',cls:'pri',fn:()=>renderMap()}]);
 }
 
-function startBattle(i){
-  const m=getMonsters()[i];battleState={m,log:[`⚔️ 遭遇 <strong>${m.n}</strong>！`],pHp:effMaxHp(),mHp:m.hp};
-  if(hasSkill('fenghuo')||firstStrikeChance()>.5){const d=Math.max(1,effAtk()-m.def+Math.floor(Math.random()*8));battleState.mHp-=d;battleState.log.push(`<span class="hit">🔥 先手！${d}伤害</span>`);}
-  P.hp=effMaxHp();render();}
-
-function rBattleActive(){
-  const bs=battleState,m=bs.m;let h=`<div class="card" style="text-align:center"><div style="font-size:2rem">${m.icon}</div><h3>${m.n}</h3>
-    <div class="row"><span>敌方 ❤️${Math.max(0,bs.mHp)}</span><span>我方 ❤️${bs.pHp}</span></div>
-    <div class="progress"><div class="hp" style="width:${Math.max(0,Math.floor(bs.mHp/m.hp*100))}%"></div></div></div>
-    <button class="btn pri" onclick="battleTurn('atk')" ${bs.mHp<=0||bs.pHp<=0?'disabled':''}>⚔️ 攻击</button>
-    <button class="btn ok" onclick="battleTurn('skill')" ${bs.mHp<=0||bs.pHp<=0?'disabled':''}>✨ 全力一击</button>
-    <button class="btn dan" onclick="battleState=null;render();">🏃 逃跑</button>
-    <div class="card"><h3>战斗记录</h3><div id="battle-log">${bs.log.slice(-6).join('<br>')}</div></div>`;
-  content.innerHTML=h;
-  if(bs.mHp<=0)bWin();else if(bs.pHp<=0)bLose();
+function doBeastEnc(idx){
+  const b=BEASTS[Math.floor(Math.random()*BEASTS.length)];
+  showModal('🐾 发现灵兽！',`<p>你遇到了一只 <strong>${b.icon} ${b.n}</strong></p><p style="font-size:.6rem">${b.desc}</p><p>是否收服？</p>`,[
+    {text:`收服 ${b.n}`,cls:'pri',fn:()=>{P.beast={...b};showToast(`✅ 获得灵兽 ${b.n}！`);completeCell(idx);renderMap();}},
+    {text:'离开',cls:'',fn:()=>{completeCell(idx);renderMap();}}]);
 }
 
-function battleTurn(type){
-  const bs=battleState,m=bs.m;let crit=Math.random()<critChance();
-  let dmg=Math.max(1,effAtk()-m.def+(type==='skill'?Math.floor(effAtk()*.5):0));
-  if(crit)dmg=Math.floor(dmg*2);bs.mHp-=dmg;
-  // 灵兽助战
-  if(P.beast){const bd=Math.floor(P.beast.atk*(1+P.beastLv*.2));bs.mHp-=bd;bs.log.push(`🐾 ${P.beast.n}助战 +${bd}伤害`);}
-  bs.log.push(`${type==='skill'?'✨全力一击':'⚔️攻击'} ${dmg}伤害${crit?' 💥暴击！':''}`);
-  if(bs.mHp<=0){render();return;}
-  const md=Math.max(1,m.atk-effDef()+Math.floor(Math.random()*5));bs.pHp-=md;
-  if(P.beast){const bd2=Math.floor(P.beast.def*(1+P.beastLv*.1));bs.pHp+=bd2;}
-  bs.log.push(`${m.n}反击 ${md}伤害`);bs.pHp=Math.max(0,bs.pHp);
-  P.hp=bs.pHp;if(bs.pHp<=0){render();return;}render();
+function doEquipEnc(idx){
+  const eq=EQUIP_TEMPLATES[Math.floor(Math.random()*Math.min(3+Math.floor(P.currentLayer/20),EQUIP_TEMPLATES.length))];
+  if(!P.bag)P.bag=[];P.bag.push({...eq,type:'weapon'});showToast(`🗡️ 发现 ${eq.n}！`);completeCell(idx);
 }
 
-function bWin(){
-  const bs=battleState,m=bs.m;const g=Math.floor(m.gold*(1+dropBonus()));P.gold+=g;P.exp+=m.exp;
-  P.hp=Math.max(1,bs.pHp);P.lv=Math.floor(P.exp/30)+1;bs.log.push(`<span class="gold">🎉 胜利！修+${m.exp} 💎+${g}</span>`);
-  for(const d of(m.drops||[])){if(Math.random()<d.r+dropBonus()*.3){P.mats[d.n]=(P.mats[d.n]||0)+d.q;bs.log.push(`<span class="gold">📦 ${d.n}×${d.q}</span>`);}}
-  if(Math.random()<.1+dropBonus()*.2&&P.realm>=4){const eq=genEquip();P.bag.push(eq);bs.log.push(`<span class="gold">⚡ 掉落装备: ${eq.icon}${eq.n}</span>`);}
-  bs.mHp=-1;render();setTimeout(()=>{battleState=null;render();},2500);
+function doSkillEnc(idx){
+  const avail=SKILLS.filter(s=>!(P.equippedSkills||[]).find(es=>es.n===s.n));
+  const s=avail.length>0?avail[Math.floor(Math.random()*Math.min(avail.length,3+Math.floor(P.currentLayer/30)))]:SKILLS[0];
+  showModal('📜 发现功法！',`<p>${s.icon} <strong>${s.n}</strong></p><p style="font-size:.6rem">${s.grade} | 攻击+${s.atk} 防御+${s.def} 气血+${s.hp}</p><p>是否习得？</p>`,[
+    {text:`习得 ${s.n}`,cls:'pri',fn:()=>{if(!P.equippedSkills)P.equippedSkills=[];if(!P.equippedSkills.find(es=>es.n===s.n))P.equippedSkills.push({...s,lvl:1});showToast(`✅ 习得 ${s.n}！`);completeCell(idx);renderMap();}},
+    {text:'离开',cls:'',fn:()=>{completeCell(idx);renderMap();}}]);
 }
-function bLose(){battleState.pHp=0;P.hp=Math.floor(effMaxHp()*.15);battleState.log.push('<span class="hit">💀 战败…</span>');render();setTimeout(()=>{battleState=null;render();},2000);}
 
-// ==================== 宗门 ====================
-function rSect(){
-  let h=`<div class="card"><h3>🏛️ 宗门</h3>`;
-  if(!P.sect){
-    h+=`<div class="sub">选择一个宗门加入</div>
-    <button class="btn pri" onclick="joinSect('太虚门')">🏔️ 太虚门 (正道·均衡发展)</button>
-    <button class="btn" onclick="joinSect('魔渊殿')">🩸 魔渊殿 (魔道·战力至上)</button>
-    <button class="btn" onclick="joinSect('散修联盟')">🏕️ 散修联盟 (自由·机缘深厚)</button>`;
+// ==================== 面板 ====================
+function openChar(){
+  let h=`<p><strong>${P.name}</strong> · ${rd().n}</p>
+    <p>⚔️攻击: ${nval(effAtk())} | 🛡️防御: ${nval(effDef())} | ❤️气血: ${nval(P.hp)}/${nval(effMaxHp())}</p>
+    <p>修为: ${nval(P.exp)} / ${isMax()?'∞':nval(nrd().exp)}</p>
+    <div class="progress"><div class="exp" style="width:${isMax()?100:Math.min(100,Math.floor(P.exp/nrd().exp*100))}%"></div></div>
+    <p>💎灵石: ${nval(P.gold)} | 层数: ${P.currentLayer+1} | 击杀: ${P.kills}</p>`;
+  if(!P.path){
+    h+=`<p style="color:#ffd700">选择修炼方向：</p>`;
+    for(const[k,v]of Object.entries(PATHS))h+=`<button class="btn pri" onclick="choosePath('${k}')">${v.icon} ${v.n} - ${v.desc}</button>`;
   }else{
-    const sectDescs={太虚门:'正道大派，讲究道法自然',魔渊殿:'魔道巨擘，实力为尊',散修联盟:'散修聚集，自由随性'};
-    h+=`<h3>${P.sect}</h3><div class="sub">${sectDescs[P.sect]||''} | 贡献: ${P.sectContrib}</div>
-    <div class="card"><h3>📋 宗门任务</h3><div class="sub">${missionActive?`任务进行中: ${missionActive.n} (剩余${missionActive.rem}回合)`:'选择一个任务执行'}</div>`;
-    if(missionActive){
-      h+=`<button class="btn pri" onclick="doMission()">执行任务 (${missionActive.rem}回合)</button>`;
+    h+=`<p>方向: ${PATHS[P.path].icon} ${PATHS[P.path].n}</p>`;
+    if(P.equippedWeapon)h+=`<p>装备: ${P.equippedWeapon.icon} ${P.equippedWeapon.n} ⚔+${P.equippedWeapon.atk} <button class="btn dan" style="width:auto;padding:3px 8px;font-size:.5rem" onclick="unequipWeapon()">卸下</button></p>`;
+    else h+=`<p>武器: 空手</p>`;
+  }
+  showModal('👤 人物详情',h,[{text:'关闭',cls:''}]);
+}
+
+function choosePath(k){P.path=k;if(k==='body'){P.maxHp*=2;P.hp=P.maxHp;}showToast(`选择 ${PATHS[k].n} 方向！`);modal.classList.add('hidden');renderMap();save();}
+
+function unequipWeapon(){if(P.equippedWeapon){if(!P.bag)P.bag=[];P.bag.push({...P.equippedWeapon,type:'weapon'});P.equippedWeapon=null;}renderMap();save();}
+
+function openSkills(){
+  let h='';for(const s of SKILLS){
+    const learned=(P.equippedSkills||[]).find(es=>es.n===s.n);
+    h+=`<div class="row"><span>${s.icon} ${s.n} <span style="font-size:.5rem;color:rgba(200,180,140,.4)">${s.grade}</span></span>`;
+    if(learned){
+      h+=`<span style="font-size:.5rem">Lv.${learned.lvl}/${s.maxLvl} ⚔${s.atk*learned.lvl} 🛡${s.def*learned.lvl} ❤${s.hp*learned.lvl}
+        <button class="btn ok" style="width:auto;padding:2px 6px;font-size:.45rem" onclick="upgradeSkill('${s.n}')" ${learned.lvl>=s.maxLvl||P.gold<s.cost*learned.lvl?'disabled':''}>升 💎${s.cost*learned.lvl}</button></span>`;
     }else{
-      for(const m of SECT_MISSIONS){h+=`<div class="row"><span>${m.n}</span><span style="font-size:.55rem;color:rgba(200,180,140,.4)">${m.desc} (${m.d}回合)</span><button class="btn-sm" onclick="startMission('${m.n}')">接取</button></div>`;}
+      h+=`<button class="btn" style="width:auto;padding:3px 8px;font-size:.5rem" onclick="learnSk('${s.n}')" ${P.gold<s.cost?'disabled':''}>习得 💎${s.cost}</button>`;
     }
-    h+=`</div>
-    <div class="card"><h3>🏪 宗门兑换</h3>`;
-    for(const item of SECT_SHOP){
-      h+=`<div class="row"><span>${item.icon} ${item.n}</span><span style="font-size:.55rem">${item.desc}</span><button class="btn-sm" onclick="buySectItem('${item.n}')" ${P.sectContrib>=item.cost?'':'disabled'}>🏅${item.cost}</button></div>`;
+    h+=`</div><div style="font-size:.5rem;color:rgba(200,180,140,.3)">⚔${s.atk} 🛡${s.def} ❤${s.hp}</div>`;
+  }
+  showModal('📜 功法',h,[{text:'关闭',cls:''}]);
+}
+
+function learnSk(n){const s=SKILLS.find(sk=>sk.n===n);if(!s||P.gold<s.cost)return;if(!P.equippedSkills)P.equippedSkills=[];P.equippedSkills.push({...s,lvl:1});P.gold-=s.cost;showToast(`习得 ${s.n}`);openSkills();save();renderMap();}
+function upgradeSkill(n){const s=(P.equippedSkills||[]).find(es=>es.n===n);if(!s||s.lvl>=s.maxLvl||P.gold<s.cost*s.lvl)return;P.gold-=s.cost*s.lvl;s.lvl++;showToast(`${s.n} → Lv.${s.lvl}`);openSkills();save();renderMap();}
+
+function openBag(){
+  let h='';if(!P.bag||P.bag.length===0)h='<p>背包空空如也</p>';
+  else P.bag.forEach((item,i)=>{
+    if(item.type==='weapon'){
+      h+=`<div class="row"><span>${item.icon} ${item.n} ⚔+${item.atk}</span><button class="btn ok" style="width:auto;padding:3px 8px;font-size:.5rem" onclick="equipWeapon(${i})">装备</button></div>`;
+    }else{
+      h+=`<div class="row"><span>${item.icon} ${item.n}</span><button class="btn ok" style="width:auto;padding:3px 8px;font-size:.5rem" onclick="useBagItem(${i})">使用</button></div>`;
     }
-    h+=`</div>`;
-  }
-  h+=`</div>`;content.innerHTML=h;
+  });
+  showModal('🎒 背包',h,[{text:'关闭',cls:''}]);
 }
 
-function joinSect(n){P.sect=n;P.sectContrib=20;showToast(`✅ 加入${n}！获得初始贡献20`);render();}
-function startMission(n){const m=SECT_MISSIONS.find(k=>k.n===n);if(!m)return;missionActive={...m,rem:m.d};showToast(`📋 接取任务: ${m.n}`);render();}
-function doMission(){if(!missionActive)return;missionActive.rem--;
-  if(missionActive.rem<=0){const m=missionActive;P.gold+=m.rew.gold||0;P.exp+=m.rew.exp||0;P.sectContrib+=m.rew.contrib||0;
-    if(m.rew.mats)for(const mt of m.rew.mats)P.mats[mt.n]=(P.mats[mt.n]||0)+mt.q;
-    P.completedMissions++;P.lv=Math.floor(P.exp/30)+1;showToast(`✅ 任务完成！+${m.rew.gold}💎 +${m.rew.contrib}贡献`);missionActive=null;}
-  render();}
-function buySectItem(n){
-  const item=SECT_SHOP.find(k=>k.n===n);if(!item||P.sectContrib<item.cost)return;
-  if(item.type==='skill'){const avail=SKILLS.filter(s=>!hasSkill(s.id));if(avail.length>0){const s=avail[Math.floor(Math.random()*avail.length)];P.skills.push(s.id);showToast(`📜 习得 ${s.n}！`);}}
-  else if(item.type==='trib_item'){P.tribBonus+=item.v;showToast(`⚡ 渡劫率+${Math.floor(item.v*100)}%`);}
-  else if(item.type==='equip'){const eq=genEquip();P.bag.push(eq);showToast(`🗡️ 获得 ${eq.icon}${eq.n}`);}
-  else if(item.type==='beast_egg'){const b=BEASTS[Math.floor(Math.random()*BEASTS.length)];P.beast={...b};P.beastLv=1;showToast(`🥚 孵化成功！获得 ${b.icon}${b.n}`);}
-  else if(item.type==='meridian'){const avail=MERIDIANS.filter(m=>!P.meridians.includes(m.n));if(avail.length>0){const m=avail[Math.floor(Math.random()*avail.length)];P.meridians.push(m.n);showToast(`🧬 打通 ${m.n}！`);}}
-  P.sectContrib-=item.cost;render();
+function equipWeapon(i){const item=P.bag[i];if(!item||item.type!=='weapon')return;const old=P.equippedWeapon;P.equippedWeapon=item;P.bag.splice(i,1);if(old)P.bag.push({...old,type:'weapon'});showToast(`装备 ${item.n}`);renderMap();save();}
+function useBagItem(i){const item=P.bag[i];if(!item)return;
+  if(item.type==='mat'){showToast(`使用 ${item.n}`);P.bag.splice(i,1);}
+  renderMap();save();}
+
+function openBeast(){
+  let h='';
+  if(P.beast){
+    h+=`<p>${P.beast.icon} <strong>${P.beast.n}</strong> - ${P.beast.desc}</p>
+    <p style="font-size:.6rem;color:${P.beastDeployed?'#81c784':'rgba(200,180,140,.4)'}">状态: ${P.beastDeployed?'✅ 已出战':'⚠️ 未出战'}</p>
+    <p style="font-size:.55rem;color:rgba(200,180,140,.3)">${P.beast.deployDesc}</p>`;
+    if(!P.beastDeployed)h+=`<button class="btn pri" onclick="deployBeast()">🐾 点击出战</button>`;
+    else h+=`<button class="btn dan" onclick="recallBeast()">🔙 召回休息</button>`;
+  }else h='<p>尚未拥有灵兽，在地图上探索发现吧</p>';
+  showModal('🐾 灵兽',h,[{text:'关闭',cls:''}]);
 }
 
-// ==================== 丹器 ====================
-function rCraft(){
-  let h=`<div class="card"><h3>⚒️ 炼丹炼器</h3><div class="sub">材料: `;
-  for(const[k,v]of Object.entries(P.mats))if(v>0)h+=`${k}×${v} `;
-  h+=`</div></div><div class="card"><h3>🧪 炼丹</h3>`;
-  for(const rcp of ALCHEMY_RECIPES){
-    const can=rcp.mats.every(m=>(P.mats[m.n]||0)>=m.q);
-    h+=`<div class="row"><span>${rcp.icon} ${rcp.n}</span><span style="font-size:.5rem;color:rgba(200,180,140,.4)">${rcp.desc} | ${rcp.mats.map(m=>m.n+'×'+m.q).join(',')}</span><button class="btn-sm ok" onclick="craftAlchemy('${rcp.id}')" ${can?'':'disabled'}>炼制</button></div>`;
-  }
-  h+=`</div><div class="card"><h3>🛡️ 装备栏</h3>`;
-  for(const slot of EQ_SLOTS){
-    const eq=P.equipment[slot];
-    h+=`<div class="row"><span>${slot}</span><span style="font-size:.55rem">${eq?`${eq.icon}${eq.n} ⚔️${eq.atk||0} 🛡️${eq.def||0} ❤️${eq.hp||0}`:'空'}</span><button class="btn-sm" onclick="unequip('${slot}')" ${!eq?'disabled':''}>卸下</button></div>`;
-  }
-  h+=`</div><div class="card"><h3>🎒 背包 (${P.bag.length}件)</h3><div class="grid2">`;
-  for(let i=0;i<P.bag.length;i++){
-    const item=P.bag[i];
-    if(item.equipSlot)h+=`<div class="card" style="padding:8px;cursor:pointer" onclick="equipItem(${i})">${item.icon} ${item.n}<div class="sub">⚔${item.atk||0} 🛡${item.def||0} ❤${item.hp||0}</div></div>`;
-    else h+=`<div class="card" style="padding:8px;cursor:pointer" onclick="useBagItem(${i})">${item.icon||'📦'} ${item.n}<div class="sub">${item.desc||''}</div></div>`;
-  }
-  if(P.bag.length===0)h+=`<div class="sub">空空如也</div>`;
-  h+=`</div></div></div>`;content.innerHTML=h;
+function deployBeast(){P.beastDeployed=true;showToast(`🐾 ${P.beast.n} 出战！`);openBeast();renderMap();save();}
+function recallBeast(){P.beastDeployed=false;showToast(`${P.beast.n} 已召回`);openBeast();renderMap();save();}
+
+function openShop(){
+  let h='';EQUIP_TEMPLATES.forEach(eq=>{h+=`<div class="row"><span>${eq.icon} ${eq.n} ⚔+${eq.atk}</span><button class="btn ok" style="width:auto;padding:3px 8px;font-size:.5rem" onclick="buyEq('${eq.n}')" ${P.gold>=eq.cost?'':'disabled'}>💎${eq.cost}</button></div>`;});
+  h+=`<hr style="border-color:rgba(255,255,255,.05);margin:8px 0"><div class="row"><span>小还丹 ❤30%</span><button class="btn ok" style="width:auto;padding:3px 8px;font-size:.5rem" onclick="buyHeal()" ${P.gold>=50?'':'disabled'}>💎50</button></div>`;
+  showModal('🏪 坊市',h,[{text:'关闭',cls:''}]);
 }
 
-function craftAlchemy(id){
-  const rcp=ALCHEMY_RECIPES.find(r=>r.id===id);if(!rcp)return;
-  if(!rcp.mats.every(m=>(P.mats[m.n]||0)>=m.q))return;
-  for(const m of rcp.mats)P.mats[m.n]-=m.q;
-  const item={...rcp,type:rcp.act,v:rcp.v};P.bag.push(item);showToast(`🧪 炼制成功: ${rcp.n}`);render();
-}
-function useBagItem(i){
-  const it=P.bag[i];if(!it||it.equipSlot)return;
-  if(it.act==='heal'){P.hp=Math.min(effMaxHp(),P.hp+Math.floor(effMaxHp()*it.v));P.bag.splice(i,1);showToast('使用 '+it.n);}
-  else if(it.act==='exp'){P.exp+=Math.floor((nrd().exp-rd().exp)*it.v);P.lv=Math.floor(P.exp/30)+1;P.bag.splice(i,1);showToast('使用 '+it.n);}
-  else if(it.act==='sp'){P.sp=Math.min(effMaxSp(),P.sp+it.v);P.bag.splice(i,1);showToast('使用 '+it.n);}
-  else if(it.act==='patk'){P.permAtk+=it.v;P.bag.splice(i,1);showToast('永攻+'+it.v);}
-  else if(it.act==='pdef'){P.permDef+=it.v;P.bag.splice(i,1);showToast('永防+'+it.v);}
-  else if(it.act==='php'){P.permHp+=it.v;P.bag.splice(i,1);showToast('永血+'+it.v);}
-  else if(it.act==='trib'){P.tribBonus+=it.v;P.bag.splice(i,1);showToast('渡劫率+'+Math.floor(it.v*100)+'%');}
-  render();
-}
-function equipItem(i){const it=P.bag[i];if(!it||!it.equipSlot)return;const slot=it.equipSlot;const old=P.equipment[slot];P.equipment[slot]=it;P.bag.splice(i,1);if(old)P.bag.push(old);showToast(`装备: ${it.n}`);render();}
-function unequip(slot){const eq=P.equipment[slot];if(!eq)return;P.bag.push(eq);P.equipment[slot]=null;showToast(`卸下: ${eq.n}`);render();}
-
-function genEquip(){
-  const prefixes=['凡品','良品','上品','极品','仙品'];const rarities=['⚪','🟢','🔵','🟣','🟠'];
-  const ri=Math.floor(Math.random()*5);const mult=1+ri*.4;
-  const slots=EQ_SLOTS;const slot=slots[Math.floor(Math.random()*slots.length)];
-  const names={武器:['铁剑','青锋','玄铁重剑','斩龙剑','诛仙剑'],防具:['布衣','皮甲','铁铠','灵纹甲','玄武神甲'],头盔:['布巾','铁盔','灵角盔','紫金冠','太虚冠'],戒指:['铜环','银戒','灵玉戒','乾坤戒','混沌戒'],项链:['石坠','玉坠','灵晶链','龙魂链','天命链'],靴子:['草鞋','皮靴','疾风靴','踏云靴','缩地靴']};
-  const n=names[slot][ri];const icon=rarities[ri];
-  return {n:`[${prefixes[ri]}] ${n}`,icon,equipSlot:slot,atk:Math.floor((4+ri*5)*mult),def:Math.floor((3+ri*4)*mult),hp:Math.floor((10+ri*15)*mult),desc:`${slot} · ${prefixes[ri]}`};
-}
-
-// ==================== 功法 ====================
-function rMore(){
-  let h=`<div class="card"><h3>📿 功法阁</h3><div class="sub">已习得: ${P.skills.length}门</div></div>`;
-  for(const s of SKILLS){
-    const learned=hasSkill(s.id);
-    h+=`<div class="card"><div class="row"><span>${s.icon} ${s.n} ${learned?'✅':''}</span>${learned?'':`<button class="btn-sm" onclick="learnSkill('${s.id}')" ${P.gold>=s.cost?'':'disabled'}>💎${s.cost}</button>`}</div><div class="sub">${s.desc}</div></div>`;
-  }
-  h+=`<div class="card"><h3>🛒 坊市</h3><div class="sub">灵石: 💎${P.gold}</div></div>`;
-  for(const item of SHOP_ITEMS){
-    h+=`<div class="card"><div class="row"><span>${item.icon} ${item.n}</span><button class="btn-sm" onclick="buyShopItem('${item.id}')" ${P.gold>=item.cost?'':'disabled'}>💎${item.cost}</button></div><div class="sub">${item.desc}</div></div>`;
-  }
-  content.innerHTML=h;
-}
-
-function learnSkill(id){const sk=SKILLS.find(s=>s.id===id);if(!sk||P.gold<sk.cost)return;P.gold-=sk.cost;P.skills.push(id);showToast(`✅ 习得 ${sk.n}！`);render();}
-function buyShopItem(id){const item=SHOP_ITEMS.find(i=>i.id===id);if(!item||P.gold<item.cost)return;P.gold-=item.cost;P.bag.push({...item,act:item.type,v:item.v,icon:item.icon,n:item.n,desc:item.desc});showToast(`✅ 购买 ${item.n}`);render();}
+function buyEq(n){const eq=EQUIP_TEMPLATES.find(e=>e.n===n);if(!eq||P.gold<eq.cost)return;P.gold-=eq.cost;if(!P.bag)P.bag=[];P.bag.push({...eq,type:'weapon'});showToast(`购买 ${eq.n}`);renderMap();save();}
+function buyHeal(){if(P.gold<50)return;P.gold-=50;P.hp=Math.min(effMaxHp(),P.hp+Math.floor(effMaxHp()*.3));showToast('使用小还丹');renderMap();save();}
 
 // ==================== 初始化 ====================
-function render(){uh();switch(currentTab){
-  case'home':rHome();break;case'battle':rBattle();break;
-  case'sect':rSect();break;case'craft':rCraft();break;case'more':rMore();break;
-}save();}
+if(!P.mapCells||P.mapCells.length===0)genMap();
+if(P.playerPos<0)P.playerPos=0;
+if(P.hp<=0)P.hp=Math.floor(effMaxHp()*.3);
+P.currentLayer=Math.floor(P.playerPos/5);
+if(!P.bag)P.bag=[];
+if(!P.equippedSkills)P.equippedSkills=[];
 
-// 自动修炼 & 宗门计时
-setInterval(()=>{
-  if(currentTab==='home'){
-    P.exp+=Math.floor(3*expBonus());P.sp=Math.min(effMaxSp(),P.sp+1);P.lv=Math.floor(P.exp/30)+1;
-    if(P.lv%5===0&&P.lv>0&&P.talentPts<Math.floor(P.lv/5))P.talentPts++;
-  }
-  if(missionActive){
-    missionActive.rem-=0.1;
-    if(missionActive.rem<=0){const m=missionActive;P.gold+=m.rew.gold||0;P.exp+=m.rew.exp||0;P.sectContrib+=m.rew.contrib||0;if(m.rew.mats)for(const mt of m.rew.mats)P.mats[mt.n]=(P.mats[mt.n]||0)+mt.q;P.completedMissions++;missionActive=null;showToast('✅ 宗门任务完成！');}
-  }
-  save();
-},8000);
+// 自动恢复
+setInterval(()=>{P.hp=Math.min(effMaxHp(),P.hp+Math.floor(effMaxHp()*.02));save();},10000);
 
-render();
+renderMap();
 </script>
 </body>
 </html>
