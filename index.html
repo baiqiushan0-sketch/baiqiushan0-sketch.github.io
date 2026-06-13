@@ -160,6 +160,10 @@ body{
   background:transparent;border:1px solid var(--accent1);color:var(--accent1);
 }
 .card:nth-child(1) .play-btn:hover{background:rgba(197,160,89,.15)}
+.card:nth-child(2) .play-btn{
+  background:transparent;border:1px solid var(--accent2);color:var(--accent2);
+}
+.card:nth-child(2) .play-btn:hover{background:rgba(0,210,255,.1)}
 
 /* ===== Responsive ===== */
 @media (max-width:768px){
@@ -196,7 +200,8 @@ body{
 /* Card entrance animation */
 .card{animation:cardIn .6s ease-out backwards}
 .card:nth-child(1){animation-delay:.1s}
-.card:nth-child(2){animation-delay:.25s}
+.card:nth-child(2){animation-delay:.2s}
+.card:nth-child(3){animation-delay:.3s}
 
 @keyframes cardIn{
   from{opacity:0;transform:translateY(30px)}
@@ -287,7 +292,31 @@ body{
       <div class="card-overlay"><button class="play-btn">进入体验 →</button></div>
     </div>
 
-    <!-- Project 2: 更多精彩 -->
+    <!-- Project 2: 地铁酷跑 -->
+    <div class="card" onclick="openProject('homepage/subway-runner.html')">
+      <div class="card-accent"></div>
+      <div class="card-visual">
+        <div class="visual-placeholder" style="background:linear-gradient(135deg,#1a1a2e 0%,#2d1b4e 50%,#1a3a5c 100%)">
+          <div class="visual-icon" style="background:rgba(0,210,255,.15);border:2px solid rgba(0,210,255,.3)">🚇</div>
+          <div class="orbit-ring" style="width:100px;height:100px;animation-duration:4s">
+            <div class="orbit-dot" style="background:#00d2ff;top:-2px;left:50%"></div>
+          </div>
+          <div class="orbit-ring" style="width:70px;height:70px;animation-duration:6s">
+            <div class="orbit-dot" style="background:#ffd700;top:50%;left:-2px"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <h3>🚇 地铁酷跑</h3>
+        <p class="tagline">3D无尽跑酷 · 三轨道切道 · 跳跃下滑躲避障碍</p>
+        <div class="tags">
+          <span>Three.js</span><span>跑酷</span><span>3D</span><span>无尽模式</span>
+        </div>
+      </div>
+      <div class="card-overlay"><button class="play-btn" style="color:#00d2ff;border-color:#00d2ff">开始酷跑 →</button></div>
+    </div>
+
+    <!-- Project 3: 更多精彩 -->
     <div class="card coming-soon">
       <div class="card-accent"></div>
       <div class="card-visual">
