@@ -11,6 +11,8 @@ body{background:#000;color:#fff;font-family:'PingFang SC','Microsoft YaHei',sans
 #dot{position:fixed;top:16px;right:16px;z-index:10;width:8px;height:8px;border-radius:50%;background:#444;transition:all .3s}
 #dot.on{background:#c5a059;box-shadow:0 0 6px #c5a059}
 #dot.ok{background:#0f8;box-shadow:0 0 8px #0f8}
+#hand-dot{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:20;font-size:3rem;opacity:0;transition:opacity .3s;pointer-events:none;text-shadow:0 0 20px rgba(0,255,136,.6)}
+#hand-dot.show{opacity:.9}
 #panel{position:fixed;top:24px;left:24px;z-index:10;pointer-events:none}
 #panel h1{font-weight:200;font-size:1.6rem;color:#e0cda7;letter-spacing:4px;margin-bottom:6px}
 #panel .s{font-size:.75rem;color:#666;font-family:monospace;line-height:1.6}
@@ -44,6 +46,15 @@ body{background:#000;color:#fff;font-family:'PingFang SC','Microsoft YaHei',sans
 #ov button:hover{background:rgba(197,160,89,.15)}
 #ov button:disabled{opacity:.35;cursor:not-allowed}
 #err{color:#a55;font-size:.75rem;display:none;max-width:380px;text-align:center}
+
+/* 手机端适配 */
+@media (max-width:768px){
+  #btm>div{width:130px;height:98px}
+  #panel h1{font-size:1.2rem}
+  #panel{top:12px;left:12px}
+  #ctrls{bottom:20px;right:10px;flex-direction:column}
+  #ctrls button{padding:8px 14px;font-size:.65rem}
+}
 </style>
 </head>
 <body>
@@ -71,6 +82,7 @@ body{background:#000;color:#fff;font-family:'PingFang SC','Microsoft YaHei',sans
   <div class="gh" data-mode="2">✋张开→发散</div>
   <div class="gh" data-mode="0">✊握拳→土星</div>
 </div>
+<div id="hand-dot">✋</div>
 <div id="ctrls"><button onclick="window.location.href='../index.html'">← 返回合集</button><button onclick="document.body.requestFullscreen?.()">全屏</button></div>
 <div id="ov">
   <div style="position:fixed;top:16px;left:16px;z-index:101"><a href="../index.html" style="color:#666;text-decoration:none;font-size:.75rem;letter-spacing:2px">← 返回合集</a></div>
@@ -89,11 +101,11 @@ body{background:#000;color:#fff;font-family:'PingFang SC','Microsoft YaHei',sans
 <!-- MediaPipe Hands -->
 <script src="mediapipe/hands.js" crossorigin="anonymous"></script>
 <script src="mediapipe/camera_utils.js" crossorigin="anonymous"></script>
-<script src="mediapipe/drawing_utils.js" crossorigin="anonymous"></script>
+<!-- drawing_utils 不再需要，用原生 Canvas 绘制骨骼 -->
 
 <script>
 // ===== DOM =====
-const V=document.getElementById('v'),dot=document.getElementById('dot');
+const V=document.getElementById('v'),dot=document.getElementById('dot'),handDot=document.getElementById('hand-dot');
 const stEl=document.getElementById('st'),gsEl=document.getElementById('gs'),mdEl=document.getElementById('md'),opEl=document.getElementById('op');
 const btn=document.getElementById('btn'),errEl=document.getElementById('err');
 const sc=document.getElementById('sc'),sctx=sc.getContext('2d');
@@ -303,6 +315,56 @@ const WRIST = 0;
 function dist3d(a,b){return Math.sqrt((a.x-b.x)**2+(a.y-b.y)**2+(a.z-b.z)**2)}
 function dist2d(a,b){return Math.sqrt((a.x-b.x)**2+(a.y-b.y)**2)}
 
+// 手部骨骼连接定义（不依赖 MediaPipe drawing_utils）
+const HAND_BONES = [
+  [0,1],[1,2],[2,3],[3,4],        // 拇指
+  [0,5],[5,6],[6,7],[7,8],        // 食指
+  [5,9],[9,10],[10,11],[11,12],   // 中指
+  [9,13],[13,14],[14,15],[15,16], // 无名指
+  [13,17],[0,17],[17,18],[18,19],[19,20] // 小指 + 手腕连接
+];
+
+// 原生 Canvas 骨骼绘制（不依赖 MediaPipe drawing_utils）
+let frameDrawCount=0, lastDrawLog=0;
+function drawSkeletonNative(ctx, lm, w, h){
+  if(!lm||lm.length<21)return;
+  const sw=isMobile?3:2;  // 手机端加粗线条
+  const sr=isMobile?5:3;  // 手机端加大圆点
+
+  // 绘制骨骼连线
+  ctx.strokeStyle='#00ff88';
+  ctx.lineWidth=sw;
+  ctx.lineCap='round';
+  for(const [i,j] of HAND_BONES){
+    const a=lm[i], b=lm[j];
+    if(!a||!b)continue;
+    ctx.beginPath();
+    ctx.moveTo(a.x*w, a.y*h);
+    ctx.lineTo(b.x*w, b.y*h);
+    ctx.stroke();
+  }
+
+  // 绘制关节圆点
+  for(let i=0;i<21;i++){
+    const p=lm[i];
+    if(!p)continue;
+    ctx.beginPath();
+    ctx.arc(p.x*w, p.y*h, sr, 0, Math.PI*2);
+    ctx.fillStyle='#ffaa00';
+    ctx.fill();
+    ctx.strokeStyle='#ff6b4a';
+    ctx.lineWidth=1;
+    ctx.stroke();
+  }
+
+  // 帧计数（调试用）
+  frameDrawCount++;
+  if(Date.now()-lastDrawLog>3000){
+    console.log('骨骼绘制正常, 帧数:',frameDrawCount,'手坐标:',lm[0]?.x?.toFixed(2), lm[0]?.y?.toFixed(2));
+    lastDrawLog=Date.now();
+  }
+}
+
 // 判断手指是否伸展：指尖到手腕距离 > MCP到手腕距离
 function isFingerExtended(lm, fingerName){
   const tip = lm[FINGER_TIPS[fingerName]];
@@ -371,13 +433,10 @@ function onHandResults(results){
     const lm=results.multiHandLandmarks[0];
     handData = lm;
 
-    // 在骨骼预览画布上绘制（CSS scaleX(-1) 统一镜像）
+    // 骨骼预览：原生 Canvas 绘制（不依赖 MediaPipe drawing_utils）
     sctx.clearRect(0,0,sc.width,sc.height);
     sctx.drawImage(V,0,0,sc.width,sc.height);
-    if(window.drawConnectors&&window.HAND_CONNECTIONS){
-      drawConnectors(sctx,lm,HAND_CONNECTIONS,{color:'#00ff88',lineWidth:2});
-      drawLandmarks(sctx,lm,{color:'#ff6b4a',lineWidth:1,radius:3,fillColor:'#ffaa00'});
-    }
+    drawSkeletonNative(sctx, lm, sc.width, sc.height);
 
     const g=detectGestureFromLandmarks(lm);
     if(!g)return;
@@ -401,20 +460,24 @@ function onHandResults(results){
     window._hasHand=true;window._openness=g.openness;
     window._handX=(g.wx-.5)*2;window._handY=(g.wy-.5)*2;
     window._gesture=g.gesture;window._lastHand=Date.now();
-    dot.className='ok';stEl.textContent='骨骼追踪中';
+    dot.className='ok';handDot.className='show';stEl.textContent='骨骼追踪中 F:'+frameDrawCount;
     const progBar='·'.repeat(Math.min(gestureStable,STABLE_NEED));
     gsEl.textContent=g.gesture+(gestureStable>=3?` ${progBar}`:'');
     opEl.textContent=`${Math.round(g.openness*100)}% | 伸${g.extCount}指`;
   }else{
     handData=null;
     if(Date.now()-(window._lastHand||0)>(isMobile?2000:800)){
-      window._hasHand=false;dot.className='on';stEl.textContent='待机';
+      window._hasHand=false;dot.className='on';handDot.className='';stEl.textContent='待机';
       gsEl.textContent='--';opEl.textContent='--';
       lastGesture='';gestureStable=0;
     }
-    // 无手时清骨骼预览（CSS scaleX(-1) 镜像）
+    // 无手时清骨骼预览
     sctx.clearRect(0,0,sc.width,sc.height);
     sctx.drawImage(V,0,0,sc.width,sc.height);
+    // 调试：显示帧计数器确认管线运行中
+    sctx.fillStyle='rgba(255,255,255,.25)';
+    sctx.font='9px monospace';
+    sctx.fillText('F:'+frameDrawCount, 4, 12);
   }
 }
 
