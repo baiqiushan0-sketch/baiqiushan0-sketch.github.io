@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>粒子土星 · 骨骼手势聚合态</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#000;color:#fff;font-family:'PingFang SC','Microsoft YaHei',sans-serif;overflow:hidden;height:100vh;width:100vw}
+#c{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1}
+#dot{position:fixed;top:16px;right:16px;z-index:10;width:8px;height:8px;border-radius:50%;background:#444;transition:all .3s}
+#dot.on{background:#c5a059;box-shadow:0 0 6px #c5a059}
+#dot.ok{background:#0f8;box-shadow:0 0 8px #0f8}
+#panel{position:fixed;top:24px;left:24px;z-index:10;pointer-events:none}
+#panel h1{font-weight:200;font-size:1.6rem;color:#e0cda7;letter-spacing:4px;margin-bottom:6px}
+#panel .s{font-size:.75rem;color:#666;font-family:monospace;line-height:1.6}
+#panel .s span{color:#c5a059}
+#panel .mode-name{font-weight:bold;font-size:.85rem;transition:color .5s}
+#btm{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:10;display:flex;gap:12px}
+#btm>div{width:160px;height:120px;border-radius:8px;border:1px solid rgba(197,160,89,.25);overflow:hidden;background:#000;position:relative}
+#btm video,#btm canvas{width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0}
+#btm video,#sc{transform:scaleX(-1)}
+#btm .lbl{position:absolute;bottom:3px;left:6px;font-size:.5rem;color:rgba(255,255,255,.35);z-index:2}
+#ctrls{position:fixed;bottom:40px;right:30px;z-index:10}
+#ctrls button{background:transparent;border:1px solid rgba(197,160,89,.3);color:#c5a059;padding:10px 24px;font-size:.75rem;cursor:pointer;letter-spacing:2px;transition:all .4s}
+#ctrls button:hover{background:rgba(197,160,89,.1);border-color:#c5a059}
+#gesture-hint{position:fixed;bottom:150px;left:50%;transform:translateX(-50%);z-index:10;
+  display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:94vw}
+#gesture-hint .gh{
+  font-size:.55rem;color:rgba(255,255,255,.3);border:1px solid rgba(255,255,255,.1);
+  padding:3px 8px;border-radius:12px;transition:all .5s;white-space:nowrap}
+#gesture-hint .gh.active{color:#c5a059;border-color:#c5a059;background:rgba(197,160,89,.1);box-shadow:0 0 8px rgba(197,160,89,.15)}
+#flash{position:fixed;top:0;left:0;width:100%;height:100%;z-index:50;pointer-events:none;
+  background:radial-gradient(circle,rgba(197,160,89,.15),transparent 70%);opacity:0;transition:opacity .15s}
+#flash.pop{opacity:1;transition:opacity 0s}
+#loading{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99;pointer-events:none;display:none}
+#loading.show{display:block}
+#loading .ld{color:#c5a059;font-size:.8rem;letter-spacing:2px;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
+#ov{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.92);z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.8rem}
+#ov h1{font-weight:200;font-size:1.8rem;color:#e0cda7;letter-spacing:6px}
+#ov p{color:#666;font-size:.8rem;text-align:center;line-height:1.9;max-width:460px}
+#ov button{padding:10px 28px;font-size:.85rem;border:1px solid #c5a059;border-radius:2px;background:transparent;color:#c5a059;cursor:pointer;letter-spacing:3px;transition:all .3s}
+#ov button:hover{background:rgba(197,160,89,.15)}
+#ov button:disabled{opacity:.35;cursor:not-allowed}
+#err{color:#a55;font-size:.75rem;display:none;max-width:380px;text-align:center}
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+<div id="dot"></div>
+<div id="flash"></div>
+<div id="loading"><div class="ld">⏳ 加载手部模型...</div></div>
+<div id="panel">
+  <h1>土星 · 骨骼手势</h1>
+  <div class="s">
+    状态: <span id="st">待机</span><br>
+    模式: <span class="mode-name" id="md" style="color:#c5a059">🪐 行星</span><br>
+    手势: <span id="gs">--</span><br>
+    开度: <span id="op">--</span>
+  </div>
+</div>
+<div id="btm">
+  <div><span class="lbl">骨骼追踪</span><canvas id="sc" width="320" height="240"></canvas></div>
+  <div><span class="lbl">摄像头</span><video id="v" autoplay playsinline muted></video></div>
+</div>
+<div id="gesture-hint">
+  <div class="gh" data-mode="0">☝️比1→土星</div>
+  <div class="gh" data-mode="3">✌️比2→龙卷风</div>
+  <div class="gh" data-mode="2">✋张开→发散</div>
+  <div class="gh" data-mode="0">✊握拳→土星</div>
+</div>
+<div id="ctrls"><button onclick="document.body.requestFullscreen?.()">全屏</button></div>
+<div id="ov">
+  <h1>粒子土星</h1>
+  <p>MediaPipe 21点骨骼追踪<br>
+  ☝️ 比1 → 🪐 土星<br>
+  ✌️ 比2 → 🌪️ 龙卷风<br>
+  ✋ 张开 → 💥 土星发散<br>
+  ✊ 握拳 → 🪐 回归土星</p>
+  <button id="btn">开启摄像头</button>
+  <div id="err"></div>
+</div>
+
+<!-- Three.js -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<!-- MediaPipe Hands -->
+<script src="mediapipe/hands.js" crossorigin="anonymous"></script>
+<script src="mediapipe/camera_utils.js" crossorigin="anonymous"></script>
+<script src="mediapipe/drawing_utils.js" crossorigin="anonymous"></script>
+
+<script>
+// ===== DOM =====
+const V=document.getElementById('v'),dot=document.getElementById('dot');
+const stEl=document.getElementById('st'),gsEl=document.getElementById('gs'),mdEl=document.getElementById('md'),opEl=document.getElementById('op');
+const btn=document.getElementById('btn'),errEl=document.getElementById('err');
+const sc=document.getElementById('sc'),sctx=sc.getContext('2d');
+const flash=document.getElementById('flash');
+const loading=document.getElementById('loading');
+const ghEls=document.querySelectorAll('#gesture-hint .gh');
+
+// ===== 聚合模式定义 =====
+const MODES = [
+  { id:0, name:'🪐 行星',      color:'#c5a059' },
+  { id:1, name:'🤖 AI',        color:'#00d2ff' },
+  { id:2, name:'💥 发散',      color:'#ff6b4a' },
+  { id:3, name:'🌪️ 龙卷风',   color:'#50c878' },
+  { id:4, name:'🦋 蝴蝶',      color:'#ff79c6' },
+];
+let currentMode = 0, targetMode = 0;
+let transitionProgress = 1.0;
+const TRANSITION_SPEED = 0.015;
+
+// ===== Three.js 场景 =====
+const R=new THREE.WebGLRenderer({canvas:document.getElementById('c'),antialias:true,alpha:true,powerPreference:'high-performance'});
+R.setPixelRatio(Math.min(devicePixelRatio,2));R.setSize(innerWidth,innerHeight);
+const scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x020202,0.00006);
+const cam=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,1,10000);
+cam.position.z=100;cam.lookAt(0,0,0);
+
+const PC=180000, RP=18;
+const geo=new THREE.BufferGeometry();
+const posA=new Float32Array(PC*3), colA=new Float32Array(PC*3);
+
+// 原始土星（永不修改）/ 当前落定 / 目标
+const origSX=new Float32Array(PC), origSY=new Float32Array(PC), origSZ=new Float32Array(PC);
+const curSX=new Float32Array(PC), curSY=new Float32Array(PC), curSZ=new Float32Array(PC);
+const tgtX=new Float32Array(PC), tgtY=new Float32Array(PC), tgtZ=new Float32Array(PC);
+
+// 确定性伪随机
+function hash(i,s){let x=Math.sin(i*127.1+s*311.7+437.58)*43758.5453;return x-Math.floor(x)}
+function gauss(i,s){const u1=hash(i,s),u2=hash(i,s+1);return Math.sqrt(-2*Math.log(Math.max(u1,.001)))*Math.cos(2*Math.PI*u2)}
+
+// 初始化土星粒子
+const bC=[new THREE.Color('#E3DAC5'),new THREE.Color('#C9A070'),new THREE.Color('#E3DAC5'),new THREE.Color('#B08D55')];
+const rcC=new THREE.Color('#2A2520'),rcBi=new THREE.Color('#CDBFA0'),rcBo=new THREE.Color('#DCCBBA');
+const rcCas=new THREE.Color('#050505'),rcA=new THREE.Color('#989085'),rcF=new THREE.Color('#AFAFA0');
+
+for(let i=0;i<PC;i++){
+  let x,y,z,r2,g2,b2;
+  if(i<PC*.25){
+    const u=hash(i,10),v=hash(i,11),th=2*Math.PI*u,ph=Math.acos(2*v-1);
+    x=RP*Math.sin(ph)*Math.cos(th);const ry=RP*Math.cos(ph);y=ry*.9;z=RP*Math.sin(ph)*Math.sin(th);
+    const lat=(ry/RP+1)*.5,bn=Math.cos(lat*40)*.8+Math.cos(lat*15)*.4;
+    let ci=Math.floor(lat*4+bn)%4;if(ci<0)ci=0;
+    const bc=bC[ci];r2=bc.r;g2=bc.g;b2=bc.b;
+  }else{
+    const zr=hash(i,13);let rr,rc;
+    if(zr<.15){rr=RP*(1.235+hash(i,14)*.29);rc=rcC}
+    else if(zr<.65){const t=hash(i,15);rr=RP*(1.525+t*.425);rc=rcBi.clone().lerp(rcBo,t)}
+    else if(zr<.69){rr=RP*(1.95+hash(i,17)*.075);rc=rcCas}
+    else if(zr<.99){rr=RP*(2.025+hash(i,18)*.245);rc=rcA}
+    else{rr=RP*(2.32+hash(i,19)*.02);rc=rcF}
+    const th=hash(i,20)*Math.PI*2;x=rr*Math.cos(th);z=rr*Math.sin(th);
+    y=(hash(i,21)-.5)*(rr>RP*2.3?.4:.15);r2=rc.r;g2=rc.g;b2=rc.b;
+  }
+  posA[i*3]=x;posA[i*3+1]=y;posA[i*3+2]=z;
+  colA[i*3]=r2;colA[i*3+1]=g2;colA[i*3+2]=b2;
+  origSX[i]=curSX[i]=x;origSY[i]=curSY[i]=y;origSZ[i]=curSZ[i]=z;
+}
+geo.setAttribute('position',new THREE.BufferAttribute(posA,3));
+geo.setAttribute('color',new THREE.BufferAttribute(colA,3));
+
+// 发光贴图
+const spC=document.createElement('canvas');spC.width=32;spC.height=32;
+const spX=spC.getContext('2d');
+const grad=spX.createRadialGradient(16,16,0,16,16,16);
+grad.addColorStop(0,'rgba(255,255,255,1)');grad.addColorStop(.1,'rgba(255,255,255,.9)');
+grad.addColorStop(.4,'rgba(200,180,150,.4)');grad.addColorStop(.7,'rgba(100,80,50,.05)');
+grad.addColorStop(1,'rgba(0,0,0,0)');
+spX.fillStyle=grad;spX.fillRect(0,0,32,32);
+
+const saturnPts=new THREE.Points(geo,new THREE.PointsMaterial({
+  size:.55,map:new THREE.CanvasTexture(spC),vertexColors:true,
+  blending:THREE.AdditiveBlending,depthWrite:false,transparent:true,opacity:.85
+}));
+saturnPts.rotation.z=26.73*(Math.PI/180);
+scene.add(saturnPts);
+
+// 背景星星
+const sc2=12000,sGeo=new THREE.BufferGeometry(),sP=new Float32Array(sc2*3);
+for(let i=0;i<sc2;i++){
+  const r=400+Math.random()*2500,th=Math.random()*Math.PI*2,ph=Math.acos(2*Math.random()-1);
+  sP[i*3]=r*Math.sin(ph)*Math.cos(th);sP[i*3+1]=r*Math.cos(ph);sP[i*3+2]=r*Math.sin(ph)*Math.sin(th);
+}
+sGeo.setAttribute('position',new THREE.BufferAttribute(sP,3));
+const stars=new THREE.Points(sGeo,new THREE.PointsMaterial({size:.8,color:'#fff',blending:THREE.AdditiveBlending,depthWrite:false,transparent:true,opacity:.6}));
+scene.add(stars);
+
+// ===== 计算各模式目标位置 =====
+function computeTargets(mode){
+  for(let i=0;i<PC;i++){
+    let tx,ty,tz;
+    const h1=hash(i,100+mode*50),h2=hash(i,101+mode*50),h3=hash(i,102+mode*50);
+    const g1=gauss(i,200+mode*50),g2=gauss(i,201+mode*50);
+    switch(mode){
+      case 0:{ // 🪐 行星：球体+光环
+        if(i<PC*.25){
+          const ph=Math.acos(2*h1-1),th=2*Math.PI*h2,r=RP*(.85+h3*.3);
+          tx=r*Math.sin(ph)*Math.cos(th);ty=r*Math.cos(ph)*.8;tz=r*Math.sin(ph)*Math.sin(th);
+        }else if(i<PC*.4){
+          const r=RP*(1.35+h1*.25),angle=2*Math.PI*h2;
+          tx=Math.cos(angle)*r;tz=Math.sin(angle)*r;ty=(h3-.5)*.35+g1*.15;
+        }else{
+          const r=RP*(1.65+h1*.55),angle=2*Math.PI*h2;
+          tx=Math.cos(angle)*r;tz=Math.sin(angle)*r;ty=(h3-.5)*.55+g1*.2;
+        }
+      }break;
+      case 1:{ // 🤖 AI 字母
+        if(h1<.5){ // "A"
+          const ax=(h2-.5)*RP*2.4, ay=(h3-.5)*RP*3;
+          const onA=(ay<-.85*Math.abs(ax)+RP*1.3&&ay>-RP*1.3)
+                 ||(ay<.6*Math.abs(ax)-RP*.2&&ay>-RP*1.3)
+                 ||(Math.abs(ay)<RP*.12&&Math.abs(ax)<RP*.75);
+          tx=ax;ty=ay;tz=onA?g1*1:g1*4;
+        }else{ // "I"
+          const ix=(h2-.5)*RP*.7, iy=(h3-.5)*RP*3;
+          const onI=(Math.abs(ix)<RP*.15&&Math.abs(iy)<RP*1.3)
+                 ||(Math.abs(iy-RP*1.2)<RP*.15&&Math.abs(ix)<RP*.5)
+                 ||(Math.abs(iy+RP*1.2)<RP*.15&&Math.abs(ix)<RP*.5);
+          tx=ix;ty=iy;tz=onI?g1*1:g1*4;
+        }
+      }break;
+      case 2:{ // 💥 发散：从行星向外爆开
+        const oR=Math.sqrt(curSX[i]*curSX[i]+curSY[i]*curSY[i]+curSZ[i]*curSZ[i])||RP;
+        const eR=oR*(2+h3*4.5);
+        tx=curSX[i]/oR*eR+g1*5;ty=curSY[i]/oR*eR+gauss(i,300)*5;tz=curSZ[i]/oR*eR+gauss(i,301)*5;
+      }break;
+      case 3:{ // 🌪️ 龙卷风
+        const y=(h1-.5)*RP*4;
+        const r=RP*.25*(1+y/(RP*3)+h2*.6);
+        const angle=y/RP*6+h3*.6;
+        tx=Math.cos(angle)*r+g1*.5;
+        tz=Math.sin(angle)*r+g2*.5;
+        ty=y+gauss(i,404)*.6;
+      }break;
+      case 4:{ // 🦋 蝴蝶
+        const side=h1<.5?-1:1;
+        const wingX=side*RP*1.1;
+        if(h2<.15){
+          tx=g1*.3;ty=(h3-.5)*RP*1.8;tz=g2*.3;
+        }else{
+          const wingW=RP*1.1,wingH=RP*.75;
+          const a=h2*Math.PI*2, r=Math.sqrt(h3)*.9;
+          tx=wingX+Math.cos(a)*wingW*r+g1*.5;
+          ty=Math.sin(a)*wingH*r+gauss(i,403)*.4;
+          tz=g2*(.5+Math.abs(tx-wingX)*.15);
+        }
+      }break;
+      default: tx=origSX[i];ty=origSY[i];tz=origSZ[i];
+    }
+    tgtX[i]=tx;tgtY[i]=ty;tgtZ[i]=tz;
+  }
+}
+computeTargets(0);
+
+// ===== 模式切换 =====
+function setTargetMode(mode){
+  if(targetMode===mode&&currentMode===mode)return;
+  if(transitionProgress<1&&transitionProgress>0){
+    for(let i=0;i<PC;i++){curSX[i]=posA[i*3];curSY[i]=posA[i*3+1];curSZ[i]=posA[i*3+2];}
+  }
+  targetMode=mode;computeTargets(mode);transitionProgress=0;
+  flash.classList.add('pop');setTimeout(()=>flash.classList.remove('pop'),150);
+  mdEl.textContent=MODES[mode].name;mdEl.style.color=MODES[mode].color;
+  dot.style.background=MODES[mode].color;dot.style.boxShadow=`0 0 10px ${MODES[mode].color}`;
+  ghEls.forEach(el=>el.classList.toggle('active',parseInt(el.dataset.mode)===mode));
+}
+
+// ===== MediaPipe 手势识别 =====
+// 手指关节索引
+const FINGERS = {
+  thumb:  [1,2,3,4],   // MCP, PIP, DIP, TIP
+  index:  [5,6,7,8],
+  middle: [9,10,11,12],
+  ring:   [13,14,15,16],
+  pinky:  [17,18,19,20]
+};
+const FINGER_TIPS = {thumb:4, index:8, middle:12, ring:16, pinky:20};
+const FINGER_MCP = {thumb:2, index:5, middle:9, ring:13, pinky:17};
+const WRIST = 0;
+
+function dist3d(a,b){return Math.sqrt((a.x-b.x)**2+(a.y-b.y)**2+(a.z-b.z)**2)}
+function dist2d(a,b){return Math.sqrt((a.x-b.x)**2+(a.y-b.y)**2)}
+
+// 判断手指是否伸展：指尖到手腕距离 > MCP到手腕距离
+function isFingerExtended(lm, fingerName){
+  const tip = lm[FINGER_TIPS[fingerName]];
+  const mcp = lm[FINGER_MCP[fingerName]];
+  const wrist = lm[WRIST];
+  return dist3d(tip, wrist) > dist3d(mcp, wrist) * 1.15;
+}
+
+// 手势历史
+let gestureStable = 0, lastGesture = '';
+const STABLE_NEED = 10;
+
+let handData = null; // 最新手部数据
+
+function detectGestureFromLandmarks(lm){
+  if(!lm||lm.length<21)return null;
+
+  // 各手指伸展状态
+  const ext = {
+    thumb: isFingerExtended(lm, 'thumb'),
+    index: isFingerExtended(lm, 'index'),
+    middle: isFingerExtended(lm, 'middle'),
+    ring: isFingerExtended(lm, 'ring'),
+    pinky: isFingerExtended(lm, 'pinky')
+  };
+  const extCount = Object.values(ext).filter(Boolean).length;
+
+  // 指尖到手腕平均距离（开度）
+  const wrist = lm[WRIST];
+  let avgTipDist = 0;
+  for(const name of Object.keys(FINGER_TIPS)){
+    avgTipDist += dist3d(lm[FINGER_TIPS[name]], wrist);
+  }
+  avgTipDist /= 5;
+
+  // 手腕位置
+  const wx = lm[WRIST].x, wy = lm[WRIST].y;
+
+  // ---- 手势分类（5种互不重叠，纯手指配置）----
+  let gesture='', openness=0;
+
+  if(extCount<=1&&avgTipDist<.15){
+    // ✊ 握拳：所有手指弯曲
+    gesture='握拳';openness=.08;
+  }else if(ext.index&&!ext.middle&&!ext.ring&&!ext.pinky){
+    // ☝️ 单指：仅食指伸展
+    gesture='单指';openness=.45;
+  }else if(ext.index&&ext.middle&&!ext.ring&&!ext.pinky){
+    // ✌️ V字：食指+中指伸展
+    gesture='V字';openness=.6;
+  }else if(ext.index&&ext.middle&&ext.ring&&!ext.pinky){
+    // 🤟 三指：食指+中指+无名指伸展
+    gesture='三指';openness=.55;
+  }else if(extCount>=5){
+    // ✋ 张开：五指全伸展
+    gesture='张开';openness=1;
+  }else{
+    gesture='其他';openness=.35;
+  }
+
+  return {gesture,openness,ext,extCount,wx,wy,avgTipDist};
+}
+
+function onHandResults(results){
+  if(results.multiHandLandmarks&&results.multiHandLandmarks.length>0){
+    const lm=results.multiHandLandmarks[0];
+    handData = lm;
+
+    // 在骨骼预览画布上绘制（CSS scaleX(-1) 统一镜像）
+    sctx.clearRect(0,0,sc.width,sc.height);
+    sctx.drawImage(V,0,0,sc.width,sc.height);
+    if(window.drawConnectors&&window.HAND_CONNECTIONS){
+      drawConnectors(sctx,lm,HAND_CONNECTIONS,{color:'#00ff88',lineWidth:2});
+      drawLandmarks(sctx,lm,{color:'#ff6b4a',lineWidth:1,radius:3,fillColor:'#ffaa00'});
+    }
+
+    const g=detectGestureFromLandmarks(lm);
+    if(!g)return;
+
+    // 稳定性检测
+    if(g.gesture===lastGesture){gestureStable++;}
+    else{gestureStable=1;lastGesture=g.gesture;}
+
+    // 触发模式切换
+    if(gestureStable>=STABLE_NEED){
+      switch(g.gesture){
+        case '单指':setTargetMode(0);break; // ☝️ 比1→土星
+        case 'V字':setTargetMode(3);break;  // ✌️ 比2→龙卷风
+        case '张开':setTargetMode(2);break; // ✋ 张开→发散
+        case '握拳':setTargetMode(0);break; // ✊ 握拳→土星
+      }
+      gestureStable=0;
+    }
+
+    // 更新全局状态
+    window._hasHand=true;window._openness=g.openness;
+    window._handX=(g.wx-.5)*2;window._handY=(g.wy-.5)*2;
+    window._gesture=g.gesture;window._lastHand=Date.now();
+    dot.className='ok';stEl.textContent='骨骼追踪中';
+    const progBar='·'.repeat(Math.min(gestureStable,STABLE_NEED));
+    gsEl.textContent=g.gesture+(gestureStable>=3?` ${progBar}`:'');
+    opEl.textContent=`${Math.round(g.openness*100)}% | 伸${g.extCount}指`;
+  }else{
+    handData=null;
+    if(Date.now()-(window._lastHand||0)>800){
+      window._hasHand=false;dot.className='on';stEl.textContent='待机';
+      gsEl.textContent='--';opEl.textContent='--';
+      lastGesture='';gestureStable=0;
+    }
+    // 无手时清骨骼预览（CSS scaleX(-1) 镜像）
+    sctx.clearRect(0,0,sc.width,sc.height);
+    sctx.drawImage(V,0,0,sc.width,sc.height);
+  }
+}
+
+// ===== 初始化 MediaPipe Hands =====
+let hands=null, camera=null;
+
+async function initMediaPipe(){
+  loading.classList.add('show');
+  hands = new Hands({
+    locateFile: (file) => `mediapipe/${file}`
+  });
+  hands.setOptions({
+    maxNumHands: 1,
+    modelComplexity: 1,
+    minDetectionConfidence: 0.7,
+    minTrackingConfidence: 0.5
+  });
+  hands.onResults(onHandResults);
+  loading.classList.remove('show');
+}
+
+// ===== 动画循环 =====
+const clock=new THREE.Clock();
+let cSc=1,tSc=1,cRX=.4,tRX=.4,cRY=0;
+let animTime=0, autoRotTimer=0;
+const AUTO_INTERVAL=12;
+
+function anim(){
+  requestAnimationFrame(anim);
+  const dt=Math.min(clock.getDelta(),.1);
+  animTime+=dt;
+
+  if(window._hasHand){
+    autoRotTimer=0;
+    const o=window._openness||0;
+    tSc=.3+o*2.3;
+    tRX=.2+(1-(window._handY||.5))*1.2;
+    cRY+=(window._handX||0)*.012;
+  }else{
+    tSc=1+Math.sin(animTime*.5)*.08;
+    tRX=.4+Math.sin(animTime*.3)*.15;
+    cRY+=.0015;
+    if(transitionProgress>=1){
+      autoRotTimer+=dt;
+      if(autoRotTimer>AUTO_INTERVAL){
+        autoRotTimer=0;
+        setTargetMode((currentMode+1)%MODES.length);
+      }
+    }else autoRotTimer=0;
+  }
+
+  cSc+=(tSc-cSc)*.04;cRX+=(tRX-cRX)*.04;
+
+  // 粒子过渡
+  if(transitionProgress<1){
+    transitionProgress=Math.min(1,transitionProgress+TRANSITION_SPEED);
+    const t=transitionProgress;
+    const ease=t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+    for(let i=0;i<PC;i++){
+      posA[i*3]=curSX[i]+(tgtX[i]-curSX[i])*ease;
+      posA[i*3+1]=curSY[i]+(tgtY[i]-curSY[i])*ease;
+      posA[i*3+2]=curSZ[i]+(tgtZ[i]-curSZ[i])*ease;
+    }
+    if(transitionProgress>=1){
+      currentMode=targetMode;
+      for(let i=0;i<PC;i++){curSX[i]=tgtX[i];curSY[i]=tgtY[i];curSZ[i]=tgtZ[i];}
+    }
+  }else{
+    // 已落定：根据模式做不同动画
+    if(currentMode===3){ // 🌪️ 龙卷风：持续旋转
+      const spin=animTime*2.5;
+      for(let i=0;i<PC;i++){
+        const cx=curSX[i]*Math.cos(spin)-curSZ[i]*Math.sin(spin);
+        const cz=curSX[i]*Math.sin(spin)+curSZ[i]*Math.cos(spin);
+        posA[i*3]=cx;posA[i*3+1]=curSY[i];posA[i*3+2]=cz;
+      }
+    }else if(currentMode===4){ // 🦋 蝴蝶：翅膀微动
+      const flap=1+Math.sin(animTime*3)*.03;
+      for(let i=0;i<PC;i++){
+        posA[i*3]=curSX[i]*flap;
+        posA[i*3+1]=curSY[i];
+        posA[i*3+2]=curSZ[i]/flap;
+      }
+    }else{ // 🪐 行星 / 🤖 AI / 💥 发散（静止微呼吸）
+      const breathe=1+Math.sin(animTime*1.5)*.008;
+      for(let i=0;i<PC;i++){
+        posA[i*3]=curSX[i]*breathe;posA[i*3+1]=curSY[i]*breathe;posA[i*3+2]=curSZ[i]*breathe;
+      }
+    }
+  }
+  geo.attributes.position.needsUpdate=true;
+
+  // 颜色
+  const mc=new THREE.Color(MODES[currentMode].color);
+  if(transitionProgress<1)mc.lerp(new THREE.Color(MODES[targetMode].color),transitionProgress);
+  saturnPts.material.color.lerp(mc,.03);
+
+  saturnPts.scale.setScalar(cSc);
+  saturnPts.rotation.set(cRX,cRY,26.73*(Math.PI/180));
+  stars.rotation.y=animTime*.003;
+  cam.position.x=Math.sin(cRY)*15;
+  cam.position.y=-Math.sin(cRX)*30;
+  cam.lookAt(0,0,0);
+  R.render(scene,cam);
+}
+anim();
+
+// ===== 启动 =====
+async function start(){
+  btn.disabled=true;errEl.style.display='none';
+  try{
+    // 初始化 MediaPipe
+    await initMediaPipe();
+
+    // 启动摄像头
+    camera = new Camera(V, {
+      onFrame: async () => {
+        if(hands) await hands.send({image: V});
+      },
+      width: 640, height: 480
+    });
+    await camera.start();
+
+    dot.className='on';
+    document.getElementById('ov').style.display='none';
+    ghEls.forEach(el=>el.classList.toggle('active',parseInt(el.dataset.mode)===0));
+  }catch(e){
+    btn.disabled=false;errEl.style.display='block';
+    console.error(e);
+    if(e.name==='NotAllowedError')errEl.textContent='请允许摄像头权限后刷新';
+    else errEl.textContent='启动失败: '+(e.message||String(e));
+  }
+}
+btn.addEventListener('click',start);
+window.addEventListener('resize',()=>{R.setSize(innerWidth,innerHeight);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();});
+</script>
+</body>
+</html>

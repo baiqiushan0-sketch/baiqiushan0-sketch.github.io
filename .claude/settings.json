@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tasklist *)",
+      "Write",
+      "Edit",
+      "WebSearch",
+      "WebFetch"
+    ]
+  }
+}
