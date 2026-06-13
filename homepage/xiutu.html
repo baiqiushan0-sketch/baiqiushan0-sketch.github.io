@@ -19,11 +19,12 @@ body{background:#0d0d1a;color:#c8b896;font-family:'PingFang SC','Microsoft YaHei
 /* Grid Map */
 #map-wrap{flex:1;overflow-y:auto;overflow-x:hidden;padding:8px;-webkit-overflow-scrolling:touch;scroll-behavior:smooth}
 #map{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding-bottom:60px}
-.cell{aspect-ratio:1;border-radius:8px;background:rgba(20,18,35,.6);border:1px solid rgba(180,140,80,.05);display:flex;align-items:center;justify-content:center;font-size:1.4rem;cursor:pointer;transition:all .15s;position:relative}
+.cell{aspect-ratio:1;border-radius:8px;background:rgba(20,18,35,.6);border:1px solid rgba(180,140,80,.05);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:1.4rem;cursor:pointer;transition:all .15s;position:relative;gap:0}
 .cell:active{transform:scale(.92);background:rgba(180,140,80,.1)}
 .cell.done{opacity:.35;pointer-events:none}
 .cell.current{border-color:rgba(0,229,255,.4);box-shadow:0 0 8px rgba(0,229,255,.1)}
 .cell .mark{position:absolute;top:2px;right:3px;font-size:.35rem;color:rgba(255,255,255,.2)}
+.cell .label{font-size:.4rem;color:rgba(200,180,140,.35);line-height:1;margin-top:-2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .cell .hp-bar{position:absolute;bottom:2px;left:2px;right:2px;height:2px;background:rgba(255,255,255,.05);border-radius:1px}
 .cell .hp-bar div{height:100%;background:#e57373;border-radius:1px}
 
@@ -210,8 +211,8 @@ function renderMap(){
   for(let i=start;i<Math.min(end,P.mapCells.length);i++){
     const c=cellAt(i);const div=document.createElement('div');
     div.className='cell'+(c.done?' done':'')+(i===P.playerPos?' current':'');
-    div.innerHTML=CELL_TYPES[c.type].icon;
-    if(i===P.playerPos){div.id='player-marker';div.innerHTML='🧘';}
+    div.innerHTML=`<span>${CELL_TYPES[c.type].icon}</span><span class="label">${CELL_TYPES[c.type].n}</span>`;
+    if(i===P.playerPos){div.id='player-marker';div.innerHTML='<span>🧘</span><span class="label">你在这里</span>';}
     if(!c.done)div.onclick=()=>moveTo(i);
     // Mark done cells
     if(c.done)div.innerHTML+=`<span class="mark">✓</span>`;
