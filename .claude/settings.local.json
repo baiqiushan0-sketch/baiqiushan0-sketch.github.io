@@ -135,7 +135,9 @@
       "Bash(git add *)",
       "Bash(git commit *)",
       "Bash(npm list *)",
-      "Bash(git config *)"
+      "Bash(git config *)",
+      "Bash(npx playwright *)",
+      "Bash(npm init *)"
     ]
   }
 }
