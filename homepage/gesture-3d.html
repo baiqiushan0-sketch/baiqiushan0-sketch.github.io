@@ -420,6 +420,7 @@ function onHandResults(results){
 
 // ===== 初始化 MediaPipe Hands =====
 let hands=null, camera=null;
+let frameErrorCount=0, lastFrameOk=0;
 
 async function initMediaPipe(){
   loading.classList.add('show');
@@ -433,7 +434,12 @@ async function initMediaPipe(){
     minTrackingConfidence: 0.5
   });
   hands.onResults(onHandResults);
+
+  // ⚠️ 关键修复：必须显式初始化 WASM 模型，否则 send 时可能静默失败
+  await hands.initialize();
   loading.classList.remove('show');
+  dot.className='on';
+  stEl.textContent='模型已加载';
 }
 
 // ===== 动画循环 =====
@@ -526,19 +532,36 @@ anim();
 async function start(){
   btn.disabled=true;errEl.style.display='none';
   try{
-    // 初始化 MediaPipe
+    // 初始化 MediaPipe（加载 WASM 模型）
     await initMediaPipe();
 
     // 启动摄像头
     camera = new Camera(V, {
       onFrame: async () => {
-        if(hands) await hands.send({image: V});
+        if(!hands)return;
+        try{
+          await hands.send({image: V});
+          // ⚠️ 关键修复：send 成功后重置错误计数，避免静默停止
+          frameErrorCount=0;
+          lastFrameOk=Date.now();
+        }catch(e){
+          frameErrorCount++;
+          console.warn('MediaPipe send 错误 (#'+frameErrorCount+'):',e.message||e);
+          // 连续错误超过阈值时提示用户
+          if(frameErrorCount===1){
+            stEl.textContent='追踪异常, 重试中...';
+            dot.className='on';
+          }
+          if(frameErrorCount>50){
+            stEl.textContent='追踪失败, 请刷新页面';
+            dot.className='';
+          }
+        }
       },
       width: 640, height: 480
     });
     await camera.start();
 
-    dot.className='on';
     document.getElementById('ov').style.display='none';
     ghEls.forEach(el=>el.classList.toggle('active',parseInt(el.dataset.mode)===0));
   }catch(e){
