@@ -139,9 +139,7 @@ function applySkin(skinId){
   const skin=SKINS.find(s=>s.id===skinId)||SKINS[0];
   torso.material=getSkinMat(skinId,'body');
   head.material=getSkinMat(skinId,'head');
-  playerGroup.children.forEach(c=>{
-    if(c.material&&c.material.color&&c.material.color.getHex()===0x7c4dff)c.material=getSkinMat(skinId,'accent');
-  });
+  for(const part of accentParts)part.material=getSkinMat(skinId,'accent');
   glowSprite.material=skinId==='flame'?new THREE.SpriteMaterial({map:texGlowPink,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true})
     :skinId==='gold'?new THREE.SpriteMaterial({map:texGlowGold,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true})
     :new THREE.SpriteMaterial({map:texGlow,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true});
@@ -438,8 +436,10 @@ const torsoGeo=new THREE.BoxGeometry(.5,1,.35);
 const torso=new THREE.Mesh(torsoGeo,matPlayerBody);
 torso.position.y=.6;torso.castShadow=true;playerGroup.add(torso);
 
+const accentParts=[];
 const beltGeo=new THREE.BoxGeometry(.52,.08,.37);
-playerGroup.add(new THREE.Mesh(beltGeo,matPlayerAccent)).position.y=.95;
+const beltMesh=new THREE.Mesh(beltGeo,matPlayerAccent);
+beltMesh.position.y=.95;playerGroup.add(beltMesh);accentParts.push(beltMesh);
 
 const headGeo=new THREE.SphereGeometry(.28,12,10);
 const head=new THREE.Mesh(headGeo,matPlayerBody);
@@ -457,8 +457,8 @@ const legL2=new THREE.Mesh(legGeo2,matPlayerDark);legL2.position.set(-.13,.2,0);
 const legR2=new THREE.Mesh(legGeo2,matPlayerDark);legR2.position.set(.13,.2,0);legR2.castShadow=true;playerGroup.add(legR2);
 
 const shoeGeo=new THREE.BoxGeometry(.22,.12,.28);
-playerGroup.add(new THREE.Mesh(shoeGeo,matPlayerAccent)).position.set(-.13,-.06,.02);
-playerGroup.add(new THREE.Mesh(shoeGeo,matPlayerAccent)).position.set(.13,-.06,.02);
+const shoeL=new THREE.Mesh(shoeGeo,matPlayerAccent);shoeL.position.set(-.13,-.06,.02);playerGroup.add(shoeL);accentParts.push(shoeL);
+const shoeR=new THREE.Mesh(shoeGeo,matPlayerAccent);shoeR.position.set(.13,-.06,.02);playerGroup.add(shoeR);accentParts.push(shoeR);
 
 const glowSprite=new THREE.Sprite(matNeonCyan);
 glowSprite.scale.set(1.2,1.8,1);glowSprite.position.set(0,.7,-.3);playerGroup.add(glowSprite);
