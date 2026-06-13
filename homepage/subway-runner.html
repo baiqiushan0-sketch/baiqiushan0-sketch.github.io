@@ -48,21 +48,6 @@ body{background:#0a0a14;overflow:hidden;touch-action:none;user-select:none;-webk
 #main-shop .skin-action.equipped{background:rgba(0,229,255,.1);border-color:rgba(0,229,255,.25);color:#00e5ff}
 #main-shop .skin-action.locked{background:transparent;border-color:rgba(255,255,255,.08);color:rgba(255,255,255,.2)}
 
-/* ===== Game Over Overlay ===== */
-#overlay{position:fixed;top:0;left:0;width:100%;height:100%;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(10,10,40,.85),rgba(0,0,0,.95));pointer-events:none}
-#overlay.hidden{display:none}
-#overlay h1{font-size:clamp(2.5rem,8vw,4.5rem);background:linear-gradient(135deg,#00e5ff,#7c4dff,#ff4081);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px;font-weight:900}
-#overlay .sub{font-size:clamp(.8rem,2vw,1rem);color:#7c8aa0;margin-bottom:12px;letter-spacing:4px}
-#overlay .stats{margin-bottom:16px;text-align:center}
-#overlay .final-score{font-size:clamp(2rem,5vw,3rem);color:#00e5ff;font-weight:900;text-shadow:0 0 30px rgba(0,229,255,.3)}
-#overlay .final-coins{font-size:clamp(1rem,2.5vw,1.5rem);color:#ffd740;margin-bottom:4px}
-#overlay .final-best{font-size:.8rem;color:#7c8aa0;margin-bottom:8px}
-#overlay .final-rank{font-size:.85rem;color:#7c4dff;margin-bottom:16px}
-#overlay button{pointer-events:auto;padding:14px 50px;font-size:clamp(.9rem,2.5vw,1.2rem);border:2px solid #00e5ff;background:rgba(0,229,255,.08);color:#00e5ff;border-radius:30px;cursor:pointer;letter-spacing:3px;transition:all .3s;font-weight:bold;margin:4px}
-#overlay button:hover{background:rgba(0,229,255,.2);box-shadow:0 0 30px rgba(0,229,255,.15)}
-#overlay .btn-secondary{border-color:rgba(255,255,255,.2);color:rgba(255,255,255,.4);font-size:.7rem;padding:10px 30px;letter-spacing:1px}
-#overlay .btn-secondary:hover{background:rgba(255,255,255,.05);box-shadow:none}
-
 
 /* ===== Misc ===== */
 #hint{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:10;pointer-events:none;display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
@@ -98,20 +83,6 @@ body{background:#0a0a14;overflow:hidden;touch-action:none;user-select:none;-webk
   </div>
 </div>
 
-<!-- Game Over -->
-<div id="overlay" class="hidden">
-  <h1>NEON RUNNER</h1>
-  <div class="sub">✦ 霓虹地铁酷跑 ✦</div>
-  <div class="stats">
-    <div class="final-score" style="display:none"></div>
-    <div class="final-coins" style="display:none"></div>
-    <div class="final-best" style="display:none"></div>
-    <div class="final-rank" style="display:none"></div>
-  </div>
-  <button id="restart-btn">再来一局</button>
-  <button class="btn-secondary" id="change-name-btn">换个名字</button>
-</div>
-
 <!-- Shop now integrated into main menu -->
 
 <div id="back"><a href="../index.html">← 返回合集</a></div>
@@ -127,14 +98,6 @@ const nameHud=document.getElementById('player-name-hud');
 const nameOverlay=document.getElementById('name-overlay');
 const nameInput=document.getElementById('name-input'),nameBtn=document.getElementById('name-btn');
 const nameErr=document.getElementById('name-error');
-const overlay=document.getElementById('overlay');
-const restartBtn=document.getElementById('restart-btn');
-const changeNameBtn=document.getElementById('change-name-btn');
-const finalScore=overlay.querySelector('.final-score');
-const finalCoins=overlay.querySelector('.final-coins');
-const finalBest=overlay.querySelector('.final-best');
-const finalRank=overlay.querySelector('.final-rank');
-const subEl=overlay.querySelector('.sub');
 const hintEl=document.getElementById('hint'),flashEl=document.getElementById('flash');
 const skinList=document.getElementById('main-skin-list'),shopBalance=document.getElementById('main-shop-balance');
 
@@ -214,9 +177,6 @@ function renderShop(){
 }
 
 // 主菜单商店始终可见（在 name-overlay 内）
-function showCoinEarned(earned){
-  finalCoins.textContent='🪙 +'+earned+' (余额: '+totalCoins+')';
-}
 
 
 // ==================== Procedural Textures ====================
@@ -672,32 +632,24 @@ function gameOver(){
   localStorage.setItem('nr_total_coins',totalCoins);
   if(pts>bestScore){bestScore=pts;if(playerName)localStorage.setItem('nr_best_'+playerName,bestScore);}
 
-  finalScore.textContent='得分: '+pts;
-  finalScore.style.display='block';
-  finalCoins.textContent='🪙 +'+earned+' (总余额: '+totalCoins+')';
-  finalCoins.style.display='block';
-  finalBest.textContent='最高分: '+bestScore;
-  finalBest.style.display='block';
-  finalRank.style.display='none';
-  subEl.style.display='none';
-  restartBtn.textContent='再来一局';
-  overlay.classList.remove('hidden');
+  // 回到主界面
+  nameOverlay.classList.remove('hidden');
+  nameOverlay.querySelector('h2').textContent='得分: '+pts+' | 最高: '+bestScore;
+  nameOverlay.querySelector('.sub').textContent='🪙 +'+earned+' (余额: '+totalCoins+')';
+  nameBtn.textContent='再来一局';
   hintEl.style.display='none';
   flashEl.classList.add('pop');setTimeout(()=>flashEl.classList.remove('pop'),150);
+  renderShop();
 }
 
 function startGame(){
   resetGame();state='PLAYING';
-  overlay.classList.add('hidden');hintEl.style.display='flex';
-  finalScore.style.display='none';finalCoins.style.display='none';
-  finalBest.style.display='none';finalRank.style.display='none';
-  subEl.style.display='block';
+  nameOverlay.classList.add('hidden');
+  hintEl.style.display='flex';
+  nameOverlay.querySelector('h2').textContent='🚇 地铁酷跑';
+  nameOverlay.querySelector('.sub').textContent='NEON RUNNER';
+  nameBtn.textContent='开始游戏';
 }
-restartBtn.addEventListener('click',startGame);
-changeNameBtn.addEventListener('click',()=>{
-  overlay.classList.add('hidden');nameOverlay.classList.remove('hidden');
-  nameInput.focus();
-});
 
 // ==================== Name Input ====================
 nameBtn.addEventListener('click',async ()=>{
