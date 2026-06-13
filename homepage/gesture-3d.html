@@ -20,10 +20,11 @@ body{background:#000;color:#fff;font-family:'PingFang SC','Microsoft YaHei',sans
 #panel .mode-name{font-weight:bold;font-size:.85rem;transition:color .5s}
 #btm{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:10;display:flex;gap:12px}
 #btm>div{width:240px;height:180px;border-radius:8px;border:1px solid rgba(197,160,89,.25);overflow:hidden;background:#000;position:relative}
-#btm video,#btm canvas{width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0}
-#btm video,#camera-overlay{transform:scaleX(-1)}
+#btm canvas{width:100%;height:100%;object-fit:contain;position:absolute;top:0;left:0}
+#camera-overlay{transform:scaleX(-1)}
 #btm .lbl{position:absolute;bottom:3px;left:6px;font-size:.5rem;color:rgba(255,255,255,.35);z-index:2}
-#camera-overlay{z-index:3;pointer-events:none}
+/* video 移到画面外：MediaPipe需要它，但显示层只用canvas */
+#v{position:fixed;top:-9999px;left:-9999px;width:320px;height:240px;pointer-events:none}
 #ctrls{position:fixed;bottom:40px;right:30px;z-index:10;display:flex;gap:8px}
 #ctrls button{background:transparent;border:1px solid rgba(197,160,89,.3);color:#c5a059;padding:10px 20px;font-size:.7rem;cursor:pointer;letter-spacing:1px;transition:all .4s;white-space:nowrap}
 #ctrls button:hover{background:rgba(197,160,89,.1);border-color:#c5a059}
@@ -76,10 +77,10 @@ body{background:#000;color:#fff;font-family:'PingFang SC','Microsoft YaHei',sans
 <div id="btm">
   <div>
     <span class="lbl">摄像头 · 骨骼追踪</span>
-    <video id="v" autoplay playsinline muted></video>
-    <canvas id="camera-overlay" width="320" height="240"></canvas>
+    <canvas id="camera-overlay"></canvas>
   </div>
 </div>
+<video id="v" autoplay playsinline muted></video>
 <div id="gesture-hint">
   <div class="gh" data-mode="0">☝️比1→土星</div>
   <div class="gh" data-mode="3">✌️比2→龙卷风</div>
@@ -437,8 +438,9 @@ function onHandResults(results){
     const lm=results.multiHandLandmarks[0];
     handData = lm;
 
-    // 先把视频帧画到 canvas 作不透明底（手机端透明canvas叠video有合成bug）
-    sctx.clearRect(0,0,sc.width,sc.height);
+    // 画视频帧 + 骨骼：先黑底、再视频、最后骨骼（canvas绝对不透明）
+    sctx.fillStyle='#000';
+    sctx.fillRect(0,0,sc.width,sc.height);
     sctx.drawImage(V,0,0,sc.width,sc.height);
     drawSkeletonNative(sctx, lm, sc.width, sc.height);
 
@@ -473,11 +475,12 @@ function onHandResults(results){
     const elapsed=Date.now()-(window._lastHand||0);
     const timeout=isMobile?2000:800;
     if(elapsed>timeout){
-      // 超时才清状态 + 擦除骨骼
+      // 超时才清状态 + 擦除骨骼（黑底+视频，无骨骼）
       window._hasHand=false;dot.className='on';handDot.className='';stEl.textContent='待机';
       gsEl.textContent='--';opEl.textContent='--';
       lastGesture='';gestureStable=0;
-      sctx.clearRect(0,0,sc.width,sc.height);
+      sctx.fillStyle='#000';
+      sctx.fillRect(0,0,sc.width,sc.height);
       sctx.drawImage(V,0,0,sc.width,sc.height);
     }
     // 未超时：保留最后一帧骨骼，只更新帧计数
@@ -636,6 +639,18 @@ async function start(){
       height: isMobile ? {ideal:360} : 480
     });
     await camera.start();
+
+    // 等视频元数据就绪后，让 canvas 匹配视频真实比例
+    await new Promise(r=>{V.onloadedmetadata=r});
+    function resizeCanvas(){
+      const vw=V.videoWidth||640, vh=V.videoHeight||480;
+      const maxW=isMobile?180:240, maxH=isMobile?135:180;
+      const scale=Math.min(maxW/vw, maxH/vh);
+      sc.width=vw;sc.height=vh;
+      sc.style.width=(vw*scale)+'px';
+      sc.style.height=(vh*scale)+'px';
+    }
+    resizeCanvas();
 
     document.getElementById('ov').style.display='none';
     ghEls.forEach(el=>el.classList.toggle('active',parseInt(el.dataset.mode)===0));
