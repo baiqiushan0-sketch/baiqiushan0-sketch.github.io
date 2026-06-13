@@ -21,8 +21,8 @@ body{background:#000;color:#fff;font-family:'PingFang SC','Microsoft YaHei',sans
 #btm video,#btm canvas{width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0}
 #btm video,#sc{transform:scaleX(-1)}
 #btm .lbl{position:absolute;bottom:3px;left:6px;font-size:.5rem;color:rgba(255,255,255,.35);z-index:2}
-#ctrls{position:fixed;bottom:40px;right:30px;z-index:10}
-#ctrls button{background:transparent;border:1px solid rgba(197,160,89,.3);color:#c5a059;padding:10px 24px;font-size:.75rem;cursor:pointer;letter-spacing:2px;transition:all .4s}
+#ctrls{position:fixed;bottom:40px;right:30px;z-index:10;display:flex;gap:8px}
+#ctrls button{background:transparent;border:1px solid rgba(197,160,89,.3);color:#c5a059;padding:10px 20px;font-size:.7rem;cursor:pointer;letter-spacing:1px;transition:all .4s;white-space:nowrap}
 #ctrls button:hover{background:rgba(197,160,89,.1);border-color:#c5a059}
 #gesture-hint{position:fixed;bottom:150px;left:50%;transform:translateX(-50%);z-index:10;
   display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:94vw}
@@ -71,8 +71,9 @@ body{background:#000;color:#fff;font-family:'PingFang SC','Microsoft YaHei',sans
   <div class="gh" data-mode="2">✋张开→发散</div>
   <div class="gh" data-mode="0">✊握拳→土星</div>
 </div>
-<div id="ctrls"><button onclick="document.body.requestFullscreen?.()">全屏</button></div>
+<div id="ctrls"><button onclick="window.location.href='../index.html'">← 返回合集</button><button onclick="document.body.requestFullscreen?.()">全屏</button></div>
 <div id="ov">
+  <div style="position:fixed;top:16px;left:16px;z-index:101"><a href="../index.html" style="color:#666;text-decoration:none;font-size:.75rem;letter-spacing:2px">← 返回合集</a></div>
   <h1>粒子土星</h1>
   <p>MediaPipe 21点骨骼追踪<br>
   ☝️ 比1 → 🪐 土星<br>
@@ -254,6 +255,24 @@ function computeTargets(mode){
   }
 }
 computeTargets(0);
+
+// ===== URL 参数：支持 ?mode=2 等方式直接切到指定模式 =====
+(function(){
+  const params=new URLSearchParams(window.location.search);
+  const initMode=parseInt(params.get('mode'));
+  if(!isNaN(initMode)&&initMode>=0&&initMode<MODES.length){
+    // 直接设为目标模式，并立即切换到位
+    currentMode=initMode;targetMode=initMode;
+    transitionProgress=1;
+    computeTargets(initMode);
+    for(let i=0;i<PC;i++){curSX[i]=tgtX[i];curSY[i]=tgtY[i];curSZ[i]=tgtZ[i];posA[i*3]=tgtX[i];posA[i*3+1]=tgtY[i];posA[i*3+2]=tgtZ[i];}
+    geo.attributes.position.needsUpdate=true;
+    mdEl.textContent=MODES[initMode].name;mdEl.style.color=MODES[initMode].color;
+    dot.style.background=MODES[initMode].color;dot.style.boxShadow=`0 0 10px ${MODES[initMode].color}`;
+    ghEls.forEach(el=>el.classList.toggle('active',parseInt(el.dataset.mode)===initMode));
+    document.title='粒子' + MODES[initMode].name.replace(/[^一-龥]/g,'') + ' · 骨骼手势聚合态';
+  }
+})();
 
 // ===== 模式切换 =====
 function setTargetMode(mode){

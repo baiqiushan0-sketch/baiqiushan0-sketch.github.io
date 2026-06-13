@@ -1,0 +1,26 @@
+# Godot 引擎（172MB+，不需要部署）
+godot/
+
+# Node modules
+homepage/node_modules/
+node_modules/
+
+# 测试和截图
+homepage/screenshots/
+homepage/test-landmarks/
+
+# Python 缓存
+__pycache__/
+*.pyc
+*.pyo
+
+# 非项目文件
+skill_g113593.html
+
+# Claude 内部
+.claude/
+
+# 验证脚本（本地测试用）
+homepage/verify.mjs
+homepage/package.json
+homepage/package-lock.json

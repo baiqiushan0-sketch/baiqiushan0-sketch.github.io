@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>项目合集 · Project Hub</title>
+<style>
+/* ===== Reset & Base ===== */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0a0f;
+  --card-bg:rgba(20,20,35,0.85);
+  --border:rgba(255,255,255,0.06);
+  --gold:#c5a059;
+  --gold-dim:rgba(197,160,89,0.3);
+  --text:#e0d5c0;
+  --text-dim:#6b6b7b;
+  --accent1:#c5a059;
+  --accent2:#00d2ff;
+  --accent3:#ff6b4a;
+  --accent4:#50c878;
+  --accent5:#ff79c6;
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'PingFang SC','Microsoft YaHei','Helvetica Neue',sans-serif;
+  min-height:100vh;
+  overflow-x:hidden;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ===== Starfield Background ===== */
+#starfield{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+
+/* ===== Layout ===== */
+.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column}
+
+/* ===== Header ===== */
+.header{
+  text-align:center;padding:clamp(2rem,6vw,5rem) clamp(1rem,4vw,2rem) clamp(1rem,3vw,2.5rem);
+}
+.header .logo{
+  font-size:clamp(1.2rem,3vw,1.8rem);
+  font-weight:200;letter-spacing:clamp(4px,1vw,8px);
+  color:var(--accent1);margin-bottom:.3rem;
+}
+.header .sub{
+  font-size:clamp(.7rem,1.5vw,.85rem);
+  color:var(--text-dim);letter-spacing:2px;
+}
+
+/* ===== Projects Grid ===== */
+.projects{
+  flex:1;display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+  gap:clamp(1rem,3vw,2rem);
+  padding:clamp(.5rem,2vw,1.5rem) clamp(1rem,4vw,3rem);
+  max-width:1400px;width:100%;margin:0 auto;
+}
+
+/* ===== Project Card ===== */
+.card{
+  background:var(--card-bg);
+  border:1px solid var(--border);
+  border-radius:16px;overflow:hidden;
+  cursor:pointer;transition:all .4s cubic-bezier(.25,.8,.25,1);
+  position:relative;backdrop-filter:blur(12px);
+  display:flex;flex-direction:column;
+}
+.card:hover{
+  transform:translateY(-6px);
+  box-shadow:0 20px 60px rgba(0,0,0,.4),0 0 0 1px rgba(197,160,89,.15);
+  border-color:rgba(197,160,89,.2);
+}
+.card:active{transform:scale(.98)}
+
+/* Card Visual Area */
+.card-visual{
+  position:relative;height:200px;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+}
+.card-visual canvas{width:100%;height:100%}
+
+/* Placeholder visual */
+.card-visual .visual-placeholder{
+  width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+  font-size:3rem;position:relative;
+}
+.card:nth-child(1) .visual-placeholder{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%)}
+.card:nth-child(2) .visual-placeholder{background:linear-gradient(135deg,#1a1a2e 0%,#1a1a3e 50%,#2d1b69 100%)}
+.card:nth-child(3) .visual-placeholder{background:linear-gradient(135deg,#0d1b2a 0%,#1b2838 50%,#1a3a5c 100%)}
+.card:nth-child(4) .visual-placeholder{background:linear-gradient(135deg,#1a0a2e 0%,#2d1b4e 50%,#4a1a6b 100%)}
+
+/* Icon circle on visual */
+.visual-icon{
+  width:80px;height:80px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:2.5rem;position:relative;z-index:1;
+  backdrop-filter:blur(8px);
+}
+.card:nth-child(1) .visual-icon{background:rgba(197,160,89,.15);border:2px solid rgba(197,160,89,.3)}
+.card:nth-child(2) .visual-icon{background:rgba(0,210,255,.15);border:2px solid rgba(0,210,255,.3)}
+.card:nth-child(3) .visual-icon{background:rgba(255,107,74,.15);border:2px solid rgba(255,107,74,.3)}
+.card:nth-child(4) .visual-icon{background:rgba(80,200,120,.15);border:2px solid rgba(80,200,120,.3)}
+
+/* Orbiting dots */
+.visual-placeholder .orbit-ring{
+  position:absolute;border-radius:50%;border:1px solid rgba(255,255,255,.06);
+  animation:orbit linear infinite;
+}
+.visual-placeholder .orbit-dot{
+  position:absolute;width:4px;height:4px;border-radius:50%;
+}
+
+/* Card Body */
+.card-body{padding:1.25rem 1.25rem 1rem;flex:1;display:flex;flex-direction:column}
+.card-body h3{
+  font-size:1.1rem;font-weight:500;margin-bottom:.35rem;letter-spacing:1px;
+}
+.card-body .tagline{
+  font-size:.78rem;color:var(--text-dim);margin-bottom:.5rem;line-height:1.5;
+}
+.card-body .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto;padding-top:.5rem}
+.card-body .tags span{
+  font-size:.62rem;padding:3px 10px;border-radius:20px;
+  border:1px solid rgba(255,255,255,.1);color:var(--text-dim);
+  letter-spacing:1px;
+}
+
+/* Card accent line */
+.card-accent{
+  position:absolute;top:0;left:0;width:100%;height:3px;
+  opacity:0;transition:opacity .4s;
+}
+.card:hover .card-accent{opacity:1}
+.card:nth-child(1) .card-accent{background:linear-gradient(90deg,var(--accent1),transparent)}
+.card:nth-child(2) .card-accent{background:linear-gradient(90deg,var(--accent2),transparent)}
+.card:nth-child(3) .card-accent{background:linear-gradient(90deg,var(--accent3),transparent)}
+.card:nth-child(4) .card-accent{background:linear-gradient(90deg,var(--accent4),transparent)}
+
+/* ===== Footer ===== */
+.footer{
+  text-align:center;padding:2rem 1rem 2.5rem;
+  font-size:.7rem;color:var(--text-dim);letter-spacing:2px;
+}
+
+/* ===== Enter Button Overlay ===== */
+.card-overlay{
+  position:absolute;bottom:0;left:0;width:100%;
+  padding:12px;display:flex;justify-content:center;
+  opacity:0;transform:translateY(10px);transition:all .3s;
+  pointer-events:none;
+}
+.card:hover .card-overlay{
+  opacity:1;transform:translateY(0);
+}
+.play-btn{
+  padding:10px 32px;border-radius:24px;font-size:.8rem;letter-spacing:2px;
+  cursor:pointer;pointer-events:auto;transition:all .3s;
+  font-family:inherit;
+}
+.card:nth-child(1) .play-btn{
+  background:transparent;border:1px solid var(--accent1);color:var(--accent1);
+}
+.card:nth-child(1) .play-btn:hover{background:rgba(197,160,89,.15)}
+.card:nth-child(2) .play-btn{
+  background:transparent;border:1px solid var(--accent2);color:var(--accent2);
+}
+.card:nth-child(2) .play-btn:hover{background:rgba(0,210,255,.1)}
+.card:nth-child(3) .play-btn{
+  background:transparent;border:1px solid var(--accent3);color:var(--accent3);
+}
+.card:nth-child(3) .play-btn:hover{background:rgba(255,107,74,.1)}
+.card:nth-child(4) .play-btn{
+  background:transparent;border:1px solid var(--accent4);color:var(--accent4);
+}
+.card:nth-child(4) .play-btn:hover{background:rgba(80,200,120,.1)}
+
+/* ===== Responsive ===== */
+@media (max-width:768px){
+  .projects{
+    grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+    gap:1rem;padding:.5rem .8rem 1rem;
+  }
+  .card-visual{height:160px}
+  .card-body{padding:1rem}
+  .card-body h3{font-size:1rem}
+  .card-overlay{opacity:1;transform:none;position:static;padding:0 1rem .8rem}
+  .play-btn{width:100%;text-align:center;padding:8px}
+}
+@media (max-width:480px){
+  .projects{
+    grid-template-columns:1fr;
+    padding:.5rem .6rem 1rem;
+  }
+  .card{border-radius:12px}
+  .card-visual{height:140px}
+  .header .logo{font-size:1.1rem}
+}
+
+/* ===== Animations ===== */
+@keyframes orbit{
+  from{transform:rotate(0deg)}
+  to{transform:rotate(360deg)}
+}
+@keyframes float{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-10px)}
+}
+
+/* Card entrance animation */
+.card{animation:cardIn .6s ease-out backwards}
+.card:nth-child(1){animation-delay:.1s}
+.card:nth-child(2){animation-delay:.2s}
+.card:nth-child(3){animation-delay:.3s}
+.card:nth-child(4){animation-delay:.4s}
+
+@keyframes cardIn{
+  from{opacity:0;transform:translateY(30px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* Floating particles */
+.floating-particle{
+  position:absolute;border-radius:50%;pointer-events:none;
+  animation:floatParticle linear infinite;
+}
+@keyframes floatParticle{
+  0%{transform:translateY(0) translateX(0);opacity:0}
+  10%{opacity:.6}
+  90%{opacity:.6}
+  100%{transform:translateY(-80px) translateX(20px);opacity:0}
+}
+
+/* ===== Coming Soon Card ===== */
+.card.coming-soon{opacity:.7;cursor:default}
+.card.coming-soon:hover{transform:none;box-shadow:none;border-color:var(--border)}
+.card.coming-soon .card-accent{opacity:0}
+.card.coming-soon .play-btn{display:none}
+.card.coming-soon .card-overlay{
+  opacity:1;transform:none;position:static;padding:0 1rem .8rem;
+}
+.card.coming-soon .coming-tag{
+  text-align:center;padding:6px 0;font-size:.7rem;
+  color:var(--text-dim);letter-spacing:2px;
+}
+</style>
+</head>
+<body>
+
+<!-- Starfield Canvas -->
+<canvas id="starfield"></canvas>
+
+<div class="page">
+  <!-- Header -->
+  <header class="header">
+    <div class="logo">✦ 项目合集</div>
+    <div class="sub">PROJECT HUB · 点击卡片进入体验</div>
+  </header>
+
+  <!-- Projects Grid -->
+  <main class="projects" id="projects">
+
+    <!-- Project 1: 粒子土星 -->
+    <div class="card" onclick="openProject('homepage/gesture-3d.html')">
+      <div class="card-accent"></div>
+      <div class="card-visual">
+        <div class="visual-placeholder">
+          <div class="visual-icon">🪐</div>
+          <div class="orbit-ring" style="width:120px;height:120px;animation-duration:8s">
+            <div class="orbit-dot" style="background:var(--accent1);top:-2px;left:50%"></div>
+          </div>
+          <div class="orbit-ring" style="width:160px;height:50px;animation-duration:12s;border-radius:50%">
+            <div class="orbit-dot" style="background:var(--accent1);top:50%;left:-2px"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <h3>🪐 粒子土星</h3>
+        <p class="tagline">18万粒子 · MediaPipe骨骼追踪 · 手势切换5种聚合态</p>
+        <div class="tags">
+          <span>Three.js</span><span>MediaPipe</span><span>手势识别</span><span>3D粒子</span>
+        </div>
+      </div>
+      <div class="card-overlay"><button class="play-btn">进入体验 →</button></div>
+    </div>
+
+    <!-- Project 2: 手势龙卷风 -->
+    <div class="card" onclick="openProject('homepage/gesture-3d.html?mode=3')">
+      <div class="card-accent"></div>
+      <div class="card-visual">
+        <div class="visual-placeholder">
+          <div class="visual-icon">🌪️</div>
+          <div class="orbit-ring" style="width:100px;height:100px;animation-duration:3s">
+            <div class="orbit-dot" style="background:var(--accent4);top:-2px;left:50%"></div>
+          </div>
+          <div class="orbit-ring" style="width:70px;height:70px;animation-duration:2s">
+            <div class="orbit-dot" style="background:var(--accent4);top:50%;left:-2px"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <h3>🌪️ 粒子龙卷风</h3>
+        <p class="tagline">✌️ 比2手势 → 18万粒子螺旋升腾 · 动态旋转</p>
+        <div class="tags">
+          <span>Three.js</span><span>粒子系统</span><span>龙卷风</span><span>手势交互</span>
+        </div>
+      </div>
+      <div class="card-overlay"><button class="play-btn">进入体验 →</button></div>
+    </div>
+
+    <!-- Project 3: 粒子发散 -->
+    <div class="card" onclick="openProject('homepage/gesture-3d.html?mode=2')">
+      <div class="card-accent"></div>
+      <div class="card-visual">
+        <div class="visual-placeholder">
+          <div class="visual-icon">💥</div>
+          <div class="orbit-ring" style="width:130px;height:130px;animation-duration:5s">
+            <div class="orbit-dot" style="background:var(--accent3);top:-2px;left:50%"></div>
+            <div class="orbit-dot" style="background:var(--accent3);bottom:-2px;left:25%"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <h3>💥 粒子大爆炸</h3>
+        <p class="tagline">✋ 五指张开 → 粒子向外爆裂发散 · 震撼视觉</p>
+        <div class="tags">
+          <span>Three.js</span><span>爆炸特效</span><span>粒子发散</span><span>手势交互</span>
+        </div>
+      </div>
+      <div class="card-overlay"><button class="play-btn">进入体验 →</button></div>
+    </div>
+
+    <!-- Project 4: 更多精彩 -->
+    <div class="card coming-soon">
+      <div class="card-accent"></div>
+      <div class="card-visual">
+        <div class="visual-placeholder">
+          <div class="visual-icon">🚀</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <h3>🚀 更多项目</h3>
+        <p class="tagline">更多有趣的交互项目即将上线，敬请期待…</p>
+        <div class="tags">
+          <span>即将推出</span><span>Coming Soon</span>
+        </div>
+      </div>
+      <div class="card-overlay"><span class="coming-tag">🔧 开发中…</span></div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <span>MADE WITH ✦ THREE.JS + MEDIAPIPE</span>
+  </footer>
+</div>
+
+<script>
+// ===== Starfield Background =====
+(function(){
+  const c=document.getElementById('starfield'),ctx=c.getContext('2d');
+  let stars=[],w,h,animId;
+
+  function resize(){
+    w=c.width=window.innerWidth;h=c.height=window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize',resize);
+
+  // Create stars
+  const STAR_COUNT = Math.min(200, Math.floor(window.innerWidth * window.innerHeight / 5000));
+  for(let i=0;i<STAR_COUNT;i++){
+    stars.push({
+      x:Math.random()*w,y:Math.random()*h,
+      r:Math.random()*1.5+.3,
+      twinkle:Math.random()*Math.PI*2,
+      speed:.002+Math.random()*.008,
+      opacity:.2+Math.random()*.6
+    });
+  }
+
+  function draw(t){
+    ctx.clearRect(0,0,w,h);
+
+    // Draw stars
+    for(const s of stars){
+      s.twinkle+=s.speed;
+      const alpha=s.opacity*(.5+.5*Math.sin(s.twinkle));
+      ctx.beginPath();
+      ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(255,255,255,${alpha})`;
+      ctx.fill();
+    }
+
+    // Occasional shooting star
+    if(Math.random()<.003){
+      const sx=Math.random()*w,sy=Math.random()*h*.5;
+      const len=60+Math.random()*100;
+      const grad=ctx.createLinearGradient(sx,sy,sx+len,sy+len*.4);
+      grad.addColorStop(0,'rgba(255,255,255,.7)');
+      grad.addColorStop(1,'rgba(255,255,255,0)');
+      ctx.beginPath();
+      ctx.moveTo(sx,sy);
+      ctx.lineTo(sx+len,sy+len*.4);
+      ctx.strokeStyle=grad;
+      ctx.lineWidth=1;
+      ctx.stroke();
+    }
+
+    // On resize, reposition stars that went off-screen
+    const needsRecreate = stars.length === 0 || Math.abs(w - stars[0]._lastW || 0) > 100;
+    for(const s of stars) s._lastW = w;
+
+    animId=requestAnimationFrame(draw);
+  }
+  animId=requestAnimationFrame(draw);
+
+  // Handle resize: regenerate stars
+  window.addEventListener('resize',()=>{
+    const newCount = Math.min(200, Math.floor(window.innerWidth * window.innerHeight / 5000));
+    stars=[];
+    for(let i=0;i<newCount;i++){
+      stars.push({
+        x:Math.random()*w,y:Math.random()*h,
+        r:Math.random()*1.5+.3,
+        twinkle:Math.random()*Math.PI*2,
+        speed:.002+Math.random()*.008,
+        opacity:.2+Math.random()*.6
+      });
+    }
+  });
+})();
+
+// ===== Open Project =====
+function openProject(url){
+  // Add a subtle transition effect
+  document.body.style.opacity='0';
+  document.body.style.transition='opacity .3s ease';
+  setTimeout(()=>{
+    window.location.href=url;
+  },300);
+}
+
+// ===== Keyboard shortcuts =====
+document.addEventListener('keydown',(e)=>{
+  const cards=document.querySelectorAll('.card:not(.coming-soon)');
+  if(e.key>='1' && e.key<='9'){
+    const idx=parseInt(e.key)-1;
+    if(idx<cards.length) openProject(cards[idx].getAttribute('onclick').match(/'([^']+)'/)[1]);
+  }
+});
+</script>
+</body>
+</html>

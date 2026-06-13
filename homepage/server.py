@@ -2,8 +2,8 @@ import http.server
 import socketserver
 import os
 
-PORT = 8080
-DIR = os.path.dirname(os.path.abspath(__file__))
+PORT = 3000
+DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # 项目根目录
 
 class Handler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
@@ -22,6 +22,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         return super().guess_type(path)
 
     def end_headers(self):
+        # 跳过 localtunnel 确认页面
+        self.send_header('Bypass-Tunnel-Reminder', 'true')
         # 不强制COOP/COEP, 避免拦截CDN资源
         super().end_headers()
 
