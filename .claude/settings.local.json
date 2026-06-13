@@ -137,7 +137,10 @@
       "Bash(npm list *)",
       "Bash(git config *)",
       "Bash(npx playwright *)",
-      "Bash(npm init *)"
+      "Bash(npm init *)",
+      "Bash(gh auth *)",
+      "Bash(where ffmpeg *)",
+      "Bash(where ffmpeg.exe)"
     ]
   }
 }
