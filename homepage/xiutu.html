@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>仙途 · 文字修仙</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d0d1a;color:#c8b896;font-family:'PingFang SC','Microsoft YaHei',serif;overflow:hidden;height:100vh;user-select:none;-webkit-user-select:none}
+#app{display:flex;flex-direction:column;height:100vh;max-width:500px;margin:0 auto}
+
+/* Header */
+#header{background:linear-gradient(180deg,rgba(20,15,30,.98),rgba(15,12,25,.95));padding:10px 16px;text-align:center;border-bottom:1px solid rgba(180,140,80,.1);flex-shrink:0}
+#header .name{font-size:.7rem;color:rgba(180,140,80,.5)}
+#header .realm{font-size:1.2rem;font-weight:bold;background:linear-gradient(180deg,#ffd700,#b8860b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:2px 0}
+#header .stats-row{display:flex;justify-content:center;gap:16px;font-size:.6rem;color:rgba(200,180,140,.5)}
+
+/* Content */
+#content{flex:1;overflow-y:auto;padding:12px;-webkit-overflow-scrolling:touch}
+
+/* Tab bar */
+#tabs{display:flex;background:rgba(15,12,25,.98);border-top:1px solid rgba(180,140,80,.1);flex-shrink:0}
+#tabs button{flex:1;padding:10px 4px;background:none;border:none;color:rgba(180,140,80,.4);font-size:.6rem;cursor:pointer;transition:all .2s;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:2px}
+#tabs button.active{color:#ffd700;background:rgba(180,140,80,.05)}
+#tabs button .tab-icon{font-size:1.1rem}
+
+/* Cards */
+.card{background:rgba(20,18,35,.8);border:1px solid rgba(180,140,80,.08);border-radius:10px;padding:14px;margin-bottom:10px}
+.card h3{font-size:.85rem;color:#d4b060;margin-bottom:8px;letter-spacing:1px}
+.card p{font-size:.7rem;color:rgba(200,180,140,.5);line-height:1.6}
+
+/* Buttons */
+.btn{display:block;width:100%;padding:12px;margin:6px 0;border-radius:8px;border:1px solid rgba(180,140,80,.2);background:rgba(180,140,80,.08);color:#d4b060;font-size:.8rem;cursor:pointer;transition:all .2s;font-family:inherit;text-align:center;letter-spacing:1px}
+.btn:hover{background:rgba(180,140,80,.15)}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:rgba(180,140,80,.15);border-color:rgba(180,140,80,.4);color:#ffd700;font-weight:bold}
+.btn.danger{background:rgba(200,50,50,.1);border-color:rgba(200,50,50,.3);color:#e57373}
+.btn.success{background:rgba(50,180,80,.1);border-color:rgba(50,180,80,.3);color:#81c784}
+.btn:disabled{opacity:.3;pointer-events:none}
+
+/* Progress bar */
+.progress-bar{height:8px;background:rgba(255,255,255,.05);border-radius:4px;overflow:hidden;margin:4px 0}
+.progress-fill{height:100%;background:linear-gradient(90deg,#b8860b,#ffd700);border-radius:4px;transition:width .3s}
+
+/* Battle log */
+#battle-log{max-height:200px;overflow-y:auto;font-size:.65rem;color:rgba(200,180,140,.5);line-height:1.8}
+#battle-log .hit{color:#e57373}
+#battle-log .heal{color:#81c784}
+#battle-log .gold{color:#ffd700}
+
+/* Item grid */
+.item-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.item-card{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);border-radius:8px;padding:10px;text-align:center;cursor:pointer;transition:all .2s}
+.item-card:hover{background:rgba(255,255,255,.04)}
+.item-card .item-icon{font-size:1.5rem;margin-bottom:2px}
+.item-card .item-name{font-size:.65rem;color:#ccc}
+.item-card .item-desc{font-size:.55rem;color:rgba(200,180,140,.4)}
+
+/* Log feed */
+#log-feed{font-size:.6rem;color:rgba(200,180,140,.35);line-height:1.8;max-height:120px;overflow-y:auto}
+#log-feed .event{color:rgba(180,140,80,.5)}
+#log-feed .break{color:#ffd700}
+
+/* Modal */
+.modal{position:fixed;top:0;left:0;width:100%;height:100%;z-index:50;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center}
+.modal.hidden{display:none}
+.modal-inner{background:#1a1830;border:1px solid rgba(180,140,80,.2);border-radius:12px;padding:24px;max-width:350px;width:90%;text-align:center}
+.modal-inner h2{color:#ffd700;font-size:1.2rem;margin-bottom:8px}
+.modal-inner p{font-size:.7rem;color:rgba(200,180,140,.6);line-height:1.8;margin-bottom:16px}
+
+/* Notification toast */
+#toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:60;padding:8px 20px;border-radius:20px;font-size:.7rem;color:#ffd700;background:rgba(20,15,30,.95);border:1px solid rgba(180,140,80,.3);opacity:0;transition:opacity .3s;pointer-events:none}
+#toast.show{opacity:1}
+
+/* Back button */
+#back-link{position:fixed;top:12px;left:12px;z-index:5}
+#back-link a{color:rgba(200,180,140,.2);text-decoration:none;font-size:.6rem}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div id="header">
+    <div class="name" id="hdr-name">无名修士</div>
+    <div class="realm" id="hdr-realm">凡人</div>
+    <div class="stats-row">
+      <span>⚡<span id="hdr-hp">100</span></span>
+      <span>💎<span id="hdr-stone">0</span></span>
+      <span>☯<span id="hdr-lv">Lv.1</span></span>
+    </div>
+  </div>
+
+  <div id="content"></div>
+
+  <div id="tabs">
+    <button class="active" data-tab="home"><span class="tab-icon">🏠</span>洞府</button>
+    <button data-tab="battle"><span class="tab-icon">⚔️</span>历练</button>
+    <button data-tab="skills"><span class="tab-icon">📿</span>功法</button>
+    <button data-tab="bag"><span class="tab-icon">🎒</span>背包</button>
+    <button data-tab="shop"><span class="tab-icon">🏪</span>坊市</button>
+  </div>
+</div>
+
+<div class="modal hidden" id="modal">
+  <div class="modal-inner" id="modal-inner"></div>
+</div>
+<div id="toast"></div>
+<div id="back-link"><a href="../index.html">← 返回合集</a></div>
+
+<script>
+// ==================== 游戏数据 ====================
+const REALMS=[
+  {n:'凡人',exp:0,atk:5,def:2,hp:50,desc:'凡人之躯，踏入仙途之始'},
+  {n:'炼气初期',exp:100,atk:10,def:4,hp:80,desc:'天地灵气初入体，感气通脉'},
+  {n:'炼气中期',exp:300,atk:18,def:7,hp:120,desc:'灵气运转渐熟，经脉初通'},
+  {n:'炼气后期',exp:600,atk:30,def:12,hp:180,desc:'气海充盈，距筑基一步之遥'},
+  {n:'筑基初期',exp:1200,atk:50,def:20,hp:280,desc:'筑就道基，脱胎换骨，寿元大增'},
+  {n:'筑基中期',exp:2500,atk:80,def:32,hp:420,desc:'根基渐固，法力愈发精纯'},
+  {n:'筑基后期',exp:5000,atk:130,def:50,hp:620,desc:'道基圆满，金丹有望'},
+  {n:'金丹初期',exp:10000,atk:210,def:80,hp:950,desc:'金丹凝结，法力质变，可御剑飞行'},
+  {n:'金丹中期',exp:20000,atk:340,def:130,hp:1400,desc:'金丹稳固，神通初显'},
+  {n:'金丹后期',exp:40000,atk:550,def:210,hp:2100,desc:'金丹大成，元婴在望'},
+  {n:'元婴初期',exp:80000,atk:890,def:340,hp:3200,desc:'元婴凝结，身外化身，神念笼罩千里'},
+  {n:'元婴中期',exp:160000,atk:1440,def:550,hp:4800,desc:'元婴成长，神通广大'},
+  {n:'元婴后期',exp:320000,atk:2330,def:890,hp:7200,desc:'元婴圆满，化神可期'},
+  {n:'化神期',exp:640000,atk:3770,def:1440,hp:11000,desc:'化神归一，神魂不灭'},
+  {n:'合体期',exp:1280000,atk:6100,def:2330,hp:17000,desc:'法体合一，天人感应'},
+  {n:'大乘期',exp:2560000,atk:9870,def:3770,hp:26000,desc:'大道将成，举霞飞升在即'},
+  {n:'渡劫期',exp:5120000,atk:15970,def:6100,hp:40000,desc:'天劫降临，九死一生'},
+  {n:'真仙',exp:99999999,atk:25840,def:9870,hp:99999,desc:'渡过天劫，飞升仙界，万寿无疆'},
+];
+
+const SKILLS=[
+  {id:'qigong',n:'基础气功',desc:'运转体内灵力，修炼效率+20%',cost:50,type:'passive',effect:{expBonus:.2},icon:'🫁'},
+  {id:'tiandun',n:'天罡盾',desc:'战斗时防御+30%',cost:100,type:'passive',effect:{defBonus:.3},icon:'🛡️'},
+  {id:'jianjue',n:'剑诀',desc:'攻击力+25%',cost:100,type:'passive',effect:{atkBonus:.25},icon:'⚔️'},
+  {id:'jinshen',n:'金身术',desc:'气血上限+40%',cost:150,type:'passive',effect:{hpBonus:.4},icon:'💪'},
+  {id:'tunshi',n:'吞噬苍穹',desc:'修炼效率+50%',cost:300,type:'passive',effect:{expBonus:.5},icon:'🌌'},
+  {id:'fenghuo',n:'风火轮',desc:'战斗先手攻击一次',cost:200,type:'active',effect:{firstStrike:true},icon:'🔥'},
+  {id:'leiting',n:'雷霆万钧',desc:'暴击率+20%',cost:250,type:'passive',effect:{critBonus:.2},icon:'⚡'},
+  {id:'buzhou',n:'不周山体',desc:'防御+50%,气血+30%',cost:500,type:'passive',effect:{defBonus:.5,hpBonus:.3},icon:'⛰️'},
+];
+
+const SHOP_ITEMS=[
+  {id:'hp_pill_s',n:'小还丹',desc:'恢复30%气血',cost:30,icon:'💊',type:'heal',val:.3},
+  {id:'hp_pill_m',n:'大还丹',desc:'恢复60%气血',cost:80,icon:'💊',type:'heal',val:.6},
+  {id:'exp_pill',n:'聚灵丹',desc:'获得当前等级20%修为',cost:100,icon:'✨',type:'exp',val:.2},
+  {id:'atk_pill',n:'龙血丹',desc:'永久攻击+10',cost:200,icon:'🐉',type:'perm_atk',val:10},
+  {id:'def_pill',n:'玄武丹',desc:'永久防御+5',cost:200,icon:'🐢',type:'perm_def',val:5},
+  {id:'hp_pill_p',n:'长生丹',desc:'永久气血+50',cost:300,icon:'🧬',type:'perm_hp',val:50},
+  {id:'lucky_charm',n:'福缘玉佩',desc:'历练灵石掉落+50%',cost:500,icon:'📿',type:'perm_luck',val:.5},
+];
+
+const MONSTERS={
+  '凡人':[{n:'山野精怪',hp:30,atk:4,def:1,exp:15,gold:8,icon:'👹'},
+          {n:'流浪劫匪',hp:40,atk:6,def:2,exp:20,gold:12,icon:'🗡️'},
+          {n:'毒蛇妖',hp:50,atk:8,def:3,exp:28,gold:15,icon:'🐍'}],
+  '炼气初期':[{n:'百年树妖',hp:70,atk:12,def:5,exp:45,gold:25,icon:'🌳'},
+            {n:'石魔',hp:90,atk:15,def:8,exp:55,gold:30,icon:'🗿'},
+            {n:'邪修散人',hp:80,atk:18,def:4,exp:50,gold:35,icon:'🧙'}],
+  '炼气中期':[{n:'幽魂',hp:120,atk:22,def:10,exp:80,gold:45,icon:'👻'},
+            {n:'铁甲犀牛',hp:160,atk:18,def:18,exp:75,gold:40,icon:'🦏'},
+            {n:'采花妖女',hp:100,atk:30,def:6,exp:90,gold:55,icon:'🧚'}],
+  '炼气后期':[{n:'黑风妖鹫',hp:200,atk:35,def:15,exp:140,gold:70,icon:'🦅'},
+            {n:'千年僵尸',hp:250,atk:28,def:22,exp:130,gold:65,icon:'🧟'},
+            {n:'鬼面毒蛛',hp:180,atk:40,def:12,exp:160,gold:80,icon:'🕷️'}],
+  'default':[{n:'结丹妖兽',hp:400,atk:60,def:30,exp:300,gold:150,icon:'🐲'},
+           {n:'邪道真人',hp:350,atk:75,def:25,exp:350,gold:180,icon:'🧛'},
+           {n:'上古凶兽',hp:500,atk:50,def:40,exp:280,gold:140,icon:'🦂'}],
+};
+
+// ==================== 玩家状态 ====================
+let P={
+  name:'无名修士',realm:0,exp:0,hp:100,maxHp:100,atk:5,def:2,
+  gold:0,level:1,skills:[],bag:[],battles:0,kills:0,
+  permAtk:0,permDef:0,permHp:0,luckBonus:0,
+};
+
+function save(){localStorage.setItem('xiutu_save',JSON.stringify(P));}
+function load(){
+  try{const d=JSON.parse(localStorage.getItem('xiutu_save'));if(d){Object.assign(P,d);}}
+  catch(e){}
+}
+load();
+
+function realmData(){return REALMS[Math.min(P.realm,REALMS.length-1)];}
+function nextRealm(){return REALMS[Math.min(P.realm+1,REALMS.length-1)];}
+function isMaxRealm(){return P.realm>=REALMS.length-1;}
+
+// 计算实际属性（含技能加成）
+function effAtk(){
+  let a=P.atk+P.permAtk,b=1;
+  for(const s of P.skills){
+    const sk=SKILLS.find(k=>k.id===s);
+    if(sk&&sk.effect.atkBonus)b+=sk.effect.atkBonus;
+  }
+  return Math.floor(a*b);
+}
+function effDef(){
+  let d=P.def+P.permDef,b=1;
+  for(const s of P.skills){
+    const sk=SKILLS.find(k=>k.id===s);
+    if(sk&&sk.effect.defBonus)b+=sk.effect.defBonus;
+  }
+  return Math.floor(d*b);
+}
+function effMaxHp(){
+  let h=P.maxHp+P.permHp,b=1;
+  for(const s of P.skills){
+    const sk=SKILLS.find(k=>k.id===s);
+    if(sk&&sk.effect.hpBonus)b+=sk.effect.hpBonus;
+  }
+  return Math.floor(h*b);
+}
+function expBonus(){
+  let b=1;
+  for(const s of P.skills){
+    const sk=SKILLS.find(k=>k.id===s);
+    if(sk&&sk.effect.expBonus)b+=sk.effect.expBonus;
+  }
+  return b;
+}
+function hasSkill(id){return P.skills.includes(id);}
+
+// ==================== UI ====================
+const content=document.getElementById('content');
+const modal=document.getElementById('modal');
+const modalInner=document.getElementById('modal-inner');
+const toast=document.getElementById('toast');
+let currentTab='home';
+let battleState=null;
+let autoTrainInterval=null;
+
+function updateHeader(){
+  const r=realmData();
+  document.getElementById('hdr-name').textContent=P.name;
+  document.getElementById('hdr-realm').textContent=r.n;
+  document.getElementById('hdr-hp').textContent=P.hp+'/'+effMaxHp();
+  document.getElementById('hdr-stone').textContent=P.gold;
+  document.getElementById('hdr-lv').textContent='Lv.'+P.level;
+}
+
+function showToast(msg){
+  toast.textContent=msg;toast.classList.add('show');
+  setTimeout(()=>toast.classList.remove('show'),2000);
+}
+
+function showModal(title,body,btns){
+  modalInner.innerHTML=`<h2>${title}</h2><p>${body}</p>${btns.map((b,i)=>`<button class="btn ${b.cls||''}" onclick="modalAction(${i})">${b.text}</button>`).join('')}`;
+  modal.classList.remove('hidden');
+  window._modalActions=btns.map(b=>b.action);
+}
+function modalAction(i){
+  modal.classList.add('hidden');
+  if(window._modalActions[i])window._modalActions[i]();
+}
+modal.addEventListener('click',e=>{if(e.target===modal)modal.classList.add('hidden');});
+
+// Tab switching
+document.querySelectorAll('#tabs button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('#tabs button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentTab=btn.dataset.tab;
+    renderTab();
+  });
+});
+
+// ==================== 渲染页面 ====================
+function renderTab(){
+  updateHeader();
+  switch(currentTab){
+    case'home':renderHome();break;
+    case'battle':renderBattle();break;
+    case'skills':renderSkills();break;
+    case'bag':renderBag();break;
+    case'shop':renderShop();break;
+  }
+  save();
+}
+
+function renderHome(){
+  const r=realmData(),nr=nextRealm();
+  const expPct=isMaxRealm()?100:Math.min(100,Math.floor((P.exp-r.exp)/(nr.exp-r.exp)*100));
+  const h=`
+    <div class="card" style="text-align:center">
+      <div style="font-size:2rem;margin-bottom:4px">${isMaxRealm()?'👑':'🧘'}</div>
+      <h3>${r.n}</h3>
+      <p style="font-size:.65rem">${r.desc}</p>
+      <div style="margin:8px 0">
+        <div style="display:flex;justify-content:space-between;font-size:.6rem;margin-bottom:2px">
+          <span>修为</span><span>${P.exp}/${isMaxRealm()?'∞':nr.exp}</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${expPct}%"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:.6rem;margin-top:4px">
+          <span>气血</span><span>${P.hp}/${effMaxHp()}</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${Math.floor(P.hp/effMaxHp()*100)}%;background:linear-gradient(90deg,#c62828,#ef5350)"></div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:.6rem;color:rgba(200,180,140,.5);margin:8px 0">
+        <div>⚔️攻击 ${effAtk()}</div><div>🛡️防御 ${effDef()}</div><div>💪体力 ${effMaxHp()}</div>
+      </div>
+    </div>
+    <button class="btn primary" onclick="cultivate()">🧘 修炼 (获得${Math.floor(10*expBonus())}修为)</button>
+    <button class="btn success" onclick="breakthrough()" ${isMaxRealm()||P.exp<nr.exp?'disabled':''}>⬆ 突破${isMaxRealm()?' (已达巅峰)':P.exp<nr.exp?' (修为不足)':' → '+nr.n}</button>
+    <button class="btn" onclick="meditate()">💆 打坐恢复气血</button>
+    <div class="card">
+      <h3>📜 修仙日志</h3>
+      <div id="log-feed">${getRecentLogs()}</div>
+    </div>`;
+  content.innerHTML=h;
+}
+
+function getRecentLogs(){
+  const logs=[];
+  if(P.realm>0)logs.push(`<span class="break">⚡ 突破至${REALMS[P.realm].n}</span>`);
+  logs.push(`<span class="event">击杀 ${P.kills} 个敌人 · 历练 ${P.battles} 次</span>`);
+  if(P.skills.length>0)logs.push(`<span class="event">已习得 ${P.skills.length} 门功法</span>`);
+  return logs.join('<br>')||'<span class="event">踏上仙途的第一天…</span>';
+}
+
+// ==================== 修炼 ====================
+function cultivate(){
+  const gain=Math.floor(10*expBonus()*(1+P.realm*.1));
+  P.exp+=gain;
+  P.level=Math.floor(P.exp/50)+1;
+  P.hp=Math.min(effMaxHp(),P.hp+Math.floor(effMaxHp()*.05));
+  // 随机事件
+  let extra='';
+  if(Math.random()<.08){const g=Math.floor(20+P.realm*10);P.gold+=g;extra=` 意外发现灵石+${g}💎`;}
+  if(Math.random()<.05){const g=Math.floor(50*expBonus());P.exp+=g;extra+=` 顿悟！修为+${g}`;}
+  showToast(`修炼 +${gain}修为${extra}`);
+  renderTab();
+}
+
+function breakthrough(){
+  if(isMaxRealm())return;
+  const nr=nextRealm();
+  if(P.exp<nr.exp){showToast('修为不足，无法突破');return;}
+  const r=realmData();
+  P.realm++;
+  P.atk=nr.atk;P.def=nr.def;P.maxHp=nr.hp;
+  P.hp=nr.hp;
+  // 突破奖励
+  P.gold+=P.realm*50;
+  const desc=nr.desc;
+  showModal('⚡ 突破成功！',`你成功突破至<strong style="color:#ffd700">${nr.n}</strong>！<br>${desc}<br><br>🎁 奖励灵石 ${P.realm*50}<br>攻击 ${nr.atk} | 防御 ${nr.def} | 气血 ${nr.hp}`,[
+    {text:'太好了！',cls:'primary',action:()=>{renderTab();}}
+  ]);
+}
+
+function meditate(){
+  const heal=Math.floor(effMaxHp()*.5);
+  P.hp=Math.min(effMaxHp(),P.hp+heal);
+  showToast(`打坐恢复 +${heal}气血`);
+  renderTab();
+}
+
+// ==================== 战斗 ====================
+function getMonsters(){
+  const r=realmData().n;
+  let list=MONSTERS[r];
+  if(!list)list=MONSTERS['default'];
+  return list.map(m=>({...m,hp:m.hp+Math.floor(Math.random()*m.hp*.3)}));
+}
+
+function renderBattle(){
+  if(battleState){
+    renderBattleActive();return;
+  }
+  const monsters=getMonsters();
+  let h='<div class="card"><h3>⚔️ 选择敌人</h3></div>';
+  monsters.forEach((m,i)=>{
+    h+=`<div class="card" style="cursor:pointer" onclick="startBattle(${i})">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:1.5rem">${m.icon}</span>
+        <div style="flex:1">
+          <div style="font-weight:bold;font-size:.8rem">${m.n}</div>
+          <div style="font-size:.6rem;color:rgba(200,180,140,.5)">❤️${m.hp} ⚔️${m.atk} 🛡️${m.def} | 胜:${m.exp}修为 💎${m.gold}</div>
+        </div>
+      </div>
+    </div>`;
+  });
+  content.innerHTML=h;
+}
+
+function startBattle(idx){
+  const monsters=getMonsters();
+  const m=monsters[idx];
+  battleState={
+    monster:m,log:[`⚔️ 遭遇 <strong>${m.n}</strong>！`],
+    playerHp:effMaxHp(),monsterHp:m.hp,
+  };
+  // 先手技能
+  if(hasSkill('fenghuo')){
+    const dmg=Math.max(1,effAtk()-m.def+Math.floor(Math.random()*10));
+    battleState.monsterHp-=dmg;
+    battleState.log.push(`<span class="hit">🔥 风火轮先手！造成 ${dmg} 伤害</span>`);
+  }
+  P.hp=effMaxHp();
+  renderTab();
+}
+
+function renderBattleActive(){
+  const bs=battleState,m=bs.monster;
+  let h=`
+    <div class="card" style="text-align:center">
+      <div style="font-size:2rem">${m.icon}</div>
+      <h3>${m.n}</h3>
+      <div style="display:flex;justify-content:center;gap:24px;margin:8px 0;font-size:.7rem">
+        <div>敌方 ❤️${Math.max(0,bs.monsterHp)}/${m.hp}</div>
+        <div>我方 ❤️${bs.playerHp}/${effMaxHp()}</div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${Math.max(0,Math.floor(bs.monsterHp/m.hp*100))}%;background:linear-gradient(90deg,#c62828,#ef5350)"></div></div>
+    </div>
+    <button class="btn primary" onclick="battleRound('atk')" ${bs.monsterHp<=0||bs.playerHp<=0?'disabled':''}>⚔️ 攻击</button>
+    <button class="btn success" onclick="battleRound('skill')" ${bs.monsterHp<=0||bs.playerHp<=0?'disabled':''}>✨ 全力一击</button>
+    <button class="btn danger" onclick="battleState=null;renderTab();">🏃 逃跑</button>
+    <div class="card"><h3>战斗记录</h3><div id="battle-log">${bs.log.slice(-8).join('<br>')}</div></div>`;
+  content.innerHTML=h;
+  const blog=document.getElementById('battle-log');
+  if(blog)blog.scrollTop=blog.scrollHeight;
+
+  if(bs.monsterHp<=0)battleWin();
+  else if(bs.playerHp<=0)battleLose();
+}
+
+function battleRound(type){
+  const bs=battleState,m=bs.monster;
+  // 玩家攻击
+  let crit=hasSkill('leiting')&&Math.random()<.2;
+  let baseDmg=effAtk()-m.def;
+  if(type==='skill')baseDmg=Math.floor(baseDmg*1.8);
+  if(crit)baseDmg=Math.floor(baseDmg*2);
+  const pDmg=Math.max(1,baseDmg+Math.floor(Math.random()*8));
+  bs.monsterHp-=pDmg;
+  const critText=crit?' 💥暴击！':'';
+  const typeText=type==='skill'?'全力一击':'攻击';
+  bs.log.push(`${typeText}造成 <span class="hit">${pDmg}</span> 伤害${critText}`);
+
+  if(bs.monsterHp<=0){renderTab();return;}
+
+  // 怪物反击
+  const mDmg=Math.max(1,m.atk-effDef()+Math.floor(Math.random()*6));
+  bs.playerHp-=mDmg;
+  bs.log.push(`${m.n} 反击造成 <span class="hit">${mDmg}</span> 伤害`);
+  P.hp=bs.playerHp;
+  if(bs.playerHp<=0){renderTab();return;}
+  renderTab();
+}
+
+function battleWin(){
+  const bs=battleState,m=bs.monster;
+  const goldGain=Math.floor(m.gold*(1+P.luckBonus));
+  P.gold+=goldGain;P.exp+=m.exp;P.kills++;P.battles++;
+  P.level=Math.floor(P.exp/50)+1;
+  P.hp=Math.max(1,bs.playerHp);
+  bs.log.push(`<span class="gold">🎉 胜利！修为+${m.exp} 灵石+${goldGain}</span>`);
+  // 掉率
+  if(Math.random()<.15+P.luckBonus){
+    const drop=SHOP_ITEMS[Math.floor(Math.random()*3)];
+    P.bag.push({...drop});bs.log.push(`<span class="gold">📦 掉落: ${drop.icon}${drop.n}</span>`);
+  }
+  if(bs.playerHp<=0)bs.playerHp=1;
+  bs.monsterHp=-1;
+  renderTab();
+  setTimeout(()=>{battleState=null;renderTab();},2000);
+}
+
+function battleLose(){
+  const bs=battleState;
+  P.hp=Math.floor(effMaxHp()*.2);
+  bs.log.push('<span class="hit">💀 你被击败了…</span>');
+  bs.playerHp=0;
+  renderTab();
+  setTimeout(()=>{battleState=null;renderTab();},2000);
+}
+
+// ==================== 功法 ====================
+function renderSkills(){
+  let h='<div class="card"><h3>📿 功法阁</h3><p>习得功法获得永久加成</p></div>';
+  SKILLS.forEach(s=>{
+    const learned=hasSkill(s.id);
+    const canLearn=!learned&&P.gold>=s.cost;
+    h+=`<div class="card" style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:1.5rem">${s.icon}</span>
+      <div style="flex:1">
+        <div style="font-weight:bold;font-size:.75rem">${s.n} ${learned?'<span style="color:#81c784">✓已习得</span>':''}</div>
+        <div style="font-size:.6rem;color:rgba(200,180,140,.5)">${s.desc}</div>
+      </div>
+      ${learned?'':
+        `<button class="btn" style="width:auto;padding:6px 12px;font-size:.6rem" onclick="learnSkill('${s.id}')" ${canLearn?'':'disabled'}>${canLearn?'💎'+s.cost:'灵石不足'}</button>`}
+    </div>`;
+  });
+  content.innerHTML=h;
+}
+
+function learnSkill(id){
+  const sk=SKILLS.find(s=>s.id===id);
+  if(!sk||P.gold<sk.cost)return;
+  P.gold-=sk.cost;P.skills.push(id);
+  showToast(`✅ 习得 ${sk.n}！`);
+  renderTab();
+}
+
+// ==================== 背包 ====================
+function renderBag(){
+  if(P.bag.length===0){
+    content.innerHTML='<div class="card" style="text-align:center"><p>背包空空如也…<br>去历练获得物品吧</p></div>';return;
+  }
+  let h='<div class="card"><h3>🎒 背包 ('+P.bag.length+'件)</h3></div><div class="item-grid">';
+  P.bag.forEach((item,i)=>{
+    h+=`<div class="item-card" onclick="useItem(${i})">
+      <div class="item-icon">${item.icon}</div>
+      <div class="item-name">${item.n}</div>
+      <div class="item-desc">${item.desc||''}</div>
+    </div>`;
+  });
+  h+='</div>';
+  content.innerHTML=h;
+}
+
+function useItem(i){
+  const item=P.bag[i];
+  if(!item)return;
+  if(item.type==='heal'){
+    const heal=Math.floor(effMaxHp()*item.val);
+    P.hp=Math.min(effMaxHp(),P.hp+heal);
+    P.bag.splice(i,1);showToast(`使用 ${item.n}，恢复 +${heal}气血`);
+  }else if(item.type==='exp'){
+    const gain=Math.floor((nextRealm().exp-realmData().exp)*item.val);
+    P.exp+=gain;P.level=Math.floor(P.exp/50)+1;
+    P.bag.splice(i,1);showToast(`使用 ${item.n}，修为 +${gain}`);
+  }else if(item.type==='perm_atk'){
+    P.permAtk+=item.val;P.bag.splice(i,1);showToast(`使用 ${item.n}，永久攻击 +${item.val}`);
+  }else if(item.type==='perm_def'){
+    P.permDef+=item.val;P.bag.splice(i,1);showToast(`使用 ${item.n}，永久防御 +${item.val}`);
+  }else if(item.type==='perm_hp'){
+    P.permHp+=item.val;P.bag.splice(i,1);showToast(`使用 ${item.n}，永久气血 +${item.val}`);
+  }else if(item.type==='perm_luck'){
+    P.luckBonus+=item.val;P.bag.splice(i,1);showToast(`使用 ${item.n}，幸运 +${Math.floor(item.val*100)}%`);
+  }
+  renderTab();
+}
+
+// ==================== 商店 ====================
+function renderShop(){
+  let h=`<div class="card"><h3>🏪 坊市</h3><p>灵石: 💎${P.gold}</p></div>`;
+  SHOP_ITEMS.forEach(item=>{
+    h+=`<div class="card" style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:1.5rem">${item.icon}</span>
+      <div style="flex:1">
+        <div style="font-weight:bold;font-size:.75rem">${item.n}</div>
+        <div style="font-size:.6rem;color:rgba(200,180,140,.5)">${item.desc}</div>
+      </div>
+      <button class="btn" style="width:auto;padding:6px 12px;font-size:.6rem" onclick="buyItem('${item.id}')" ${P.gold>=item.cost?'':'disabled'}>💎${item.cost}</button>
+    </div>`;
+  });
+  content.innerHTML=h;
+}
+
+function buyItem(id){
+  const item=SHOP_ITEMS.find(i=>i.id===id);
+  if(!item||P.gold<item.cost)return;
+  P.gold-=item.cost;P.bag.push({...item});
+  showToast(`✅ 购买了 ${item.n}`);
+  renderTab();
+}
+
+// ==================== 初始化 ====================
+function init(){
+  // 首次进入设定名字
+  if(P.name==='无名修士'){
+    const n=prompt('请输入你的道号：','无名修士');
+    if(n&&n.trim())P.name=n.trim().substring(0,8);
+  }
+  P.hp=effMaxHp();
+  renderTab();
+}
+
+// ==================== 自动修炼 ====================
+setInterval(()=>{
+  if(currentTab==='home'){
+    const gain=Math.floor(2*expBonus()*(1+P.realm*.05));
+    P.exp+=gain;P.level=Math.floor(P.exp/50)+1;
+    save();
+  }
+},5000);
+
+// ==================== 启动 ====================
+init();
+</script>
+</body>
+</html>
