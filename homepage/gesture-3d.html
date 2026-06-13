@@ -466,18 +466,20 @@ function onHandResults(results){
     opEl.textContent=`${Math.round(g.openness*100)}% | 伸${g.extCount}指`;
   }else{
     handData=null;
-    if(Date.now()-(window._lastHand||0)>(isMobile?2000:800)){
+    const elapsed=Date.now()-(window._lastHand||0);
+    const timeout=isMobile?2000:800;
+    if(elapsed>timeout){
+      // 超时才清状态 + 擦除骨骼
       window._hasHand=false;dot.className='on';handDot.className='';stEl.textContent='待机';
       gsEl.textContent='--';opEl.textContent='--';
       lastGesture='';gestureStable=0;
+      sctx.clearRect(0,0,sc.width,sc.height);
+      sctx.drawImage(V,0,0,sc.width,sc.height);
     }
-    // 无手时清骨骼预览
-    sctx.clearRect(0,0,sc.width,sc.height);
-    sctx.drawImage(V,0,0,sc.width,sc.height);
-    // 调试：显示帧计数器确认管线运行中
+    // 未超时：保留最后一帧骨骼不动，只更新帧计数
     sctx.fillStyle='rgba(255,255,255,.25)';
     sctx.font='9px monospace';
-    sctx.fillText('F:'+frameDrawCount, 4, 12);
+    sctx.fillText('F:'+frameDrawCount+' L:'+Math.round(elapsed), 4, 12);
   }
 }
 
