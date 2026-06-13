@@ -48,22 +48,26 @@ body{background:#0a0a14;overflow:hidden;touch-action:none;user-select:none;-webk
 #overlay .btn-secondary{border-color:rgba(255,255,255,.2);color:rgba(255,255,255,.4);font-size:.7rem;padding:10px 30px;letter-spacing:1px}
 #overlay .btn-secondary:hover{background:rgba(255,255,255,.05);box-shadow:none}
 
-/* ===== Leaderboard ===== */
-#leaderboard{position:fixed;top:0;right:-320px;width:min(300px,85vw);height:100%;z-index:18;background:rgba(5,5,20,.95);border-left:1px solid rgba(0,229,255,.1);transition:right .4s cubic-bezier(.4,0,.2,1);overflow-y:auto;padding:20px}
-#leaderboard.open{right:0}
-#lb-toggle{position:fixed;top:50%;right:0;z-index:19;transform:translateY(-50%);background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.2);color:#00e5ff;padding:12px 6px;border-radius:8px 0 0 8px;cursor:pointer;font-size:.6rem;writing-mode:vertical-rl;letter-spacing:2px;transition:right .4s cubic-bezier(.4,0,.2,1)}
-#lb-toggle.shifted{right:min(300px,85vw)}
-#leaderboard h3{color:#00e5ff;font-size:.9rem;margin-bottom:16px;letter-spacing:2px;text-align:center}
-#lb-list{list-style:none}
-#lb-list li{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;margin-bottom:4px;border-radius:6px;background:rgba(255,255,255,.02);font-size:.8rem;transition:all .3s}
-#lb-list li.me{background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.15)}
-#lb-list .rank{color:#7c8aa0;width:24px;font-weight:bold}
-#lb-list li:nth-child(1) .rank{color:#ffd740}
-#lb-list li:nth-child(2) .rank{color:#b0bec5}
-#lb-list li:nth-child(3) .rank{color:#ff8a65}
-#lb-list .name{flex:1;color:#ccc;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 8px}
-#lb-list .pts{color:#00e5ff;font-weight:bold}
-#lb-empty{color:#7c8aa0;font-size:.7rem;text-align:center;padding:20px}
+/* ===== Shop ===== */
+#shop{position:fixed;top:0;right:-320px;width:min(300px,85vw);height:100%;z-index:18;background:rgba(5,5,20,.95);border-left:1px solid rgba(255,215,0,.1);transition:right .4s cubic-bezier(.4,0,.2,1);overflow-y:auto;padding:16px}
+#shop.open{right:0}
+#shop-toggle{position:fixed;top:50%;right:0;z-index:19;transform:translateY(-50%);background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.2);color:#ffd740;padding:12px 6px;border-radius:8px 0 0 8px;cursor:pointer;font-size:.6rem;writing-mode:vertical-rl;letter-spacing:2px;transition:right .4s cubic-bezier(.4,0,.2,1)}
+#shop-toggle.shifted{right:min(300px,85vw)}
+#shop h3{color:#ffd740;font-size:.9rem;margin-bottom:4px;letter-spacing:2px;text-align:center}
+#shop .shop-balance{text-align:center;color:#ffd740;font-size:.75rem;margin-bottom:12px}
+#shop .skin-card{display:flex;align-items:center;padding:10px;margin-bottom:6px;border-radius:8px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);transition:all .3s;cursor:pointer}
+#shop .skin-card.owned{border-color:rgba(0,229,255,.15)}
+#shop .skin-card.equipped{border-color:#ffd740;background:rgba(255,215,0,.05)}
+#shop .skin-card:hover{background:rgba(255,255,255,.04)}
+#shop .skin-preview{width:36px;height:36px;border-radius:50%;margin-right:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.2rem}
+#shop .skin-info{flex:1;min-width:0}
+#shop .skin-name{font-size:.75rem;color:#ddd;margin-bottom:1px}
+#shop .skin-price{font-size:.6rem;color:#ffd740}
+#shop .skin-price.owned{color:rgba(0,229,255,.5)}
+#shop .skin-action{font-size:.6rem;padding:5px 12px;border-radius:12px;cursor:pointer;border:1px solid rgba(255,215,0,.3);background:rgba(255,215,0,.05);color:#ffd740;white-space:nowrap;transition:all .2s}
+#shop .skin-action:hover{background:rgba(255,215,0,.15)}
+#shop .skin-action.equipped{background:rgba(0,229,255,.15);border-color:rgba(0,229,255,.3);color:#00e5ff}
+#shop .skin-action.locked{background:transparent;border-color:rgba(255,255,255,.1);color:rgba(255,255,255,.25)}
 
 /* ===== Misc ===== */
 #hint{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:10;pointer-events:none;display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
@@ -109,17 +113,12 @@ body{background:#0a0a14;overflow:hidden;touch-action:none;user-select:none;-webk
   <button class="btn-secondary" id="change-name-btn">换个名字</button>
 </div>
 
-<!-- Leaderboard -->
-<div id="lb-toggle">🏆 排行榜</div>
-<div id="leaderboard">
-  <h3>🏆 排行榜 TOP 20</h3>
-  <ul id="lb-list"><li id="lb-empty">暂无记录，成为第一个！</li></ul>
-  <div style="margin-top:14px;padding-top:10px;border-top:1px solid rgba(255,255,255,.05)">
-    <div style="font-size:.55rem;color:rgba(255,255,255,.15);margin-bottom:4px">☁️ 在线同步（仅拥有者设置一次即可）</div>
-    <input id="lb-token-input" type="password" placeholder="GitHub Token (gist scope)" style="width:100%;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);color:#ccc;padding:5px 8px;font-size:.55rem;border-radius:4px;font-family:monospace;margin-bottom:3px">
-    <button id="lb-token-save" style="width:100%;padding:4px;font-size:.55rem;background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.15);color:#00e5ff;border-radius:4px;cursor:pointer">💾 保存并开启在线同步</button>
-    <div id="lb-token-status" style="font-size:.5rem;color:rgba(255,255,255,.12);margin-top:3px"></div>
-  </div>
+<!-- Shop -->
+<div id="shop-toggle">🛒 商店</div>
+<div id="shop">
+  <h3>🛒 皮肤商店</h3>
+  <div class="shop-balance" id="shop-balance">🪙 0</div>
+  <div id="skin-list"></div>
 </div>
 
 <div id="back"><a href="../index.html">← 返回合集</a></div>
@@ -144,110 +143,95 @@ const finalBest=overlay.querySelector('.final-best');
 const finalRank=overlay.querySelector('.final-rank');
 const subEl=overlay.querySelector('.sub');
 const hintEl=document.getElementById('hint'),flashEl=document.getElementById('flash');
-const lbToggle=document.getElementById('lb-toggle'),leaderboard=document.getElementById('leaderboard');
-const lbList=document.getElementById('lb-list'),lbEmpty=document.getElementById('lb-empty');
+const shopToggle=document.getElementById('shop-toggle'),shopPanel=document.getElementById('shop');
+const skinList=document.getElementById('skin-list'),shopBalance=document.getElementById('shop-balance');
 
-// ==================== Leaderboard (在线云同步 + 本地缓存) ====================
-const LB_GIST='0cb0cecdd34884ac334c513ffb513125';
-const LB_READ_API=`https://api.github.com/gists/${LB_GIST}`;
-let LB_TOKEN=localStorage.getItem('neon_runner_lb_token')||'';
-const LB_KEY='neon_runner_lb_local';
-const LB_MAX=20;
-let playerName='';
-let lbOpen=false;
-let lbCache=null;
+// ==================== 皮肤系统 ====================
+const SKINS=[
+  {id:'default',name:'霓虹跑者',icon:'🏃',color:'#00e5ff',accent:'#7c4dff',emissive:'#003344',price:0,desc:'默认皮肤'},
+  {id:'flame',name:'烈焰冲刺',icon:'🔥',color:'#ff5252',accent:'#ff9100',emissive:'#330000',price:80,desc:'如火焰般炽热'},
+  {id:'toxic',name:'毒液蔓延',icon:'🧪',color:'#69f0ae',accent:'#00c853',emissive:'#003300',price:150,desc:'绿色毒液流淌'},
+  {id:'shadow',name:'暗影刺客',icon:'🌑',color:'#1a1a2e',accent:'#6a1b9a',emissive:'#110022',price:300,desc:'黑暗中潜行'},
+  {id:'gold',name:'黄金传说',icon:'👑',color:'#ffd740',accent:'#ffab00',emissive:'#332200',price:600,desc:'闪耀的黄金之躯'},
+  {id:'phantom',name:'幻影幽灵',icon:'👻',color:'#e0e0e0',accent:'#b39ddb',emissive:'#111133',price:1200,desc:'半透明的幽灵形态'},
+];
 
-async function loadLB(){
-  try{
-    const res=await fetch(LB_READ_API);
-    if(!res.ok)throw new Error('HTTP '+res.status);
-    const gist=await res.json();
-    const raw=gist.files&&gist.files['leaderboard.json']&&gist.files['leaderboard.json'].content;
-    if(!raw)return[];
-    let lb=JSON.parse(raw);
-    if(!Array.isArray(lb))return[];
-    // 去重：同名只保留最高分
-    const map=new Map();
-    for(const e of lb){
-      const prev=map.get(e.name);
-      if(!prev||e.score>prev.score)map.set(e.name,e);
-    }
-    const dedup=Array.from(map.values());
-    if(dedup.length!==lb.length)saveLB(dedup);
-    localStorage.setItem(LB_KEY,JSON.stringify(dedup));
-    lbCache=dedup;
-    return dedup;
-  }catch(e){
-    console.warn('云端排行榜读取失败，用本地缓存:',e.message);
-    try{return JSON.parse(localStorage.getItem(LB_KEY))||[];}catch{return[];}
+function getOwnedSkins(){try{return JSON.parse(localStorage.getItem('nr_owned_skins'))||['default'];}catch{return['default'];}}
+function saveOwnedSkins(arr){localStorage.setItem('nr_owned_skins',JSON.stringify(arr));}
+function getEquippedSkin(){return localStorage.getItem('nr_equipped_skin')||'default';}
+function saveEquippedSkin(id){localStorage.setItem('nr_equipped_skin',id);}
+
+let ownedSkins=getOwnedSkins();
+let equippedSkin=getEquippedSkin();
+
+const skinMaterials={};
+function getSkinMat(skinId,type){
+  const key=skinId+'_'+type;
+  if(skinMaterials[key])return skinMaterials[key];
+  const skin=SKINS.find(s=>s.id===skinId)||SKINS[0];
+  const c=skin.color,a=skin.accent,e=skin.emissive;
+  if(type==='body'){
+    skinMaterials[key]=new THREE.MeshStandardMaterial({color:c,metalness:.6,roughness:.25,emissive:e,emissiveIntensity:.4});
+  }else if(type==='accent'){
+    skinMaterials[key]=new THREE.MeshStandardMaterial({color:a,metalness:.5,roughness:.3,emissive:e,emissiveIntensity:.3});
+  }else if(type==='head'){
+    skinMaterials[key]=new THREE.MeshStandardMaterial({color:c,metalness:.6,roughness:.25,emissive:e,emissiveIntensity:.4});
   }
-}
-async function saveLB(data){
-  const top=data.sort((a,b)=>b.score-a.score).slice(0,LB_MAX);
-  lbCache=top;
-  localStorage.setItem(LB_KEY,JSON.stringify(top));
-  if(LB_TOKEN){
-    try{
-      await fetch(LB_READ_API,{method:'PATCH',
-        headers:{'Authorization':'Bearer '+LB_TOKEN,'Content-Type':'application/json'},
-        body:JSON.stringify({files:{'leaderboard.json':{content:JSON.stringify(top)}}})
-      });
-    }catch(e){console.warn('云端排行榜写入失败:',e.message);}
-  }
-}
-async function addScore(name,pts,coinCount){
-  const lb=await loadLB();
-  const newScore=Math.floor(pts);
-  const exist=lb.find(e=>e.name===name);
-  if(exist){if(newScore>exist.score){exist.score=newScore;exist.coins=coinCount;exist.time=Date.now();}}
-  else{lb.push({name,score:newScore,coins:coinCount,time:Date.now()});}
-  lb.sort((a,b)=>b.score-a.score);
-  await saveLB(lb);
-  return lb.slice(0,LB_MAX).findIndex(e=>e.name===name&&e.score===newScore);
+  return skinMaterials[key];
 }
 
-async function renderLB(highlightName){
-  const lb=await loadLB();
-  const top=lb.slice(0,LB_MAX);
-  saveLB(top);
-  return top.findIndex(e=>e.name===name&&e.score===newScore);
+function applySkin(skinId){
+  const skin=SKINS.find(s=>s.id===skinId)||SKINS[0];
+  torso.material=getSkinMat(skinId,'body');
+  head.material=getSkinMat(skinId,'head');
+  playerGroup.children.forEach(c=>{
+    if(c.material&&c.material.color&&c.material.color.getHex()===0x7c4dff)c.material=getSkinMat(skinId,'accent');
+  });
+  glowSprite.material=skinId==='flame'?new THREE.SpriteMaterial({map:texGlowPink,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true})
+    :skinId==='gold'?new THREE.SpriteMaterial({map:texGlowGold,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true})
+    :new THREE.SpriteMaterial({map:texGlow,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true});
 }
-function renderLB(highlightName){
-  const lb=loadLB();
-  lbList.innerHTML='';
-  if(lb.length===0){lbList.appendChild(lbEmpty);lbEmpty.style.display='block';return;}
-  lbEmpty.style.display='none';
-  lb.forEach((e,i)=>{
-    const li=document.createElement('li');
-    if(e.name===highlightName&&e.score===Math.floor(score))li.classList.add('me');
-    const medals=['🥇','🥈','🥉'];
-    const rank=i<3?medals[i]:`<span class="rank">${i+1}</span>`;
-    li.innerHTML=`<span>${rank}</span><span class="name">${esc(e.name)}</span><span class="pts">${e.score}</span>`;
-    lbList.appendChild(li);
+
+function renderShop(){
+  skinList.innerHTML='';
+  shopBalance.textContent='🪙 '+coins;
+  SKINS.forEach(skin=>{
+    const owned=ownedSkins.includes(skin.id);
+    const equipped=equippedSkin===skin.id;
+    const div=document.createElement('div');
+    div.className='skin-card'+(owned?' owned':'')+(equipped?' equipped':'');
+    div.innerHTML='<div class="skin-preview" style="background:'+skin.color+';box-shadow:0 0 12px '+skin.color+'44">'+skin.icon+'</div>'
+      +'<div class="skin-info"><div class="skin-name">'+skin.name+'</div>'
+      +'<div class="skin-price'+(owned?' owned':'')+'">'+(owned?'已拥有':('🪙 '+skin.price))+'</div></div>'
+      +'<button class="skin-action'+(equipped?' equipped':(owned?'':' locked'))+'">'
+      +(equipped?'装备中':(owned?'装备':'购买'))+'</button>';
+    div.querySelector('.skin-action').addEventListener('click',(e)=>{
+      e.stopPropagation();
+      if(equipped)return;
+      if(owned){
+        equippedSkin=skin.id;saveEquippedSkin(skin.id);applySkin(skin.id);renderShop();
+      }else if(coins>=skin.price){
+        coins-=skin.price;ownedSkins.push(skin.id);saveOwnedSkins(ownedSkins);
+        equippedSkin=skin.id;saveEquippedSkin(skin.id);applySkin(skin.id);
+        coinsEl.textContent='🪙 '+coins;renderShop();
+      }
+    });
+    skinList.appendChild(div);
   });
 }
-function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 
-// Token management
-const lbTokenInput=document.getElementById('lb-token-input');
-const lbTokenSave=document.getElementById('lb-token-save');
-const lbTokenStatus=document.getElementById('lb-token-status');
-if(LB_TOKEN){lbTokenInput.value=LB_TOKEN;lbTokenStatus.textContent='✅ 在线同步已启用';}
-lbTokenSave.addEventListener('click',()=>{
-  const t=lbTokenInput.value.trim();
-  if(!t){LB_TOKEN='';localStorage.removeItem('neon_runner_lb_token');lbTokenStatus.textContent='';return;}
-  LB_TOKEN=t;localStorage.setItem('neon_runner_lb_token',t);
-  lbTokenStatus.textContent='✅ 已保存！在线同步已启用';
-  setTimeout(()=>{lbTokenStatus.textContent='✅ 在线同步已启用';},2000);
+let shopOpen=false;
+shopToggle.addEventListener('click',()=>{
+  shopOpen=!shopOpen;
+  shopPanel.classList.toggle('open',shopOpen);
+  shopToggle.classList.toggle('shifted',shopOpen);
+  if(shopOpen)renderShop();
 });
 
-// Leaderboard toggle
-lbToggle.addEventListener('click',()=>{
-  lbOpen=!lbOpen;
-  leaderboard.classList.toggle('open',lbOpen);
-  lbToggle.classList.toggle('shifted',lbOpen);
-  renderLB();
-});
+function showCoinEarned(earned){
+  finalCoins.textContent='🪙 +'+earned+' (余额: '+coins+')';
+}
+
 
 // ==================== Procedural Textures ====================
 function seedRand(s){let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}return()=>{h=(h*1103515245+12345)&0x7fffffff;return h/0x7fffffff;};}
@@ -670,6 +654,8 @@ function resetGame(){
   scoreEl.textContent='0';coinsEl.textContent='🪙 0';
   comboEl.textContent='';comboEl.classList.remove('show');speedEl.textContent='';
   nameHud.textContent=playerName;
+  ownedSkins=getOwnedSkins();equippedSkin=getEquippedSkin();
+  applySkin(equippedSkin);
   initWorld();
 }
 
@@ -688,29 +674,28 @@ function checkCollision(ob){
 }
 
 // ==================== Game Flow ====================
-async function gameOver(){
+function gameOver(){
   state='OVER';
   burstParticles(playerGroup.position.x,playerY,playerGroup.position.z,'#ff4081',40);
   burstParticles(playerGroup.position.x,playerY,playerGroup.position.z,'#00e5ff',20);
 
   const pts=Math.floor(score);
-  const rank=await addScore(playerName||'无名',pts,coins);
-  if(pts>bestScore)bestScore=pts;
+  const earned=coins;
+  if(pts>bestScore){bestScore=pts;if(playerName)localStorage.setItem('nr_best_'+playerName,bestScore);}
 
   finalScore.textContent='得分: '+pts;
   finalScore.style.display='block';
-  finalCoins.textContent='🪙 × '+coins;
+  showCoinEarned(earned);
   finalCoins.style.display='block';
   finalBest.textContent='最高分: '+bestScore;
   finalBest.style.display='block';
-  finalRank.textContent=rank>=0?`🏆 排行榜第 ${rank+1} 名！`:'';
-  finalRank.style.display=rank>=0?'block':'none';
+  finalRank.style.display='none';
   subEl.style.display='none';
   restartBtn.textContent='再来一局';
   overlay.classList.remove('hidden');
   hintEl.style.display='none';
   flashEl.classList.add('pop');setTimeout(()=>flashEl.classList.remove('pop'),150);
-  await renderLB(playerName);
+  if(shopOpen)renderShop();
 }
 
 function startGame(){
@@ -735,9 +720,7 @@ nameBtn.addEventListener('click',async ()=>{
   playerName=n;
   nameOverlay.classList.add('hidden');
   nameHud.textContent=playerName;
-  bestScore=0;
-  const lb=await loadLB();
-  for(const e of lb)if(e.name===playerName&&e.score>bestScore)bestScore=e.score;
+  bestScore=parseInt(localStorage.getItem('nr_best_'+playerName))||0;
   startGame();
 });
 nameInput.addEventListener('keydown',e=>{if(e.key==='Enter')nameBtn.click();});
@@ -869,7 +852,7 @@ window.addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);c
 
 // ==================== Boot ====================
 initWorld();loop();
-renderLB();
+applySkin(getEquippedSkin());renderShop();
 nameInput.focus();
 </script>
 </body>
