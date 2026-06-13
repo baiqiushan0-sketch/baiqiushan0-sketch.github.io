@@ -11,20 +11,16 @@ body{background:#000;color:#fff;font-family:'PingFang SC','Microsoft YaHei',sans
 #dot{position:fixed;top:16px;right:16px;z-index:10;width:8px;height:8px;border-radius:50%;background:#444;transition:all .3s}
 #dot.on{background:#c5a059;box-shadow:0 0 6px #c5a059}
 #dot.ok{background:#0f8;box-shadow:0 0 8px #0f8}
-#hand-dot{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:20;font-size:3rem;opacity:0;transition:opacity .3s;pointer-events:none;text-shadow:0 0 20px rgba(0,255,136,.6)}
-#hand-dot.show{opacity:.9}
 #panel{position:fixed;top:24px;left:24px;z-index:10;pointer-events:none}
 #panel h1{font-weight:200;font-size:1.6rem;color:#e0cda7;letter-spacing:4px;margin-bottom:6px}
 #panel .s{font-size:.75rem;color:#666;font-family:monospace;line-height:1.6}
 #panel .s span{color:#c5a059}
 #panel .mode-name{font-weight:bold;font-size:.85rem;transition:color .5s}
 #btm{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:10;display:flex;gap:12px}
-#btm>div{width:240px;height:180px;border-radius:8px;border:1px solid rgba(197,160,89,.25);overflow:hidden;background:#000;position:relative}
-#btm canvas{width:100%;height:100%;object-fit:contain;position:absolute;top:0;left:0;z-index:3}
-#btm video{width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;z-index:1;opacity:0.01}
-#camera-overlay{transform:scaleX(-1)}
-#btm .lbl{position:absolute;bottom:3px;left:6px;font-size:.5rem;color:rgba(255,255,255,.35);z-index:4}
-#v{transform:scaleX(-1)}
+#btm>div{width:160px;height:120px;border-radius:8px;border:1px solid rgba(197,160,89,.25);overflow:hidden;background:#000;position:relative}
+#btm video,#btm canvas{width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0}
+#btm video,#sc{transform:scaleX(-1)}
+#btm .lbl{position:absolute;bottom:3px;left:6px;font-size:.5rem;color:rgba(255,255,255,.35);z-index:2}
 #ctrls{position:fixed;bottom:40px;right:30px;z-index:10;display:flex;gap:8px}
 #ctrls button{background:transparent;border:1px solid rgba(197,160,89,.3);color:#c5a059;padding:10px 20px;font-size:.7rem;cursor:pointer;letter-spacing:1px;transition:all .4s;white-space:nowrap}
 #ctrls button:hover{background:rgba(197,160,89,.1);border-color:#c5a059}
@@ -48,15 +44,6 @@ body{background:#000;color:#fff;font-family:'PingFang SC','Microsoft YaHei',sans
 #ov button:hover{background:rgba(197,160,89,.15)}
 #ov button:disabled{opacity:.35;cursor:not-allowed}
 #err{color:#a55;font-size:.75rem;display:none;max-width:380px;text-align:center}
-
-/* 手机端适配 */
-@media (max-width:768px){
-  #btm>div{width:180px;height:135px}
-  #panel h1{font-size:1.2rem}
-  #panel{top:12px;left:12px}
-  #ctrls{bottom:20px;right:10px;flex-direction:column}
-  #ctrls button{padding:8px 14px;font-size:.65rem}
-}
 </style>
 </head>
 <body>
@@ -75,11 +62,8 @@ body{background:#000;color:#fff;font-family:'PingFang SC','Microsoft YaHei',sans
   </div>
 </div>
 <div id="btm">
-  <div>
-    <span class="lbl">摄像头 · 骨骼追踪</span>
-    <video id="v" autoplay playsinline muted></video>
-    <canvas id="camera-overlay" width="320" height="240"></canvas>
-  </div>
+  <div><span class="lbl">骨骼追踪</span><canvas id="sc" width="320" height="240"></canvas></div>
+  <div><span class="lbl">摄像头</span><video id="v" autoplay playsinline muted></video></div>
 </div>
 <div id="gesture-hint">
   <div class="gh" data-mode="0">☝️比1→土星</div>
@@ -87,7 +71,6 @@ body{background:#000;color:#fff;font-family:'PingFang SC','Microsoft YaHei',sans
   <div class="gh" data-mode="2">✋张开→发散</div>
   <div class="gh" data-mode="0">✊握拳→土星</div>
 </div>
-<div id="hand-dot">✋</div>
 <div id="ctrls"><button onclick="window.location.href='../index.html'">← 返回合集</button><button onclick="document.body.requestFullscreen?.()">全屏</button></div>
 <div id="ov">
   <div style="position:fixed;top:16px;left:16px;z-index:101"><a href="../index.html" style="color:#666;text-decoration:none;font-size:.75rem;letter-spacing:2px">← 返回合集</a></div>
@@ -106,14 +89,14 @@ body{background:#000;color:#fff;font-family:'PingFang SC','Microsoft YaHei',sans
 <!-- MediaPipe Hands -->
 <script src="mediapipe/hands.js" crossorigin="anonymous"></script>
 <script src="mediapipe/camera_utils.js" crossorigin="anonymous"></script>
-<!-- drawing_utils 不再需要，用原生 Canvas 绘制骨骼 -->
+<script src="mediapipe/drawing_utils.js" crossorigin="anonymous"></script>
 
 <script>
 // ===== DOM =====
-const V=document.getElementById('v'),dot=document.getElementById('dot'),handDot=document.getElementById('hand-dot');
+const V=document.getElementById('v'),dot=document.getElementById('dot');
 const stEl=document.getElementById('st'),gsEl=document.getElementById('gs'),mdEl=document.getElementById('md'),opEl=document.getElementById('op');
 const btn=document.getElementById('btn'),errEl=document.getElementById('err');
-const sc=document.getElementById('camera-overlay'),sctx=sc.getContext('2d');
+const sc=document.getElementById('sc'),sctx=sc.getContext('2d');
 const flash=document.getElementById('flash');
 const loading=document.getElementById('loading');
 const ghEls=document.querySelectorAll('#gesture-hint .gh');
@@ -320,56 +303,6 @@ const WRIST = 0;
 function dist3d(a,b){return Math.sqrt((a.x-b.x)**2+(a.y-b.y)**2+(a.z-b.z)**2)}
 function dist2d(a,b){return Math.sqrt((a.x-b.x)**2+(a.y-b.y)**2)}
 
-// 手部骨骼连接定义（不依赖 MediaPipe drawing_utils）
-const HAND_BONES = [
-  [0,1],[1,2],[2,3],[3,4],        // 拇指
-  [0,5],[5,6],[6,7],[7,8],        // 食指
-  [5,9],[9,10],[10,11],[11,12],   // 中指
-  [9,13],[13,14],[14,15],[15,16], // 无名指
-  [13,17],[0,17],[17,18],[18,19],[19,20] // 小指 + 手腕连接
-];
-
-// 原生 Canvas 骨骼绘制（不依赖 MediaPipe drawing_utils）
-let frameDrawCount=0, lastDrawLog=0;
-function drawSkeletonNative(ctx, lm, w, h){
-  if(!lm||lm.length<21)return;
-  const sw=isMobile?3:2;  // 手机端加粗线条
-  const sr=isMobile?5:3;  // 手机端加大圆点
-
-  // 绘制骨骼连线
-  ctx.strokeStyle='#00ff88';
-  ctx.lineWidth=sw;
-  ctx.lineCap='round';
-  for(const [i,j] of HAND_BONES){
-    const a=lm[i], b=lm[j];
-    if(!a||!b)continue;
-    ctx.beginPath();
-    ctx.moveTo(a.x*w, a.y*h);
-    ctx.lineTo(b.x*w, b.y*h);
-    ctx.stroke();
-  }
-
-  // 绘制关节圆点
-  for(let i=0;i<21;i++){
-    const p=lm[i];
-    if(!p)continue;
-    ctx.beginPath();
-    ctx.arc(p.x*w, p.y*h, sr, 0, Math.PI*2);
-    ctx.fillStyle='#ffaa00';
-    ctx.fill();
-    ctx.strokeStyle='#ff6b4a';
-    ctx.lineWidth=1;
-    ctx.stroke();
-  }
-
-  // 帧计数（调试用）
-  frameDrawCount++;
-  if(Date.now()-lastDrawLog>3000){
-    console.log('骨骼绘制正常, 帧数:',frameDrawCount,'手坐标:',lm[0]?.x?.toFixed(2), lm[0]?.y?.toFixed(2));
-    lastDrawLog=Date.now();
-  }
-}
-
 // 判断手指是否伸展：指尖到手腕距离 > MCP到手腕距离
 function isFingerExtended(lm, fingerName){
   const tip = lm[FINGER_TIPS[fingerName]];
@@ -438,11 +371,13 @@ function onHandResults(results){
     const lm=results.multiHandLandmarks[0];
     handData = lm;
 
-    // 画视频帧 + 骨骼：先黑底、再视频、最后骨骼（canvas绝对不透明）
-    sctx.fillStyle='#000';
-    sctx.fillRect(0,0,sc.width,sc.height);
+    // 在骨骼预览画布上绘制（CSS scaleX(-1) 统一镜像）
+    sctx.clearRect(0,0,sc.width,sc.height);
     sctx.drawImage(V,0,0,sc.width,sc.height);
-    drawSkeletonNative(sctx, lm, sc.width, sc.height);
+    if(window.drawConnectors&&window.HAND_CONNECTIONS){
+      drawConnectors(sctx,lm,HAND_CONNECTIONS,{color:'#00ff88',lineWidth:2});
+      drawLandmarks(sctx,lm,{color:'#ff6b4a',lineWidth:1,radius:3,fillColor:'#ffaa00'});
+    }
 
     const g=detectGestureFromLandmarks(lm);
     if(!g)return;
@@ -466,37 +401,25 @@ function onHandResults(results){
     window._hasHand=true;window._openness=g.openness;
     window._handX=(g.wx-.5)*2;window._handY=(g.wy-.5)*2;
     window._gesture=g.gesture;window._lastHand=Date.now();
-    dot.className='ok';handDot.className='show';stEl.textContent='骨骼追踪中 F:'+frameDrawCount;
+    dot.className='ok';stEl.textContent='骨骼追踪中';
     const progBar='·'.repeat(Math.min(gestureStable,STABLE_NEED));
     gsEl.textContent=g.gesture+(gestureStable>=3?` ${progBar}`:'');
     opEl.textContent=`${Math.round(g.openness*100)}% | 伸${g.extCount}指`;
   }else{
     handData=null;
-    const elapsed=Date.now()-(window._lastHand||0);
-    const timeout=isMobile?2000:800;
-    if(elapsed>timeout){
-      // 超时才清状态 + 擦除骨骼（黑底+视频，无骨骼）
-      window._hasHand=false;dot.className='on';handDot.className='';stEl.textContent='待机';
+    if(Date.now()-(window._lastHand||0)>800){
+      window._hasHand=false;dot.className='on';stEl.textContent='待机';
       gsEl.textContent='--';opEl.textContent='--';
       lastGesture='';gestureStable=0;
-      sctx.fillStyle='#000';
-      sctx.fillRect(0,0,sc.width,sc.height);
-      sctx.drawImage(V,0,0,sc.width,sc.height);
     }
-    // 未超时：保留最后一帧骨骼，只更新帧计数
-    sctx.fillStyle='rgba(255,255,255,.25)';
-    sctx.font='9px monospace';
-    sctx.fillText('F:'+frameDrawCount+' L:'+Math.round(elapsed), 4, 12);
+    // 无手时清骨骼预览（CSS scaleX(-1) 镜像）
+    sctx.clearRect(0,0,sc.width,sc.height);
+    sctx.drawImage(V,0,0,sc.width,sc.height);
   }
 }
 
 // ===== 初始化 MediaPipe Hands =====
 let hands=null, camera=null;
-let frameErrorCount=0, lastFrameOk=0;
-
-// 设备检测
-const isMobile=/Android|iPhone|iPad|iPod|webOS/i.test(navigator.userAgent);
-const isIOS=/iPhone|iPad|iPod/i.test(navigator.userAgent);
 
 async function initMediaPipe(){
   loading.classList.add('show');
@@ -505,18 +428,12 @@ async function initMediaPipe(){
   });
   hands.setOptions({
     maxNumHands: 1,
-    // 手机用 Lite 模型（~2MB），电脑用 Full 模型（~5MB）
-    modelComplexity: isMobile ? 0 : 1,
-    minDetectionConfidence: isMobile ? 0.6 : 0.7,
-    minTrackingConfidence: isMobile ? 0.4 : 0.5
+    modelComplexity: 1,
+    minDetectionConfidence: 0.7,
+    minTrackingConfidence: 0.5
   });
   hands.onResults(onHandResults);
-
-  // ⚠️ 关键修复：必须显式初始化 WASM 模型
-  await hands.initialize();
   loading.classList.remove('show');
-  dot.className='on';
-  stEl.textContent='模型已加载 ('+(isMobile?'Lite':'Full')+')';
 }
 
 // ===== 动画循环 =====
@@ -609,49 +526,19 @@ anim();
 async function start(){
   btn.disabled=true;errEl.style.display='none';
   try{
-    // 初始化 MediaPipe（加载 WASM 模型）
+    // 初始化 MediaPipe
     await initMediaPipe();
 
     // 启动摄像头
-    // 手机用 ideal 约束 + 较低分辨率，兼容更多设备
     camera = new Camera(V, {
       onFrame: async () => {
-        if(!hands)return;
-        try{
-          await hands.send({image: V});
-          frameErrorCount=0;
-          lastFrameOk=Date.now();
-        }catch(e){
-          frameErrorCount++;
-          console.warn('MediaPipe send 错误 (#'+frameErrorCount+'):',e.message||e);
-          if(frameErrorCount===1){
-            stEl.textContent='追踪异常, 重试中...';
-            dot.className='on';
-          }
-          if(frameErrorCount>50){
-            stEl.textContent='追踪失败, 请刷新页面';
-            dot.className='';
-          }
-        }
+        if(hands) await hands.send({image: V});
       },
-      // 手机用 ideal 约束(兼容性好), 电脑用精确值
-      width: isMobile ? {ideal:480} : 640,
-      height: isMobile ? {ideal:360} : 480
+      width: 640, height: 480
     });
     await camera.start();
 
-    // 等视频元数据就绪后，让 canvas 匹配视频真实比例
-    await new Promise(r=>{V.onloadedmetadata=r});
-    function resizeCanvas(){
-      const vw=V.videoWidth||640, vh=V.videoHeight||480;
-      const maxW=isMobile?180:240, maxH=isMobile?135:180;
-      const scale=Math.min(maxW/vw, maxH/vh);
-      sc.width=vw;sc.height=vh;
-      sc.style.width=(vw*scale)+'px';
-      sc.style.height=(vh*scale)+'px';
-    }
-    resizeCanvas();
-
+    dot.className='on';
     document.getElementById('ov').style.display='none';
     ghEls.forEach(el=>el.classList.toggle('active',parseInt(el.dataset.mode)===0));
   }catch(e){
