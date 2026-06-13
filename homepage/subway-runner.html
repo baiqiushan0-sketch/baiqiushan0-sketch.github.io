@@ -154,11 +154,20 @@ function loadLB(){
 function saveLB(data){localStorage.setItem(LB_KEY,JSON.stringify(data));}
 function addScore(name,pts,coinCount){
   const lb=loadLB();
-  lb.push({name,score:Math.floor(pts),coins:coinCount,time:Date.now()});
+  const newScore=Math.floor(pts);
+  // 同名只保留最高分
+  const exist=lb.find(e=>e.name===name);
+  if(exist){
+    if(newScore>exist.score){
+      exist.score=newScore;exist.coins=coinCount;exist.time=Date.now();
+    }
+  }else{
+    lb.push({name,score:newScore,coins:coinCount,time:Date.now()});
+  }
   lb.sort((a,b)=>b.score-a.score);
   const top=lb.slice(0,LB_MAX);
   saveLB(top);
-  return top.findIndex(e=>e.name===name&&e.score===Math.floor(pts)&&e.coins===coinCount);
+  return top.findIndex(e=>e.name===name&&e.score===newScore);
 }
 function renderLB(highlightName){
   const lb=loadLB();
