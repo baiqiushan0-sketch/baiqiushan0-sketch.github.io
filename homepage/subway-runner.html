@@ -592,7 +592,6 @@ function initWorld(){
   for(let z=5;z>-65;z-=6+Math.random()*8){spawnBuilding(-1,z);spawnBuilding(1,z);}
   lane=1;targetX=LANE_X[1];playerY=PLAYER_Y;playerVelY=0;isSliding=false;slideTimer=0;
   playerGroup.position.set(LANE_X[1],PLAYER_Y,0);playerGroup.scale.set(1,1,1);
-  torso.material=matPlayerBody;head.material=matPlayerBody;glowSprite.material=matNeonCyan;
 }
 
 function resetGame(){
@@ -602,8 +601,8 @@ function resetGame(){
   comboEl.textContent='';comboEl.classList.remove('show');speedEl.textContent='';
   nameHud.textContent=playerName;
   ownedSkins=getOwnedSkins();equippedSkin=getEquippedSkin();
-  applySkin(equippedSkin);
   initWorld();
+  applySkin(equippedSkin);
 }
 
 // ==================== Collision ====================
@@ -748,10 +747,10 @@ function update(dt){
 
   playerGroup.position.x+=(targetX-playerGroup.position.x)*15*realDt;
   if(playerVelY!==0||playerY>PLAYER_Y){playerVelY-=GRAVITY*realDt;playerY+=playerVelY*realDt;
-    if(playerY<=PLAYER_Y){playerY=PLAYER_Y;playerVelY=0;playerGroup.position.y=PLAYER_Y;playerGroup.scale.set(1,1,1);torso.material=matPlayerBody;head.material=matPlayerBody;glowSprite.material=matNeonCyan;}}
+    if(playerY<=PLAYER_Y){playerY=PLAYER_Y;playerVelY=0;playerGroup.position.y=PLAYER_Y;playerGroup.scale.set(1,1,1);applySkin(equippedSkin);}}
   playerGroup.position.y=playerY;
 
-  if(isSliding){slideTimer-=realDt;if(slideTimer<=0){isSliding=false;playerGroup.scale.set(1,1,1);playerGroup.position.y=PLAYER_Y;torso.material=matPlayerBody;head.material=matPlayerBody;glowSprite.material=matNeonCyan;}}
+  if(isSliding){slideTimer-=realDt;if(slideTimer<=0){isSliding=false;playerGroup.scale.set(1,1,1);playerGroup.position.y=PLAYER_Y;applySkin(equippedSkin);}}
 
   for(const o of obstacles)if(checkCollision(o)){burstParticles(playerGroup.position.x,playerY,playerGroup.position.z,'#ff4081',35);gameOver();return;}
 
