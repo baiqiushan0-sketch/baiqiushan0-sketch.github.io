@@ -3,460 +3,360 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>项目合集 · Project Hub</title>
+<title>白秋山的项目合集</title>
 <style>
-/* ===== Reset & Base ===== */
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#0a0a0f;
-  --card-bg:rgba(20,20,35,0.85);
-  --border:rgba(255,255,255,0.06);
-  --gold:#c5a059;
-  --gold-dim:rgba(197,160,89,0.3);
-  --text:#e0d5c0;
-  --text-dim:#6b6b7b;
-  --accent1:#c5a059;
-  --accent2:#00d2ff;
-  --accent3:#ff6b4a;
-  --accent4:#50c878;
-  --accent5:#ff79c6;
+  --bg:#050510;--card:rgba(15,12,30,0.75);--card-hover:rgba(20,16,40,0.9);
+  --border:rgba(255,255,255,0.06);--border-hover:rgba(255,255,255,0.15);
+  --gold:#e2c070;--gold2:#f5e0a0;--text:#d0c8b8;--text2:#908878;--text3:#585040;
+  --c1:#e2c070;--c2:#60c0e0;--c3:#f06070;--c4:#50d890;--c5:#f080c0;--c6:#a080f0;
 }
+@font-face{font-family:'fx';src:local('PingFang SC'),local('Microsoft YaHei'),local('sans-serif')}
 html{font-size:16px;scroll-behavior:smooth}
 body{
-  background:var(--bg);
-  color:var(--text);
-  font-family:'PingFang SC','Microsoft YaHei','Helvetica Neue',sans-serif;
-  min-height:100vh;
-  overflow-x:hidden;
-  line-height:1.6;
-  -webkit-font-smoothing:antialiased;
+  background:var(--bg);color:var(--text);font-family:'fx';min-height:100vh;
+  overflow-x:hidden;line-height:1.6;-webkit-font-smoothing:antialiased;
 }
 
-/* ===== Starfield Background ===== */
-#starfield{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+/* Canvas */
+#bg-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
 
-/* ===== Layout ===== */
-.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column}
+/* Main layout */
+.main{position:relative;z-index:1;min-height:100vh}
 
-/* ===== Header ===== */
-.header{
-  text-align:center;padding:clamp(2rem,6vw,5rem) clamp(1rem,4vw,2rem) clamp(1rem,3vw,2.5rem);
+/* Hero */
+.hero{text-align:center;padding:clamp(3rem,10vw,7rem) 1rem clamp(1rem,4vw,2.5rem);position:relative}
+.hero .name{
+  font-size:clamp(1.8rem,5vw,3.5rem);font-weight:200;letter-spacing:clamp(6px,1.5vw,14px);
+  background:linear-gradient(180deg,#f5e0a0 0%,#c5a050 50%,#8b6914 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  position:relative;display:inline-block;
 }
-.header .logo{
-  font-size:clamp(1.2rem,3vw,1.8rem);
-  font-weight:200;letter-spacing:clamp(4px,1vw,8px);
-  color:var(--accent1);margin-bottom:.3rem;
+.hero .name::after{
+  content:'';position:absolute;bottom:-8px;left:20%;width:60%;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
 }
-.header .sub{
-  font-size:clamp(.7rem,1.5vw,.85rem);
-  color:var(--text-dim);letter-spacing:2px;
-}
+.hero .sub{font-size:clamp(.75rem,1.5vw,.9rem);color:var(--text2);letter-spacing:3px;margin-top:1.2rem}
 
-/* ===== Projects Grid ===== */
+/* Glow orb behind hero */
+.hero-glow{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:300px;height:300px;background:radial-gradient(circle,rgba(200,160,70,.08),transparent 70%);
+  border-radius:50%;pointer-events:none;animation:heroPulse 4s ease-in-out infinite;
+}
+@keyframes heroPulse{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.3);opacity:.5}}
+
+/* Project Grid */
 .projects{
-  flex:1;display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
-  gap:clamp(1rem,3vw,2rem);
-  padding:clamp(.5rem,2vw,1.5rem) clamp(1rem,4vw,3rem);
-  max-width:1400px;width:100%;margin:0 auto;
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+  gap:clamp(1rem,2.5vw,1.8rem);padding:0 clamp(1rem,3vw,3rem) clamp(2rem,5vw,4rem);
+  max-width:1300px;margin:0 auto;
 }
 
-/* ===== Project Card ===== */
+/* Card */
 .card{
-  background:var(--card-bg);
-  border:1px solid var(--border);
-  border-radius:16px;overflow:hidden;
-  cursor:pointer;transition:all .4s cubic-bezier(.25,.8,.25,1);
-  position:relative;backdrop-filter:blur(12px);
-  display:flex;flex-direction:column;
+  background:var(--card);border:1px solid var(--border);border-radius:18px;
+  overflow:hidden;cursor:pointer;transition:all .5s cubic-bezier(.23,1,.32,1);
+  position:relative;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  display:flex;flex-direction:column;text-decoration:none;color:inherit;
 }
 .card:hover{
-  transform:translateY(-6px);
-  box-shadow:0 20px 60px rgba(0,0,0,.4),0 0 0 1px rgba(197,160,89,.15);
-  border-color:rgba(197,160,89,.2);
+  transform:translateY(-8px);
+  background:var(--card-hover);border-color:var(--border-hover);
+  box-shadow:0 25px 60px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.03);
 }
-.card:active{transform:scale(.98)}
+.card:active{transform:scale(.97)}
 
-/* Card Visual Area */
-.card-visual{
-  position:relative;height:200px;overflow:hidden;
-  display:flex;align-items:center;justify-content:center;
+/* Card glow line on hover */
+.card::before{
+  content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:0;height:1px;transition:width .5s ease;
 }
-.card-visual canvas{width:100%;height:100%}
+.card:hover::before{width:80%}
+.card:nth-child(1):hover::before{background:var(--c1)}
+.card:nth-child(2):hover::before{background:var(--c2)}
+.card:nth-child(3):hover::before{background:var(--c3)}
+.card:nth-child(4):hover::before{background:var(--c4)}
+.card:nth-child(5):hover::before{background:var(--c5)}
+.card:nth-child(6):hover::before{background:var(--c6)}
 
-/* Placeholder visual */
-.card-visual .visual-placeholder{
-  width:100%;height:100%;display:flex;align-items:center;justify-content:center;
-  font-size:3rem;position:relative;
-}
-.card:nth-child(1) .visual-placeholder{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%)}
-.card:nth-child(2) .visual-placeholder{background:linear-gradient(135deg,#1a0a2e 0%,#2d1b4e 50%,#4a1a6b 100%)}
+/* Card visual */
+.card-visual{position:relative;height:220px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.card-visual canvas{width:100%;height:100%;display:block}
 
-/* Icon circle on visual */
-.visual-icon{
-  width:80px;height:80px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
+.card:nth-child(1) .card-visual{background:linear-gradient(160deg,#1a1520 0%,#221830 40%,#2d1540 100%)}
+.card:nth-child(2) .card-visual{background:linear-gradient(160deg,#0f1a20 0%,#152530 40%,#0d2d40 100%)}
+.card:nth-child(3) .card-visual{background:linear-gradient(160deg,#1a1015 0%,#251520 40%,#350d20 100%)}
+.card:nth-child(4) .card-visual{background:linear-gradient(160deg,#0f1a15 0%,#152520 40%,#0d3520 100%)}
+.card:nth-child(5) .card-visual{background:linear-gradient(160deg,#1a1020 0%,#201530 40%,#2d1040 100%)}
+.card:nth-child(6) .card-visual{background:linear-gradient(160deg,#151520 0%,#1a1830 40%,#181a40 100%)}
+
+/* Icon orb */
+.card-icon{
+  width:90px;height:90px;border-radius:50%;display:flex;align-items:center;justify-content:center;
   font-size:2.5rem;position:relative;z-index:1;
-  backdrop-filter:blur(8px);
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  transition:all .5s cubic-bezier(.23,1,.32,1);
+  margin-top:-10px;
 }
-.card:nth-child(1) .visual-icon{background:rgba(197,160,89,.15);border:2px solid rgba(197,160,89,.3)}
-.card:nth-child(2) .visual-icon{background:rgba(120,120,180,.15);border:2px solid rgba(120,120,180,.2)}
+.card:hover .card-icon{transform:scale(1.1);border-color:rgba(255,255,255,.15)}
+.card:nth-child(1) .card-icon{box-shadow:0 0 30px rgba(226,192,112,.1)}
+.card:nth-child(2) .card-icon{box-shadow:0 0 30px rgba(96,192,224,.1)}
+.card:nth-child(3) .card-icon{box-shadow:0 0 30px rgba(240,96,112,.1)}
+.card:nth-child(4) .card-icon{box-shadow:0 0 30px rgba(80,216,144,.1)}
+.card:nth-child(5) .card-icon{box-shadow:0 0 30px rgba(240,128,192,.1)}
+.card:nth-child(6) .card-icon{box-shadow:0 0 30px rgba(160,128,240,.1)}
 
-/* Orbiting dots */
-.visual-placeholder .orbit-ring{
-  position:absolute;border-radius:50%;border:1px solid rgba(255,255,255,.06);
-  animation:orbit linear infinite;
+/* Card info */
+.card-info{padding:1.2rem 1.5rem 1.5rem;flex:1;display:flex;flex-direction:column}
+.card-info h3{font-size:1.05rem;font-weight:600;color:var(--text);margin-bottom:.3rem;letter-spacing:1px}
+.card-info .tag{
+  display:inline-block;padding:3px 10px;border-radius:12px;font-size:.65rem;
+  font-weight:500;letter-spacing:.5px;margin-bottom:.5rem;width:fit-content;
 }
-.visual-placeholder .orbit-dot{
-  position:absolute;width:4px;height:4px;border-radius:50%;
-}
+.card:nth-child(1) .tag{background:rgba(226,192,112,.1);color:var(--c1);border:1px solid rgba(226,192,112,.15)}
+.card:nth-child(2) .tag{background:rgba(96,192,224,.1);color:var(--c2);border:1px solid rgba(96,192,224,.15)}
+.card:nth-child(3) .tag{background:rgba(240,96,112,.1);color:var(--c3);border:1px solid rgba(240,96,112,.15)}
+.card:nth-child(4) .tag{background:rgba(80,216,144,.1);color:var(--c4);border:1px solid rgba(80,216,144,.15)}
+.card:nth-child(5) .tag{background:rgba(240,128,192,.1);color:var(--c5);border:1px solid rgba(240,128,192,.15)}
+.card:nth-child(6) .tag{background:rgba(160,128,240,.1);color:var(--c6);border:1px solid rgba(160,128,240,.15)}
 
-/* Card Body */
-.card-body{padding:1.25rem 1.25rem 1rem;flex:1;display:flex;flex-direction:column}
-.card-body h3{
-  font-size:1.1rem;font-weight:500;margin-bottom:.35rem;letter-spacing:1px;
-}
-.card-body .tagline{
-  font-size:.78rem;color:var(--text-dim);margin-bottom:.5rem;line-height:1.5;
-}
-.card-body .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto;padding-top:.5rem}
-.card-body .tags span{
-  font-size:.62rem;padding:3px 10px;border-radius:20px;
-  border:1px solid rgba(255,255,255,.1);color:var(--text-dim);
-  letter-spacing:1px;
-}
+.card-info p{font-size:.78rem;color:var(--text2);line-height:1.6;flex:1}
 
-/* Card accent line */
-.card-accent{
-  position:absolute;top:0;left:0;width:100%;height:3px;
-  opacity:0;transition:opacity .4s;
+/* Arrow indicator */
+.card-arrow{
+  position:absolute;bottom:1.2rem;right:1.5rem;width:28px;height:28px;
+  border-radius:50%;border:1px solid rgba(255,255,255,.08);display:flex;
+  align-items:center;justify-content:center;font-size:.7rem;
+  transition:all .4s ease;opacity:0;transform:translateX(-8px);
 }
-.card:hover .card-accent{opacity:1}
-.card:nth-child(1) .card-accent{background:linear-gradient(90deg,var(--accent1),transparent)}
-.card:nth-child(2) .card-accent{background:linear-gradient(90deg,rgba(120,120,180,.5),transparent)}
+.card:hover .card-arrow{opacity:1;transform:translateX(0)}
 
-/* ===== Footer ===== */
-.footer{
-  text-align:center;padding:2rem 1rem 2.5rem;
-  font-size:.7rem;color:var(--text-dim);letter-spacing:2px;
-}
+/* Footer */
+.footer{text-align:center;padding:2rem 1rem 3rem;color:var(--text3);font-size:.7rem;letter-spacing:1px}
 
-/* ===== Enter Button Overlay ===== */
-.card-overlay{
-  position:absolute;bottom:0;left:0;width:100%;
-  padding:12px;display:flex;justify-content:center;
-  opacity:0;transform:translateY(10px);transition:all .3s;
-  pointer-events:none;
-}
-.card:hover .card-overlay{
-  opacity:1;transform:translateY(0);
-}
-.play-btn{
-  padding:10px 32px;border-radius:24px;font-size:.8rem;letter-spacing:2px;
-  cursor:pointer;pointer-events:auto;transition:all .3s;
-  font-family:inherit;
-}
-.card:nth-child(1) .play-btn{
-  background:transparent;border:1px solid var(--accent1);color:var(--accent1);
-}
-.card:nth-child(1) .play-btn:hover{background:rgba(197,160,89,.15)}
-.card:nth-child(2) .play-btn{
-  background:transparent;border:1px solid var(--accent2);color:var(--accent2);
-}
-.card:nth-child(2) .play-btn:hover{background:rgba(0,210,255,.1)}
-
-/* ===== Responsive ===== */
-@media (max-width:768px){
-  .projects{
-    grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
-    gap:1rem;padding:.5rem .8rem 1rem;
-  }
-  .card-visual{height:160px}
-  .card-body{padding:1rem}
-  .card-body h3{font-size:1rem}
-  .card-overlay{opacity:1;transform:none;position:static;padding:0 1rem .8rem}
-  .play-btn{width:100%;text-align:center;padding:8px}
-}
-@media (max-width:480px){
-  .projects{
-    grid-template-columns:1fr;
-    padding:.5rem .6rem 1rem;
-  }
-  .card{border-radius:12px}
-  .card-visual{height:140px}
-  .header .logo{font-size:1.1rem}
-}
-
-/* ===== Animations ===== */
-@keyframes orbit{
-  from{transform:rotate(0deg)}
-  to{transform:rotate(360deg)}
-}
-@keyframes float{
-  0%,100%{transform:translateY(0)}
-  50%{transform:translateY(-10px)}
-}
-
-/* Card entrance animation */
-.card{animation:cardIn .6s ease-out backwards}
-.card:nth-child(1){animation-delay:.1s}
-.card:nth-child(2){animation-delay:.2s}
-.card:nth-child(3){animation-delay:.3s}
-.card:nth-child(4){animation-delay:.4s}
-
-@keyframes cardIn{
-  from{opacity:0;transform:translateY(30px)}
-  to{opacity:1;transform:translateY(0)}
-}
-
-/* Floating particles */
-.floating-particle{
-  position:absolute;border-radius:50%;pointer-events:none;
-  animation:floatParticle linear infinite;
-}
-@keyframes floatParticle{
-  0%{transform:translateY(0) translateX(0);opacity:0}
-  10%{opacity:.6}
-  90%{opacity:.6}
-  100%{transform:translateY(-80px) translateX(20px);opacity:0}
-}
-
-/* ===== Coming Soon Card ===== */
-/* Gesture guide inside main card */
-.gesture-guide{
-  display:flex;gap:4px;flex-wrap:wrap;margin-top:8px;padding-top:6px;
-  border-top:1px solid rgba(255,255,255,.04);
-}
-.gesture-guide span{
-  font-size:.6rem;color:rgba(197,160,89,.45);letter-spacing:.5px;
-}
-
-.card.coming-soon{opacity:.7;cursor:default}
-.card.coming-soon:hover{transform:none;box-shadow:none;border-color:var(--border)}
-.card.coming-soon .card-accent{opacity:0}
-.card.coming-soon .play-btn{display:none}
-.card.coming-soon .card-overlay{
-  opacity:1;transform:none;position:static;padding:0 1rem .8rem;
-}
-.card.coming-soon .coming-tag{
-  text-align:center;padding:6px 0;font-size:.7rem;
-  color:var(--text-dim);letter-spacing:2px;
+/* 响应式 */
+@media(max-width:700px){
+  .card-visual{height:180px}
+  .card-icon{width:70px;height:70px;font-size:2rem}
 }
 </style>
 </head>
 <body>
 
-<!-- Starfield Canvas -->
-<canvas id="starfield"></canvas>
+<canvas id="bg-canvas"></canvas>
 
-<div class="page">
-  <!-- Header -->
-  <header class="header">
-    <div class="logo">✦ 项目合集</div>
-    <div class="sub">PROJECT HUB · 点击卡片进入体验</div>
-  </header>
+<div class="main">
+  <div class="hero">
+    <div class="hero-glow"></div>
+    <div class="name">白秋山的项目合集</div>
+    <div class="sub">BAIQIUSHAN · PROJECT HUB</div>
+  </div>
 
-  <!-- Projects Grid -->
-  <main class="projects" id="projects">
+  <div class="projects">
+    <!-- 修仙游戏 -->
+    <a class="card" href="homepage/xiutu.html">
+      <div class="card-visual"><canvas id="cv1"></canvas><div class="card-icon">🧘</div></div>
+      <div class="card-info"><span class="tag">文字游戏</span><h3>仙途 · 文字修仙</h3><p>50+随机事件，动态剧情引擎，六阶功法体系，在修仙世界中探索、突破、证道飞升</p></div>
+      <div class="card-arrow">→</div>
+    </a>
 
-    <!-- Project 1: 粒子土星 · 骨骼手势聚合态 -->
-    <div class="card" onclick="openProject('homepage/gesture-3d.html')">
-      <div class="card-accent"></div>
-      <div class="card-visual">
-        <div class="visual-placeholder">
-          <div class="visual-icon">🪐</div>
-          <div class="orbit-ring" style="width:120px;height:120px;animation-duration:8s">
-            <div class="orbit-dot" style="background:var(--accent1);top:-2px;left:50%"></div>
-          </div>
-          <div class="orbit-ring" style="width:160px;height:50px;animation-duration:12s;border-radius:50%">
-            <div class="orbit-dot" style="background:var(--accent1);top:50%;left:-2px"></div>
-          </div>
-          <!-- 多色轨道代表多种形态 -->
-          <div class="orbit-ring" style="width:140px;height:40px;animation-duration:5s;border-radius:50%;border-color:rgba(80,200,120,.1)">
-            <div class="orbit-dot" style="background:var(--accent4);top:-2px;left:30%"></div>
-          </div>
-        </div>
-      </div>
-      <div class="card-body">
-        <h3>🪐 粒子土星 · 骨骼手势聚合态</h3>
-        <p class="tagline">18万粒子 · 摄像头手势识别 · 5种聚合形态实时切换</p>
-        <div class="tags">
-          <span>Three.js</span><span>MediaPipe</span><span>手势识别</span><span>3D粒子</span>
-        </div>
-        <div class="gesture-guide">
-          <span>☝️比1→🪐土星</span>
-          <span>✌️比2→🌪️龙卷风</span>
-          <span>✋张开→💥发散</span>
-          <span>✊握拳→🪐回归</span>
-        </div>
-      </div>
-      <div class="card-overlay"><button class="play-btn">进入体验 →</button></div>
-    </div>
+    <!-- 地铁跑酷 -->
+    <a class="card" href="homepage/subway-runner.html">
+      <div class="card-visual"><canvas id="cv2"></canvas><div class="card-icon">🏃</div></div>
+      <div class="card-info"><span class="tag">动作游戏</span><h3>地铁跑酷</h3><p>无尽跑酷，躲避障碍收集金币，挑战最高分</p></div>
+      <div class="card-arrow">→</div>
+    </a>
 
-    <!-- Project 2: 地铁酷跑 -->
-    <div class="card" onclick="openProject('homepage/subway-runner.html')">
-      <div class="card-accent"></div>
-      <div class="card-visual">
-        <div class="visual-placeholder" style="background:linear-gradient(135deg,#1a1a2e 0%,#2d1b4e 50%,#1a3a5c 100%)">
-          <div class="visual-icon" style="background:rgba(0,210,255,.15);border:2px solid rgba(0,210,255,.3)">🚇</div>
-          <div class="orbit-ring" style="width:100px;height:100px;animation-duration:4s">
-            <div class="orbit-dot" style="background:#00d2ff;top:-2px;left:50%"></div>
-          </div>
-          <div class="orbit-ring" style="width:70px;height:70px;animation-duration:6s">
-            <div class="orbit-dot" style="background:#ffd700;top:50%;left:-2px"></div>
-          </div>
-        </div>
-      </div>
-      <div class="card-body">
-        <h3>🚇 地铁酷跑</h3>
-        <p class="tagline">3D无尽跑酷 · 三轨道切道 · 跳跃下滑躲避障碍</p>
-        <div class="tags">
-          <span>Three.js</span><span>跑酷</span><span>3D</span><span>无尽模式</span>
-        </div>
-      </div>
-      <div class="card-overlay"><button class="play-btn" style="color:#00d2ff;border-color:#00d2ff">开始酷跑 →</button></div>
-    </div>
+    <!-- 3D手势 -->
+    <a class="card" href="homepage/gesture-3d.html">
+      <div class="card-visual"><canvas id="cv3"></canvas><div class="card-icon">✋</div></div>
+      <div class="card-info"><span class="tag">AI交互</span><h3>3D手势识别</h3><p>基于MediaPipe的实时手势追踪，在浏览器中用双手操控3D空间</p></div>
+      <div class="card-arrow">→</div>
+    </a>
 
-    <!-- Project 3: 仙途 -->
-    <div class="card" onclick="openProject('homepage/xiutu.html')">
-      <div class="card-accent"></div>
-      <div class="card-visual">
-        <div class="visual-placeholder" style="background:linear-gradient(135deg,#1a1020 0%,#2d1b35 50%,#1a0a20 100%)">
-          <div class="visual-icon" style="background:rgba(255,215,0,.15);border:2px solid rgba(255,215,0,.3)">🧘</div>
-          <div class="orbit-ring" style="width:100px;height:100px;animation-duration:5s;border-color:rgba(180,140,80,.1)">
-            <div class="orbit-dot" style="background:#ffd700;top:-2px;left:50%"></div>
-          </div>
-        </div>
-      </div>
-      <div class="card-body">
-        <h3>🧘 仙途 · 文字修仙</h3>
-        <p class="tagline">修炼突破 · 斩妖除魔 · 功法秘籍 · 炼丹坊市</p>
-        <div class="tags">
-          <span>修仙</span><span>放置</span><span>RPG</span><span>文字冒险</span>
-        </div>
-      </div>
-      <div class="card-overlay"><button class="play-btn" style="color:#ffd700;border-color:#ffd700">踏入仙途 →</button></div>
-    </div>
+    <!-- NFC播放器 -->
+    <a class="card" href="NFC音乐播放器/NFC读卡工具.html">
+      <div class="card-visual"><canvas id="cv4"></canvas><div class="card-icon">🎵</div></div>
+      <div class="card-info"><span class="tag">硬件DIY</span><h3>NFC音乐播放器</h3><p>刷卡自动切歌，ESP32+RC522打造的桌面音乐神器</p></div>
+      <div class="card-arrow">→</div>
+    </a>
 
-    <!-- Project 4: 更多精彩 -->
-    <div class="card coming-soon">
-      <div class="card-accent"></div>
-      <div class="card-visual">
-        <div class="visual-placeholder">
-          <div class="visual-icon">🚀</div>
-        </div>
-      </div>
-      <div class="card-body">
-        <h3>🚀 更多项目</h3>
-        <p class="tagline">更多有趣的交互项目即将上线，敬请期待…</p>
-        <div class="tags">
-          <span>即将推出</span><span>Coming Soon</span>
-        </div>
-      </div>
-      <div class="card-overlay"><span class="coming-tag">🔧 开发中…</span></div>
-    </div>
+    <!-- 小车实训 -->
+    <a class="card" href="小车/智能小车实训结业汇报.pptx">
+      <div class="card-visual"><canvas id="cv5"></canvas><div class="card-icon">🚗</div></div>
+      <div class="card-info"><span class="tag">课程项目</span><h3>智能小车实训</h3><p>ARM-Linux嵌入式开发，28个任务从GPIO到APP控制</p></div>
+      <div class="card-arrow">→</div>
+    </a>
 
-  </main>
+    <!-- 更多 -->
+    <a class="card" href="skill_g113593/skill_g113593.html">
+      <div class="card-visual"><canvas id="cv6"></canvas><div class="card-icon">📁</div></div>
+      <div class="card-info"><span class="tag">工具</span><h3>更多项目</h3><p>持续更新中，更多有趣的项目即将上线</p></div>
+      <div class="card-arrow">→</div>
+    </a>
+  </div>
 
-  <!-- Footer -->
-  <footer class="footer">
-    <span>MADE WITH ✦ THREE.JS + MEDIAPIPE</span>
-  </footer>
+  <div class="footer">© 2026 白秋山 · BAIQIUSHAN</div>
 </div>
 
 <script>
-// ===== Starfield Background =====
-(function(){
-  const c=document.getElementById('starfield'),ctx=c.getContext('2d');
-  let stars=[],w,h,animId;
+// ===== 主背景：3D粒子流 =====
+const bgCanvas = document.getElementById('bg-canvas');
+const bgCtx = bgCanvas.getContext('2d');
+let bgW, bgH, particles = [];
 
-  function resize(){
-    w=c.width=window.innerWidth;h=c.height=window.innerHeight;
+function resizeBg() {
+  bgW = bgCanvas.width = window.innerWidth;
+  bgH = bgCanvas.height = window.innerHeight;
+}
+resizeBg();
+window.addEventListener('resize', () => { resizeBg(); initParticles(); });
+
+function initParticles() {
+  particles = [];
+  const count = Math.floor(bgW * bgH / 8000);
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x: Math.random() * bgW, y: Math.random() * bgH,
+      r: Math.random() * 1.5 + 0.3,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: (Math.random() - 0.5) * 0.3 - 0.15,
+      o: Math.random() * 0.5 + 0.2,
+      pulse: Math.random() * Math.PI * 2,
+    });
   }
-  resize();
-  window.addEventListener('resize',resize);
+}
+initParticles();
 
-  // Create stars
-  const STAR_COUNT = Math.min(200, Math.floor(window.innerWidth * window.innerHeight / 5000));
-  for(let i=0;i<STAR_COUNT;i++){
-    stars.push({
-      x:Math.random()*w,y:Math.random()*h,
-      r:Math.random()*1.5+.3,
-      twinkle:Math.random()*Math.PI*2,
-      speed:.002+Math.random()*.008,
-      opacity:.2+Math.random()*.6
+function drawBg() {
+  bgCtx.clearRect(0, 0, bgW, bgH);
+
+  // Draw connections
+  for (let i = 0; i < particles.length; i++) {
+    const p = particles[i];
+    for (let j = i + 1; j < particles.length; j++) {
+      const q = particles[j];
+      const dx = p.x - q.x, dy = p.y - q.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 120) {
+        bgCtx.beginPath();
+        bgCtx.moveTo(p.x, p.y);
+        bgCtx.lineTo(q.x, q.y);
+        bgCtx.strokeStyle = `rgba(180,150,100,${0.03 * (1 - dist / 120)})`;
+        bgCtx.lineWidth = 0.4;
+        bgCtx.stroke();
+      }
+    }
+  }
+
+  // Draw particles
+  for (const p of particles) {
+    p.x += p.vx;
+    p.y += p.vy;
+    if (p.x < -50) p.x = bgW + 50;
+    if (p.x > bgW + 50) p.x = -50;
+    if (p.y < -50) p.y = bgH + 50;
+    if (p.y > bgH + 50) p.y = -50;
+
+    const glow = Math.sin(p.pulse + Date.now() * 0.001) * 0.3 + 0.7;
+    bgCtx.beginPath();
+    bgCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    bgCtx.fillStyle = `rgba(200,170,120,${p.o * glow})`;
+    bgCtx.fill();
+  }
+  requestAnimationFrame(drawBg);
+}
+drawBg();
+
+// ===== 卡片内3D粒子环 =====
+function cardCanvas(id, color, count) {
+  const cv = document.getElementById(id);
+  if (!cv) return;
+  const parent = cv.parentElement;
+  cv.width = parent.offsetWidth;
+  cv.height = parent.offsetHeight;
+  const ctx = cv.getContext('2d');
+  const cx = cv.width / 2, cy = cv.height / 2;
+  const particles = [];
+
+  for (let i = 0; i < count; i++) {
+    const angle = (Math.PI * 2 * i) / count;
+    const radius = Math.min(cx, cy) * (0.5 + Math.random() * 0.4);
+    particles.push({
+      angle, radius, speed: 0.002 + Math.random() * 0.006,
+      size: 0.8 + Math.random() * 1.5,
+      offsetY: (Math.random() - 0.5) * 30,
+      pulse: Math.random() * Math.PI * 2,
     });
   }
 
-  function draw(t){
-    ctx.clearRect(0,0,w,h);
+  function draw() {
+    if (cv.width !== parent.offsetWidth || cv.height !== parent.offsetHeight) {
+      cv.width = parent.offsetWidth;
+      cv.height = parent.offsetHeight;
+    }
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    const now = Date.now() * 0.001;
+    const nx = cv.width / 2, ny = cv.height / 2;
 
-    // Draw stars
-    for(const s of stars){
-      s.twinkle+=s.speed;
-      const alpha=s.opacity*(.5+.5*Math.sin(s.twinkle));
+    // Draw ring
+    for (const p of particles) {
+      p.angle += p.speed;
+      const x = nx + Math.cos(p.angle) * p.radius;
+      const y = ny + Math.sin(p.angle) * p.radius * 0.4 + p.offsetY;
+      const glow = Math.sin(p.pulse + now * 0.8) * 0.4 + 0.6;
       ctx.beginPath();
-      ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-      ctx.fillStyle=`rgba(255,255,255,${alpha})`;
+      ctx.arc(x, y, p.size, 0, Math.PI * 2);
+      ctx.fillStyle = color.replace('0.8', String(0.3 * glow));
       ctx.fill();
+
+      // Connect nearby
+      for (const q of particles) {
+        const dx = x - (nx + Math.cos(q.angle) * q.radius);
+        const dy = y - (ny + Math.sin(q.angle) * q.radius * 0.4 + q.offsetY);
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 50 && dist > 0) {
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(nx + Math.cos(q.angle) * q.radius, ny + Math.sin(q.angle) * q.radius * 0.4 + q.offsetY);
+          ctx.strokeStyle = color.replace('0.8', String(0.08 * (1 - dist / 50)));
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
     }
 
-    // Occasional shooting star
-    if(Math.random()<.003){
-      const sx=Math.random()*w,sy=Math.random()*h*.5;
-      const len=60+Math.random()*100;
-      const grad=ctx.createLinearGradient(sx,sy,sx+len,sy+len*.4);
-      grad.addColorStop(0,'rgba(255,255,255,.7)');
-      grad.addColorStop(1,'rgba(255,255,255,0)');
-      ctx.beginPath();
-      ctx.moveTo(sx,sy);
-      ctx.lineTo(sx+len,sy+len*.4);
-      ctx.strokeStyle=grad;
-      ctx.lineWidth=1;
-      ctx.stroke();
-    }
+    // Center glow
+    const grd = ctx.createRadialGradient(nx, ny, 0, nx, ny, Math.min(cv.width, cv.height) * 0.3);
+    grd.addColorStop(0, color.replace('0.8', '0.08'));
+    grd.addColorStop(1, 'transparent');
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, cv.width, cv.height);
 
-    // On resize, reposition stars that went off-screen
-    const needsRecreate = stars.length === 0 || Math.abs(w - stars[0]._lastW || 0) > 100;
-    for(const s of stars) s._lastW = w;
-
-    animId=requestAnimationFrame(draw);
+    requestAnimationFrame(draw);
   }
-  animId=requestAnimationFrame(draw);
-
-  // Handle resize: regenerate stars
-  window.addEventListener('resize',()=>{
-    const newCount = Math.min(200, Math.floor(window.innerWidth * window.innerHeight / 5000));
-    stars=[];
-    for(let i=0;i<newCount;i++){
-      stars.push({
-        x:Math.random()*w,y:Math.random()*h,
-        r:Math.random()*1.5+.3,
-        twinkle:Math.random()*Math.PI*2,
-        speed:.002+Math.random()*.008,
-        opacity:.2+Math.random()*.6
-      });
-    }
-  });
-})();
-
-// ===== Open Project =====
-function openProject(url){
-  // Add a subtle transition effect
-  document.body.style.opacity='0';
-  document.body.style.transition='opacity .3s ease';
-  setTimeout(()=>{
-    window.location.href=url;
-  },300);
+  draw();
 }
 
-// ===== Keyboard shortcuts =====
-document.addEventListener('keydown',(e)=>{
-  const cards=document.querySelectorAll('.card:not(.coming-soon)');
-  if(e.key>='1' && e.key<='9'){
-    const idx=parseInt(e.key)-1;
-    if(idx<cards.length) openProject(cards[idx].getAttribute('onclick').match(/'([^']+)'/)[1]);
-  }
+// Initialize card canvases with different colors
+setTimeout(() => {
+  cardCanvas('cv1', 'rgba(226,192,112,0.8)', 40);
+  cardCanvas('cv2', 'rgba(96,192,224,0.8)', 35);
+  cardCanvas('cv3', 'rgba(240,96,112,0.8)', 30);
+  cardCanvas('cv4', 'rgba(80,216,144,0.8)', 35);
+  cardCanvas('cv5', 'rgba(240,128,192,0.8)', 30);
+  cardCanvas('cv6', 'rgba(160,128,240,0.8)', 35);
+}, 200);
+
+window.addEventListener('resize', () => {
+  document.querySelectorAll('.card-visual canvas').forEach(cv => {
+    const p = cv.parentElement;
+    cv.width = p.offsetWidth;
+    cv.height = p.offsetHeight;
+  });
 });
 </script>
 </body>
