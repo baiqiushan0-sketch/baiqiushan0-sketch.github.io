@@ -4,154 +4,330 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>白秋山的项目合集</title>
+<meta name="description" content="白秋山的个人项目合集 - 创意技术作品展示">
 <style>
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+/* ═══════════════════════════════════════ DESIGN TOKENS ═══════════════════════════════════════ */
 :root{
-  --bg:#050510;--card:rgba(15,12,30,0.7);--card-hover:rgba(20,16,40,0.85);
-  --border:rgba(255,255,255,.05);--border-hover:rgba(255,255,255,.12);
-  --gold:#d4b060;--gold2:#f0da90;--text:#d0c8b8;--text2:#908878;--text3:#585040;
-  --c1:#d4b060;--c2:#50b8d8;--c3:#e86070;--c4:#9080e0;
+  --bg:#050510; --surface:rgba(12,10,24,0.72); --surface-hover:rgba(18,14,34,0.88);
+  --border:rgba(255,255,255,.05); --border-hover:rgba(255,255,255,.10);
+  --gold:#c8a858; --gold-light:#e8d898; --gold-dim:rgba(200,168,88,.25);
+  --blue:#5ca8d8; --blue-dim:rgba(92,168,216,.20);
+  --red:#e06878; --red-dim:rgba(224,104,120,.20);
+  --purple:#9888d8; --purple-dim:rgba(152,136,216,.20);
+  --text:#d0c8b8; --text2:#908878; --text3:#585040;
+  --radius:18px; --radius-sm:10px;
+  --shadow:0 30px 70px rgba(0,0,0,.5);
+  --transition:.6s cubic-bezier(.2,.9,.3,1);
+  --font:'PingFang SC','Microsoft YaHei',sans-serif;
 }
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 html{font-size:16px;scroll-behavior:smooth}
 body{
-  background:var(--bg);color:var(--text);font-family:'PingFang SC','Microsoft YaHei',sans-serif;
-  min-height:100vh;overflow-x:hidden;line-height:1.6;-webkit-font-smoothing:antialiased;
+  background:var(--bg);color:var(--text);font-family:var(--font);
+  min-height:100vh;overflow-x:hidden;line-height:1.6;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
 }
-#bg-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
-.main{position:relative;z-index:1;min-height:100vh}
 
-/* Hero */
-.hero{text-align:center;padding:clamp(3rem,10vw,7rem) 1rem clamp(1.5rem,4vw,3rem);position:relative}
-.hero .name{
-  font-size:clamp(1.8rem,5vw,3.5rem);font-weight:200;letter-spacing:clamp(6px,1.5vw,14px);
-  background:linear-gradient(180deg,#f5e0a0 0%,#c5a050 50%,#8b6914 100%);
+/* ═══════════════════════════════════════ UTILITY ═══════════════════════════════════════ */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+
+/* ═══════════════════════════════════════ NAVIGATION ═══════════════════════════════════════ */
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;padding:1rem 2rem;
+  display:flex;justify-content:space-between;align-items:center;
+  transition:background .4s ease,backdrop-filter .4s ease,box-shadow .4s ease;
+}
+.nav.scrolled{
+  background:rgba(5,5,16,.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  box-shadow:0 1px 0 rgba(255,255,255,.04);
+}
+.nav-logo{
+  font-size:1rem;font-weight:600;letter-spacing:2px;
+  background:linear-gradient(180deg,#e8d898,#c8a858);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;background-clip:text;text-decoration:none;
+  transition:opacity .3s;
+}
+.nav-logo:hover{opacity:.8}
+.nav-links{display:flex;gap:2rem;list-style:none}
+.nav-links a{
+  color:var(--text2);text-decoration:none;font-size:.8rem;letter-spacing:1px;
+  transition:color .3s;position:relative;
+}
+.nav-links a::after{
+  content:'';position:absolute;bottom:-4px;left:0;width:0;height:1px;
+  background:var(--gold);transition:width .3s ease;
+}
+.nav-links a:hover{color:var(--text)}
+.nav-links a:hover::after{width:100%}
+
+/* ═══════════════════════════════════════ HERO ═══════════════════════════════════════ */
+.hero{
+  position:relative;min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;
+  padding:6rem 1.5rem 4rem;
+}
+.hero-bg{position:absolute;inset:0;z-index:0;pointer-events:none}
+.hero-bg canvas{width:100%;height:100%;display:block}
+.hero-bg::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:40%;
+  background:linear-gradient(to top,var(--bg),transparent);z-index:1;
+}
+
+.hero-content{position:relative;z-index:2;max-width:800px}
+.hero-badge{
+  display:inline-block;padding:5px 16px;border-radius:20px;font-size:.7rem;
+  letter-spacing:2px;margin-bottom:2rem;
+  border:1px solid rgba(200,168,88,.18);color:var(--gold);
+  background:rgba(200,168,88,.04);backdrop-filter:blur(8px);
+}
+.hero-title{
+  font-size:clamp(2rem,6vw,4rem);font-weight:200;letter-spacing:clamp(4px,1vw,12px);
+  line-height:1.25;margin-bottom:1.2rem;
+  background:linear-gradient(180deg,#f5e5b8 0%,#c8a858 45%,#8b6914 100%);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  display:inline-block;position:relative;
 }
-.hero .name::after{
-  content:'';position:absolute;bottom:-8px;left:20%;width:60%;height:1px;
-  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+.hero-subtitle{
+  font-size:clamp(.8rem,1.6vw,1rem);color:var(--text2);letter-spacing:2px;
+  margin-bottom:2.5rem;font-weight:300;
 }
-.hero .sub{font-size:clamp(.7rem,1.5vw,.85rem);color:var(--text2);letter-spacing:4px;margin-top:1.2rem}
+.hero-scroll{
+  position:absolute;bottom:2.5rem;left:50%;transform:translateX(-50%);z-index:2;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  color:var(--text3);font-size:.6rem;letter-spacing:2px;animation:bob 2s ease-in-out infinite;
+}
+.hero-scroll span{display:block;width:1px;height:24px;background:linear-gradient(to bottom,var(--text3),transparent)}
+@keyframes bob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}
 
-/* Grid */
-.projects{
+/* ═══════════════════════════════════════ SECTIONS ═══════════════════════════════════════ */
+.section{padding:4rem 1.5rem;max-width:1260px;margin:0 auto}
+.section-header{text-align:center;margin-bottom:3rem}
+.section-header h2{
+  font-size:clamp(1.5rem,3vw,2.2rem);font-weight:300;letter-spacing:3px;
+  color:var(--text);margin-bottom:.6rem;
+}
+.section-header p{font-size:.8rem;color:var(--text2);letter-spacing:1px}
+.section-divider{
+  width:60px;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  margin:.8rem auto 0;border-radius:1px;
+}
+
+/* ═══════════════════════════════════════ PROJECT CARDS ═══════════════════════════════════════ */
+.projects-grid{
   display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));
-  gap:clamp(1rem,2.5vw,1.8rem);padding:0 clamp(1rem,3vw,3rem) clamp(2rem,5vw,4rem);
-  max-width:1260px;margin:0 auto;
+  gap:clamp(1rem,2.5vw,1.6rem);
 }
 
-/* Card */
-.card{
-  background:var(--card);border:1px solid var(--border);border-radius:18px;
-  overflow:hidden;cursor:pointer;transition:all .6s cubic-bezier(.2,.9,.3,1);
-  position:relative;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  display:flex;flex-direction:column;text-decoration:none;color:inherit;
+.project-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  overflow:hidden;cursor:pointer;transition:all var(--transition);
+  position:relative;text-decoration:none;color:inherit;display:flex;flex-direction:column;
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  transform-style:preserve-3d;perspective:1000px;
 }
-.card:hover{
-  transform:translateY(-10px);
-  background:var(--card-hover);border-color:var(--border-hover);
-  box-shadow:0 30px 70px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.04);
+.project-card:hover{
+  transform:translateY(-6px);
+  background:var(--surface-hover);border-color:var(--border-hover);
+  box-shadow:var(--shadow);
 }
-.card:active{transform:scale(.96)}
 
-.card::before{
-  content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
-  width:0;height:2px;border-radius:1px;transition:width .6s cubic-bezier(.2,.9,.3,1);z-index:2;
+/* Card color themes */
+.project-card:nth-child(1) .card-accent{background:var(--gold)}
+.project-card:nth-child(2) .card-accent{background:var(--blue)}
+.project-card:nth-child(3) .card-accent{background:var(--red)}
+.project-card:nth-child(4) .card-accent{background:var(--purple)}
+.project-card:nth-child(1):hover{border-color:var(--gold-dim)}
+.project-card:nth-child(2):hover{border-color:var(--blue-dim)}
+.project-card:nth-child(3):hover{border-color:var(--red-dim)}
+.project-card:nth-child(4):hover{border-color:var(--purple-dim)}
+
+.card-accent{position:absolute;top:0;left:50%;transform:translateX(-50%);width:0;height:2px;border-radius:1px;transition:width var(--transition);z-index:2}
+.project-card:hover .card-accent{width:70%}
+
+/* Card visual area */
+.card-visual{
+  position:relative;height:200px;overflow:hidden;display:flex;
+  align-items:center;justify-content:center;
 }
-.card:hover::before{width:80%}
-.card:nth-child(1)::before{background:var(--c1)}
-.card:nth-child(2)::before{background:var(--c2)}
-.card:nth-child(3)::before{background:var(--c3)}
-.card:nth-child(4)::before{background:var(--c4)}
+.card-visual canvas{width:100%;height:100%}
+.card-visual-bg{
+  position:absolute;inset:0;transition:transform .8s cubic-bezier(.2,.9,.3,1);
+}
+.project-card:hover .card-visual-bg{transform:scale(1.05)}
+.project-card:nth-child(1) .card-visual{background:linear-gradient(160deg,#1a1520,#221830,#2d1540)}
+.project-card:nth-child(2) .card-visual{background:linear-gradient(160deg,#0f1a20,#152530,#0d2d40)}
+.project-card:nth-child(3) .card-visual{background:linear-gradient(160deg,#1a1015,#251520,#350d20)}
+.project-card:nth-child(4) .card-visual{background:linear-gradient(160deg,#151520,#1a1830,#181a40)}
 
-/* Visual */
-.card-visual{position:relative;height:220px;overflow:hidden;display:flex;align-items:center;justify-content:center}
-.card-visual canvas{width:100%;height:100%;display:block}
-.card:nth-child(1) .card-visual{background:linear-gradient(160deg,#1a1520,#221830,#2d1540)}
-.card:nth-child(2) .card-visual{background:linear-gradient(160deg,#0f1a20,#152530,#0d2d40)}
-.card:nth-child(3) .card-visual{background:linear-gradient(160deg,#1a1015,#251520,#350d20)}
-.card:nth-child(4) .card-visual{background:linear-gradient(160deg,#151520,#1a1830,#181a40)}
-
-/* Icon */
-.card-icon{
-  width:90px;height:90px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  font-size:2.5rem;position:relative;z-index:1;
+.card-icon-wrap{
+  width:84px;height:84px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:2.2rem;position:relative;z-index:1;
   background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);
-  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-  transition:all .6s cubic-bezier(.2,.9,.3,1);
+  transition:all var(--transition);
 }
-.card:hover .card-icon{transform:scale(1.12);border-color:rgba(255,255,255,.18)}
-.card:nth-child(1) .card-icon{box-shadow:0 0 40px rgba(212,176,96,.1)}
-.card:nth-child(2) .card-icon{box-shadow:0 0 40px rgba(80,184,216,.1)}
-.card:nth-child(3) .card-icon{box-shadow:0 0 40px rgba(232,96,112,.1)}
-.card:nth-child(4) .card-icon{box-shadow:0 0 40px rgba(144,128,224,.1)}
+.project-card:hover .card-icon-wrap{transform:scale(1.08);border-color:rgba(255,255,255,.14)}
+.project-card:nth-child(1) .card-icon-wrap{box-shadow:0 0 40px rgba(200,168,88,.08)}
+.project-card:nth-child(2) .card-icon-wrap{box-shadow:0 0 40px rgba(92,168,216,.08)}
+.project-card:nth-child(3) .card-icon-wrap{box-shadow:0 0 40px rgba(224,104,120,.08)}
+.project-card:nth-child(4) .card-icon-wrap{box-shadow:0 0 40px rgba(152,136,216,.08)}
 
-/* Info */
-.card-info{padding:1.2rem 1.5rem 1.5rem;flex:1;display:flex;flex-direction:column}
-.card-info h3{font-size:1.05rem;font-weight:600;color:var(--text);margin-bottom:.3rem;letter-spacing:1px}
-.card-info .tag{
-  display:inline-block;padding:3px 10px;border-radius:12px;font-size:.65rem;
-  font-weight:500;letter-spacing:.5px;margin-bottom:.5rem;width:fit-content;
+/* Card info */
+.card-info{padding:1.2rem 1.4rem 1.8rem;flex:1;display:flex;flex-direction:column;position:relative}
+.card-info h3{font-size:1rem;font-weight:600;color:var(--text);margin-bottom:.3rem;letter-spacing:.5px}
+.card-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:.6rem}
+.card-tag{
+  display:inline-block;padding:2px 10px;border-radius:10px;font-size:.62rem;
+  font-weight:500;letter-spacing:.3px;
 }
-.card:nth-child(1) .tag{background:rgba(212,176,96,.1);color:var(--c1);border:1px solid rgba(212,176,96,.15)}
-.card:nth-child(2) .tag{background:rgba(80,184,216,.1);color:var(--c2);border:1px solid rgba(80,184,216,.15)}
-.card:nth-child(3) .tag{background:rgba(232,96,112,.1);color:var(--c3);border:1px solid rgba(232,96,112,.15)}
-.card:nth-child(4) .tag{background:rgba(144,128,224,.1);color:var(--c4);border:1px solid rgba(144,128,224,.15)}
-.card-info p{font-size:.78rem;color:var(--text2);line-height:1.6;flex:1}
+.project-card:nth-child(1) .card-tag{background:rgba(200,168,88,.08);color:var(--gold);border:1px solid rgba(200,168,88,.12)}
+.project-card:nth-child(2) .card-tag{background:rgba(92,168,216,.08);color:var(--blue);border:1px solid rgba(92,168,216,.12)}
+.project-card:nth-child(3) .card-tag{background:rgba(224,104,120,.08);color:var(--red);border:1px solid rgba(224,104,120,.12)}
+.project-card:nth-child(4) .card-tag{background:rgba(152,136,216,.08);color:var(--purple);border:1px solid rgba(152,136,216,.12)}
+.card-desc{font-size:.76rem;color:var(--text2);line-height:1.6;flex:1}
 
-.card-arrow{
-  position:absolute;bottom:1.2rem;right:1.5rem;width:28px;height:28px;
-  border-radius:50%;border:1px solid rgba(255,255,255,.08);display:flex;
-  align-items:center;justify-content:center;font-size:.7rem;color:var(--text2);
-  transition:all .5s ease;opacity:0;transform:translateX(-10px);
+.card-arrow-hint{
+  position:absolute;bottom:1rem;right:1.2rem;width:26px;height:26px;
+  border-radius:50%;border:1px solid rgba(255,255,255,.06);display:flex;
+  align-items:center;justify-content:center;font-size:.65rem;color:var(--text2);
+  transition:all .4s ease;opacity:0;transform:translateX(-8px);
 }
-.card:hover .card-arrow{opacity:1;transform:translateX(0)}
+.project-card:hover .card-arrow-hint{opacity:1;transform:translateX(0)}
 
-/* Footer */
-.footer{text-align:center;padding:2rem 1rem 3rem;color:var(--text3);font-size:.7rem;letter-spacing:1px}
+/* ═══════════════════════════════════════ ABOUT ═══════════════════════════════════════ */
+.about{text-align:center;padding:3rem 1.5rem 5rem;max-width:600px;margin:0 auto}
+.about h2{font-size:clamp(1.3rem,2.5vw,1.8rem);font-weight:300;letter-spacing:3px;color:var(--text);margin-bottom:1rem}
+.about p{font-size:.8rem;color:var(--text2);line-height:1.8}
 
-@media(max-width:700px){
-  .card-visual{height:180px}
-  .card-icon{width:70px;height:70px;font-size:2rem}
+/* ═══════════════════════════════════════ FOOTER ═══════════════════════════════════════ */
+.footer{
+  text-align:center;padding:3rem 1.5rem;border-top:1px solid rgba(255,255,255,.03);
+  color:var(--text3);font-size:.7rem;letter-spacing:1px;
+}
+.footer .love{color:var(--red);display:inline-block;animation:heartbeat 1.5s ease infinite}
+@keyframes heartbeat{0%,100%{transform:scale(1)}15%{transform:scale(1.2)}30%{transform:scale(1)}}
+
+/* ═══════════════════════════════════════ SCROLL REVEAL ═══════════════════════════════════════ */
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .8s ease,transform .8s cubic-bezier(.2,.9,.3,1)}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.reveal-delay-1{transition-delay:.1s}
+.reveal-delay-2{transition-delay:.2s}
+.reveal-delay-3{transition-delay:.3s}
+.reveal-delay-4{transition-delay:.4s}
+
+/* ═══════════════════════════════════════ RESPONSIVE ═══════════════════════════════════════ */
+@media(max-width:768px){
+  .nav{padding:.8rem 1.2rem}
+  .nav-links{gap:1.2rem}
+  .nav-links a{font-size:.7rem}
+  .hero{padding:5rem 1rem 3rem;min-height:90vh}
+  .hero-title{letter-spacing:4px}
+  .projects-grid{grid-template-columns:1fr;max-width:420px;margin:0 auto}
+  .card-visual{height:170px}
+  .card-icon-wrap{width:68px;height:68px;font-size:1.8rem}
+  .section{padding:3rem 1rem}
+}
+@media(max-width:480px){
+  .nav-links{gap:.8rem}
+  .hero{min-height:80vh}
+  .hero-badge{font-size:.6rem;padding:4px 12px}
+}
+
+/* ═══════════════════════════════════════ REDUCED MOTION ═══════════════════════════════════════ */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
 }
 </style>
 </head>
 <body>
 
-<canvas id="bg-canvas"></canvas>
+<!-- ═══════════════════ NAVIGATION ═══════════════════ -->
+<nav class="nav" id="nav">
+  <a href="#" class="nav-logo">白秋山</a>
+  <ul class="nav-links">
+    <li><a href="#projects">项目</a></li>
+    <li><a href="#about">关于</a></li>
+    <li><a href="https://github.com/baiqiushan0-sketch" target="_blank" rel="noopener">GitHub</a></li>
+  </ul>
+</nav>
 
-<div class="main">
-  <div class="hero">
-    <div class="name">白秋山的项目合集</div>
-    <div class="sub">BAIQIUSHAN · PROJECT HUB</div>
+<!-- ═══════════════════ HERO ═══════════════════ -->
+<section class="hero" id="hero">
+  <div class="hero-bg"><canvas id="bg3d"></canvas></div>
+  <div class="hero-content reveal visible">
+    <div class="hero-badge">PORTFOLIO 2026</div>
+    <h1 class="hero-title">白秋山的项目合集</h1>
+    <p class="hero-subtitle">创意 · 技术 · 探索 —— 构建有温度的数字作品</p>
+  </div>
+  <div class="hero-scroll"><span></span>SCROLL</div>
+</section>
+
+<!-- ═══════════════════ PROJECTS ═══════════════════ -->
+<section class="section" id="projects">
+  <div class="section-header">
+    <h2>项目作品</h2>
+    <p>精选项目展示</p>
+    <div class="section-divider"></div>
   </div>
 
-  <div class="projects">
-    <a class="card" href="homepage/xiutu.html">
-      <div class="card-visual"><canvas id="cv1"></canvas><div class="card-icon">🧘</div></div>
-      <div class="card-info"><span class="tag">文字游戏</span><h3>仙途 · 文字修仙</h3><p>50+随机事件，动态剧情引擎，六阶功法体系，在修仙世界中探索、突破、证道飞升</p></div>
-      <div class="card-arrow">→</div>
+  <div class="projects-grid">
+    <!-- 仙途 -->
+    <a class="project-card reveal reveal-delay-1" href="homepage/xiutu.html">
+      <div class="card-accent"></div>
+      <div class="card-visual"><canvas class="cv-particle" data-color="rgba(200,168,88,CLR)" data-count="40"></canvas><div class="card-icon-wrap">🧘</div></div>
+      <div class="card-info">
+        <div class="card-tags"><span class="card-tag">文字游戏</span><span class="card-tag">修仙</span><span class="card-tag">Canvas</span></div>
+        <h3>仙途 · 文字修仙</h3>
+        <p class="card-desc">50+随机事件，动态剧情引擎，六阶功法体系，在修仙世界中探索、突破、证道飞升</p>
+      </div>
+      <div class="card-arrow-hint">→</div>
     </a>
-    <a class="card" href="homepage/subway-runner.html">
-      <div class="card-visual"><canvas id="cv2"></canvas><div class="card-icon">🏃</div></div>
-      <div class="card-info"><span class="tag">动作游戏</span><h3>地铁跑酷</h3><p>无尽跑酷，躲避障碍收集金币，挑战最高分</p></div>
-      <div class="card-arrow">→</div>
+    <!-- 地铁跑酷 -->
+    <a class="project-card reveal reveal-delay-2" href="homepage/subway-runner.html">
+      <div class="card-accent"></div>
+      <div class="card-visual"><canvas class="cv-particle" data-color="rgba(92,168,216,CLR)" data-count="35"></canvas><div class="card-icon-wrap">🏃</div></div>
+      <div class="card-info">
+        <div class="card-tags"><span class="card-tag">动作游戏</span><span class="card-tag">跑酷</span><span class="card-tag">Canvas</span></div>
+        <h3>地铁跑酷</h3>
+        <p class="card-desc">无尽跑酷游戏，躲避障碍收集金币，挑战最高分纪录</p>
+      </div>
+      <div class="card-arrow-hint">→</div>
     </a>
-    <a class="card" href="homepage/gesture-3d.html">
-      <div class="card-visual"><canvas id="cv3"></canvas><div class="card-icon">✋</div></div>
-      <div class="card-info"><span class="tag">AI交互</span><h3>3D手势识别</h3><p>基于MediaPipe的实时手势追踪，在浏览器中用双手操控3D空间</p></div>
-      <div class="card-arrow">→</div>
+    <!-- 3D手势 -->
+    <a class="project-card reveal reveal-delay-3" href="homepage/gesture-3d.html">
+      <div class="card-accent"></div>
+      <div class="card-visual"><canvas class="cv-particle" data-color="rgba(224,104,120,CLR)" data-count="30"></canvas><div class="card-icon-wrap">✋</div></div>
+      <div class="card-info">
+        <div class="card-tags"><span class="card-tag">AI交互</span><span class="card-tag">MediaPipe</span><span class="card-tag">3D</span></div>
+        <h3>3D手势识别</h3>
+        <p class="card-desc">基于MediaPipe的实时手势追踪，在浏览器中用双手操控3D空间</p>
+      </div>
+      <div class="card-arrow-hint">→</div>
     </a>
-    <a class="card" href="skill_g113593/skill_g113593.html">
-      <div class="card-visual"><canvas id="cv4"></canvas><div class="card-icon">📁</div></div>
-      <div class="card-info"><span class="tag">工具</span><h3>更多项目</h3><p>持续更新中，更多有趣的项目即将上线</p></div>
-      <div class="card-arrow">→</div>
+    <!-- 更多 -->
+    <a class="project-card reveal reveal-delay-4" href="skill_g113593/skill_g113593.html">
+      <div class="card-accent"></div>
+      <div class="card-visual"><canvas class="cv-particle" data-color="rgba(152,136,216,CLR)" data-count="35"></canvas><div class="card-icon-wrap">📁</div></div>
+      <div class="card-info">
+        <div class="card-tags"><span class="card-tag">工具</span><span class="card-tag">合集</span></div>
+        <h3>更多项目</h3>
+        <p class="card-desc">持续更新中，更多有趣的项目即将上线</p>
+      </div>
+      <div class="card-arrow-hint">→</div>
     </a>
   </div>
-  <div class="footer">© 2026 白秋山 · BAIQIUSHAN</div>
-</div>
+</section>
 
+<!-- ═══════════════════ ABOUT ═══════════════════ -->
+<section class="about reveal" id="about">
+  <h2>关于我</h2>
+  <p>大一学生，热爱编程与创造。专注于嵌入式开发、网页交互与游戏制作，喜欢将想法变为可触摸的代码作品。目前在湖北第二师范学院就读，持续探索技术的边界。</p>
+</section>
+
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
+<footer class="footer">
+  <p>© 2026 白秋山 · BAIQIUSHAN · Made with <span class="love">♥</span></p>
+</footer>
+
+<!-- ═══════════════════ THREE.JS IMPORT MAP ═══════════════════ -->
 <script type="importmap">
 {"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js"}}
 </script>
@@ -159,209 +335,134 @@ body{
 <script type="module">
 import * as THREE from 'three';
 
-// ===== 主背景：Three.js 3D旋转几何体 =====
-const bgCanvas = document.getElementById('bg-canvas');
-const renderer = new THREE.WebGLRenderer({canvas:bgCanvas,antialias:true,alpha:true});
-renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+/* ═══════════════════ 3D HERO BACKGROUND ═══════════════════ */
+const isMobile=window.innerWidth<768;
+const bgCanvas=document.getElementById('bg3d');
+const renderer=new THREE.WebGLRenderer({canvas:bgCanvas,antialias:!isMobile,alpha:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,isMobile?1.5:2));
 renderer.setSize(window.innerWidth,window.innerHeight);
-renderer.setClearColor(0x000000,0);
 
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(60,window.innerWidth/window.innerHeight,0.1,100);
-camera.position.z=15;
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(55,window.innerWidth/window.innerHeight,.1,50);
+camera.position.z=12;
 
-// 创建多个旋转的发光环
+// Glowing rings
+const ringColors=[0xc8a858,0x5ca8d8,0xe06878,0x9888d8,0xc8a858,0x5ca8d8];
 const rings=[];
-const ringColors=[0xd4b060,0x50b8d8,0xe86070,0x9080e0,0xd4b060,0x50b8d8];
-
-for(let i=0;i<6;i++){
-  const geo=new THREE.TorusGeometry(2.5+i*1.2,0.015,16,100);
-  const mat=new THREE.MeshBasicMaterial({color:ringColors[i],transparent:true,opacity:0.15});
-  const ring=new THREE.Mesh(geo,mat);
-  ring.rotation.x=Math.random()*Math.PI;
-  ring.rotation.y=Math.random()*Math.PI;
-  ring.userData={rx:(Math.random()-0.5)*0.003,ry:(Math.random()-0.5)*0.004,rz:(Math.random()-0.5)*0.002};
-  rings.push(ring);
-  scene.add(ring);
+for(let i=0;i<(isMobile?4:6);i++){
+  const g=new THREE.TorusGeometry(2+i*1.1,.012,16,80);
+  const m=new THREE.MeshBasicMaterial({color:ringColors[i],transparent:true,opacity:isMobile?.12:.15});
+  const r=new THREE.Mesh(g,m);
+  r.rotation.x=Math.random()*Math.PI;r.rotation.y=Math.random()*Math.PI;
+  r.userData={rx:(Math.random()-.5)*.003,ry:(Math.random()-.5)*.004,rz:(Math.random()-.5)*.002};
+  rings.push(r);scene.add(r);
 }
 
-// 漂浮的发光点
-const dotsGeo=new THREE.BufferGeometry();
-const dotsCount=200;
-const dotsPos=new Float32Array(dotsCount*3);
+// Floating particles
+const N=isMobile?100:200;
+const posArr=new Float32Array(N*3);
 const dotsData=[];
-for(let i=0;i<dotsCount;i++){
-  dotsPos[i*3]=(Math.random()-0.5)*25;
-  dotsPos[i*3+1]=(Math.random()-0.5)*18;
-  dotsPos[i*3+2]=(Math.random()-0.5)*8-2;
-  dotsData.push({
-    vx:(Math.random()-0.5)*0.008,
-    vy:(Math.random()-0.5)*0.008,
-    vz:(Math.random()-0.5)*0.004,
-    phase:Math.random()*Math.PI*2,
-  });
+for(let i=0;i<N;i++){
+  posArr[i*3]=(Math.random()-.5)*22;posArr[i*3+1]=(Math.random()-.5)*15;posArr[i*3+2]=(Math.random()-.5)*6-1;
+  dotsData.push({vx:(Math.random()-.5)*.007,vy:(Math.random()-.5)*.007,vz:(Math.random()-.5)*.003,ph:Math.random()*Math.PI*2});
 }
-dotsGeo.setAttribute('position',new THREE.BufferAttribute(dotsPos,3));
-const dotsMat=new THREE.PointsMaterial({color:0xd4b060,size:0.04,transparent:true,opacity:0.6,blending:THREE.AdditiveBlending});
-const dots=new THREE.Points(dotsGeo,dotsMat);
+const dotsGeo=new THREE.BufferGeometry();dotsGeo.setAttribute('position',new THREE.BufferAttribute(posArr,3));
+const dots=new THREE.Points(dotsGeo,new THREE.PointsMaterial({color:0xc8a858,size:.035,transparent:true,opacity:.55,blending:THREE.AdditiveBlending}));
 scene.add(dots);
 
-// 中央大光晕
-const glowGeo=new THREE.SphereGeometry(3,32,32);
-const glowMat=new THREE.ShaderMaterial({
-  uniforms:{uTime:{value:0}},
-  vertexShader:`varying vec3 vPos;void main(){vPos=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
-  fragmentShader:`varying vec3 vPos;uniform float uTime;void main(){float d=length(vPos)/3.0;float a=smoothstep(1.0,0.0,d)*0.06*(1.0+0.5*sin(uTime*0.5));gl_FragColor=vec4(0.83,0.69,0.38,a);}`,
-  transparent:true,depthWrite:false,
-});
-const glowSphere=new THREE.Mesh(glowGeo,glowMat);
-scene.add(glowSphere);
+// Center glow (shader sphere)
+const glow=new THREE.Mesh(
+  new THREE.SphereGeometry(2.5,32,32),
+  new THREE.ShaderMaterial({
+    uniforms:{t:{value:0}},
+    vertexShader:'varying vec3 p;void main(){p=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+    fragmentShader:'varying vec3 p;uniform float t;void main(){float d=length(p)/2.5;float a=smoothstep(1.,0.,d)*.05*(1.+.5*sin(t*.5));gl_FragColor=vec4(.78,.66,.36,a);}',
+    transparent:true,depthWrite:false
+  })
+);
+scene.add(glow);
 
-// 粒子线连接
-const linesGeo=new THREE.BufferGeometry();
-const linesCount=80;
-const linesPositions=new Float32Array(linesCount*6);
-const linePairs=[];
-for(let i=0;i<linesCount;i++){
-  const a=Math.floor(Math.random()*dotsCount);
-  let b=Math.floor(Math.random()*dotsCount);
-  while(b===a)b=Math.floor(Math.random()*dotsCount);
-  linePairs.push([a,b]);
-}
-linesGeo.setAttribute('position',new THREE.BufferAttribute(linesPositions,3));
-const linesMat=new THREE.LineBasicMaterial({color:0xd4b060,transparent:true,opacity:0.06,blending:THREE.AdditiveBlending});
-const lines=new THREE.LineSegments(linesGeo,linesMat);
-scene.add(lines);
+// Mouse interaction
+let mx=0,my=0,mtx=0,mty=0;
+document.addEventListener('mousemove',e=>{mtx=(e.clientX/window.innerWidth-.5)*2;mty=(e.clientY/window.innerHeight-.5)*2});
+document.addEventListener('touchmove',e=>{const t=e.touches[0];mtx=(t.clientX/window.innerWidth-.5)*2;mty=(t.clientY/window.innerHeight-.5)*2},{passive:true});
 
 window.addEventListener('resize',()=>{
   renderer.setSize(window.innerWidth,window.innerHeight);
-  camera.aspect=window.innerWidth/window.innerHeight;
-  camera.updateProjectionMatrix();
+  camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();
 });
 
-// 鼠标交互
-let mouseX=0,mouseY=0;
-document.addEventListener('mousemove',e=>{
-  mouseX=(e.clientX/window.innerWidth-0.5)*2;
-  mouseY=(e.clientY/window.innerHeight-0.5)*2;
-});
+// Animate
+function animate3D(t){
+  requestAnimationFrame(animate3D);
+  mx+=(mtx-mx)*.03;my+=(mty-my)*.03;
+  scene.rotation.y+=.0006;scene.rotation.x+=my*.001;scene.rotation.y+=mx*.002;
 
-function animate(time){
-  requestAnimationFrame(animate);
-
-  // 环旋转
-  for(const ring of rings){
-    ring.rotation.x+=ring.userData.rx;
-    ring.rotation.y+=ring.userData.ry;
-    ring.rotation.z+=ring.userData.rz;
-  }
-
-  // 点运动
-  const posArr=dots.geometry.attributes.position.array;
-  for(let i=0;i<dotsCount;i++){
-    const d=dotsData[i];
-    posArr[i*3]+=d.vx;
-    posArr[i*3+1]+=d.vy;
-    posArr[i*3+2]+=d.vz;
-    if(Math.abs(posArr[i*3])>14)d.vx*=-1;
-    if(Math.abs(posArr[i*3+1])>10)d.vy*=-1;
-    if(Math.abs(posArr[i*3+2])>6)d.vz*=-1;
-  }
+  for(const r of rings){r.rotation.x+=r.userData.rx;r.rotation.y+=r.userData.ry;r.rotation.z+=r.userData.rz;}
+  const p=dots.geometry.attributes.position.array;
+  for(let i=0;i<N;i++){const d=dotsData[i];p[i*3]+=d.vx;p[i*3+1]+=d.vy;p[i*3+2]+=d.vz;
+    if(Math.abs(p[i*3])>12)d.vx*=-1;if(Math.abs(p[i*3+1])>8)d.vy*=-1;if(Math.abs(p[i*3+2])>4)d.vz*=-1;}
   dots.geometry.attributes.position.needsUpdate=true;
-
-  // 连线更新
-  for(let i=0;i<linesCount;i++){
-    const [a,b]=linePairs[i];
-    linesPositions[i*6]=posArr[a*3];
-    linesPositions[i*6+1]=posArr[a*3+1];
-    linesPositions[i*6+2]=posArr[a*3+2];
-    linesPositions[i*6+3]=posArr[b*3];
-    linesPositions[i*6+4]=posArr[b*3+1];
-    linesPositions[i*6+5]=posArr[b*3+2];
-  }
-  lines.geometry.attributes.position.needsUpdate=true;
-
-  // 光晕
-  glowMat.uniforms.uTime.value=time*0.001;
-
-  // 鼠标视差
-  const t=time*0.001;
-  scene.rotation.y+=((mouseX*0.15)-scene.rotation.y)*0.02;
-  scene.rotation.x+=((-mouseY*0.08)-scene.rotation.x)*0.02;
-  scene.rotation.y+=0.0008;
-
+  glow.material.uniforms.t.value=t*.001;
   renderer.render(scene,camera);
 }
-requestAnimationFrame(animate);
+animate3D(0);
+</script>
 
-// ===== 卡片内粒子 =====
-const cardCfgs=[
-  {id:'cv1',color:'rgba(212,176,96,COLOR)',count:45},
-  {id:'cv2',color:'rgba(80,184,216,COLOR)',count:38},
-  {id:'cv3',color:'rgba(232,96,112,COLOR)',count:32},
-  {id:'cv4',color:'rgba(144,128,224,COLOR)',count:38},
-];
-
-cardCfgs.forEach(cfg=>{
-  const cv=document.getElementById(cfg.id);
-  if(!cv)return;
+<script>
+/* ═══════════════════ CARD PARTICLE CANVASES ═══════════════════ */
+document.querySelectorAll('.cv-particle').forEach(cv=>{
+  const color=cv.dataset.color;
+  const count=parseInt(cv.dataset.count)||35;
   const parent=cv.parentElement;
   const ctx=cv.getContext('2d');
   const pts=[];
-  for(let i=0;i<cfg.count;i++){
-    const a=(Math.PI*2*i)/cfg.count;
-    pts.push({a,r:0.4+Math.random()*0.5,s:0.003+Math.random()*0.008,size:0.6+Math.random()*1.2,oy:(Math.random()-0.5)*0.3,ph:Math.random()*Math.PI*2});
+  for(let i=0;i<count;i++){
+    const a=(Math.PI*2*i)/count;
+    pts.push({a,r:.35+Math.random()*.5,s:.003+Math.random()*.007,size:.5+Math.random()*1.1,oy:(Math.random()-.5)*.25,ph:Math.random()*Math.PI*2});
   }
 
-  function resize(){
-    cv.width=parent.offsetWidth||400;
-    cv.height=parent.offsetHeight||220;
-  }
+  function resize(){cv.width=parent.offsetWidth||360;cv.height=parent.offsetHeight||200;}
   resize();
 
   function draw(t){
-    if(cv.width!==(parent.offsetWidth||400)||cv.height!==(parent.offsetHeight||220))resize();
+    if(Math.abs(cv.width-(parent.offsetWidth||360))>5||Math.abs(cv.height-(parent.offsetHeight||200))>5)resize();
     ctx.clearRect(0,0,cv.width,cv.height);
-    const cx=cv.width/2,cy=cv.height/2,maxR=Math.min(cx,cy)*0.7;
-
+    const cx=cv.width/2,cy=cv.height/2,mr=Math.min(cx,cy)*.65;
     for(const p of pts){
-      p.a+=p.s;
-      const x=cx+Math.cos(p.a)*maxR*p.r;
-      const y=cy+Math.sin(p.a)*maxR*p.r*0.35+p.oy*maxR;
-      const g=Math.sin(p.ph+t*0.001*0.8)*0.4+0.6;
-
-      ctx.beginPath();
-      ctx.arc(x,y,p.size,0,Math.PI*2);
-      ctx.fillStyle=cfg.color.replace('COLOR',String((0.55*g).toFixed(2)));
-      ctx.fill();
-
-      for(const q of pts){
-        if(q===p)continue;
-        const qx=cx+Math.cos(q.a)*maxR*q.r;
-        const qy=cy+Math.sin(q.a)*maxR*q.r*0.35+q.oy*maxR;
+      p.a+=p.s;const x=cx+Math.cos(p.a)*mr*p.r,y=cy+Math.sin(p.a)*mr*p.r*.3+p.oy*mr;
+      const g=Math.sin(p.ph+t*.0007)*.35+.65;
+      ctx.beginPath();ctx.arc(x,y,p.size,0,Math.PI*2);
+      ctx.fillStyle=color.replace('CLR',(g*.5).toFixed(2));ctx.fill();
+      for(const q of pts){if(q===p)continue;
+        const qx=cx+Math.cos(q.a)*mr*q.r,qy=cy+Math.sin(q.a)*mr*q.r*.3+q.oy*mr;
         const dx=x-qx,dy=y-qy,dist=Math.sqrt(dx*dx+dy*dy);
-        if(dist<maxR*0.35){
-          ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(qx,qy);
-          ctx.strokeStyle=cfg.color.replace('COLOR',String((0.1*(1-dist/(maxR*0.35))).toFixed(2)));
-          ctx.lineWidth=0.5;ctx.stroke();
-        }
+        if(dist<mr*.3){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(qx,qy);
+          ctx.strokeStyle=color.replace('CLR',(.07*(1-dist/(mr*.3))).toFixed(2));ctx.lineWidth=.4;ctx.stroke();}
       }
     }
-
-    // center glow
-    const grd=ctx.createRadialGradient(cx,cy,0,cx,cy,maxR*0.5);
-    grd.addColorStop(0,cfg.color.replace('COLOR','0.08'));
-    grd.addColorStop(1,'transparent');
+    const grd=ctx.createRadialGradient(cx,cy,0,cx,cy,mr*.45);
+    grd.addColorStop(0,color.replace('CLR','.06'));grd.addColorStop(1,'transparent');
     ctx.fillStyle=grd;ctx.fillRect(0,0,cv.width,cv.height);
     requestAnimationFrame(draw);
   }
   requestAnimationFrame(draw);
 });
 
+/* ═══════════════════ NAV SCROLL EFFECT ═══════════════════ */
+const nav=document.getElementById('nav');
+window.addEventListener('scroll',()=>{nav.classList.toggle('scrolled',window.scrollY>50);},{passive:true});
+
+/* ═══════════════════ SCROLL REVEAL ═══════════════════ */
+const observer=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');observer.unobserve(e.target);}});
+},{threshold:.15,rootMargin:'0px 0px -30px 0px'});
+document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+
+/* ═══════════════════ RESIZE CARD CANVASES ═══════════════════ */
 window.addEventListener('resize',()=>{
-  document.querySelectorAll('.card-visual canvas').forEach(cv=>{
-    cv.width=cv.parentElement.offsetWidth;
-    cv.height=cv.parentElement.offsetHeight;
+  document.querySelectorAll('.cv-particle').forEach(cv=>{
+    cv.width=cv.parentElement.offsetWidth;cv.height=cv.parentElement.offsetHeight;
   });
 });
 </script>
