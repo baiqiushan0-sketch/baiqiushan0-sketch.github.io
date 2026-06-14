@@ -1486,20 +1486,20 @@ function choosePath(k){P.path=k;if(k==='body'){P.maxHp*=2;P.hp=P.maxHp;}showToas
 function unequipWeapon(){if(P.equippedWeapon){if(!P.bag)P.bag=[];P.bag.push({...P.equippedWeapon,type:'weapon'});P.equippedWeapon=null;}renderMap();save();}
 
 function openSkills(){
-  let h=`<div class="tabs"><span class="tab active">全部功法</span><span class="tab">已习得(${(P.equippedSkills||[]).length})</span></div>`;
-  h+=`<div class="item-grid">`;
+  const gradeMap={'黄阶':'tier-fan','玄阶':'tier-ling','地阶':'tier-bao','天阶':'tier-xian','圣阶':'tier-sheng','帝阶':'tier-sheng'};
+  let h=`<p style="font-size:.5rem;color:var(--gold)">已习得: ${(P.equippedSkills||[]).length} / ${SKILLS.length}</p><div class="item-grid">`;
   for(const s of SKILLS){
     const learned=(P.equippedSkills||[]).find(es=>es.n===s.n);
-    const gradeClr={'黄阶':'#aaa','玄阶':'#5ba0d9','地阶':'#9b7ed9','天阶':'#e8a840','圣阶':'#e05555','帝阶':'#f0d68a'}[s.grade.substring(0,2)]||'#aaa';
-    h+=`<div class="item-card${learned?' equipped':''}" onclick="${learned?'upgradeSkill(\"'+s.n+'\")':'learnSk(\"'+s.n+'\")'}">
-      <span class="it">${s.icon}</span><span class="in">${s.n}</span>
-      <span class="itier" style="color:${gradeClr}">${s.grade}</span>`;
+    const tierCls=gradeMap[s.grade.substring(0,2)]||'tier-fan';
+    h+=`<div class="premium-card ${tierCls}${learned?' equipped':''}" onclick="${learned?'upgradeSkill(\"'+s.n+'\")':'learnSk(\"'+s.n+'\")'}">
+      <span class="pc-icon">${s.icon}</span><span class="pc-name">${s.n}</span>
+      <span class="pc-tier" style="color:var(--gold)">${s.grade}</span>`;
     if(learned){
-      h+=`<span class="istat">Lv${learned.lvl}/${s.maxLvl} ⚔${s.atk*learned.lvl} 🛡${s.def*learned.lvl} ❤${s.hp*learned.lvl}</span>
-        <button class="btn ok sm" style="font-size:.4rem;margin-top:2px" ${learned.lvl>=s.maxLvl||P.gold<s.cost*learned.lvl?'disabled':''}>升💎${s.cost*learned.lvl}</button>`;
+      h+=`<span class="pc-stat">Lv${learned.lvl}/${s.maxLvl} ⚔${s.atk*learned.lvl}🛡${s.def*learned.lvl}❤${s.hp*learned.lvl}</span>
+        <button class="btn ok sm pc-btn" ${learned.lvl>=s.maxLvl||P.gold<s.cost*learned.lvl?'disabled':''}>升💎${s.cost*learned.lvl}</button>`;
     }else{
-      h+=`<span class="istat">⚔${s.atk} 🛡${s.def} ❤${s.hp}</span>
-        <button class="btn sm" style="font-size:.4rem;margin-top:2px;color:var(--green)" ${P.gold<s.cost?'disabled':''}>习💎${s.cost}</button>`;
+      h+=`<span class="pc-stat">⚔${s.atk} 🛡${s.def} ❤${s.hp}</span>
+        <button class="btn sm pc-btn" style="color:var(--green)" ${P.gold<s.cost?'disabled':''}>习💎${s.cost}</button>`;
     }
     h+=`</div>`;
   }
@@ -1622,15 +1622,16 @@ function openShop(tab){
   const ts=[{k:'weapon',n:'🗡️武器'},{k:'armor',n:'🛡️防具'},{k:'acc',n:'💍饰品'},{k:'consum',n:'💊丹药'}];
   for(const t of ts)h+=`<span class="tab${shopTab===t.k?' active':''}" onclick="openShop('${t.k}')">${t.n}</span>`;
   h+=`</div><div style="text-align:right;font-size:.5rem;color:var(--gold);margin-bottom:4px">💎 ${nval(P.gold)}</div><div class="item-grid">`;
-
   if(shopTab==='consum'){
     CONSUMABLES.forEach(c=>{
-      h+=`<div class="item-card" onclick="buyCons('${c.n}')"><span class="it">${c.icon}</span><span class="in">${c.n}</span><span class="itier">${c.desc||''}</span><span class="istat">💎${c.cost}</span></div>`;
+      h+=`<div class="premium-card" onclick="buyCons('${c.n}')"><span class="pc-icon">${c.icon}</span><span class="pc-name">${c.n}</span><span class="pc-tier" style="color:var(--green)">${c.desc||''}</span><span class="pc-stat">💎${c.cost}</span></div>`;
     });
   }else{
     const typeMap={weapon:'weapon',armor:'armor',acc:'acc'};
     EQUIP_TEMPLATES.filter(e=>e.type===typeMap[shopTab]).forEach(eq=>{
-      h+=`<div class="item-card" onclick="buyEq('${eq.n}')"><span class="it">${eq.icon}</span><span class="in">${eq.n}</span><span class="itier">${eq.tier}</span><span class="istat">${eq.atk?'⚔+'+eq.atk:''}${eq.def?' 🛡+'+eq.def:''}${eq.hp?' ❤+'+eq.hp:''}</span><span style="font-size:.45rem;color:var(--gold)">💎${eq.cost}</span></div>`;
+      const tierMap={凡品:'tier-fan',灵品:'tier-ling',宝品:'tier-bao',仙品:'tier-xian',圣品:'tier-sheng'};
+      const tierCls=tierMap[eq.tier]||'';
+      h+=`<div class="premium-card ${tierCls}" onclick="buyEq('${eq.n}')"><span class="pc-icon">${eq.icon}</span><span class="pc-name">${eq.n}</span><span class="pc-tier">${eq.tier}</span><span class="pc-stat">${eq.atk?'⚔+'+eq.atk:''}${eq.def?' 🛡+'+eq.def:''}${eq.hp?' ❤+'+eq.hp:''}</span><span style="font-size:.45rem;color:var(--gold)">💎${eq.cost}</span></div>`;
     });
   }
   h+=`</div>`;
