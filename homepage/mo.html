@@ -101,10 +101,10 @@ let hintTimer = 0;
 const levels = [
   {name:'初探',strokes:5,inks:[{x:.3,y:.4}],targets:[{x:.6,y:.45,r:.12}],seals:[]},
   {name:'双引',strokes:6,inks:[{x:.25,y:.5},{x:.75,y:.5}],targets:[{x:.35,y:.3,r:.1},{x:.65,y:.7,r:.1}],seals:[]},
-  {name:'绕印',strokes:8,inks:[{x:.2,y:.5}],targets:[{x:.75,y:.5,r:.12}],seals:[{x:.45,y:.35,w:.08,h:.3}]},
+  {name:'绕印',strokes:8,inks:[{x:.2,y:.5}],targets:[{x:.75,y:.5,r:.12}],seals:[{x:.42,y:.28,w:.12,h:.40}]},
   {name:'四散',strokes:9,inks:[{x:.5,y:.5}],targets:[{x:.15,y:.2,r:.08},{x:.85,y:.2,r:.08},{x:.15,y:.8,r:.08},{x:.85,y:.8,r:.08}],seals:[]},
-  {name:'迷宫',strokes:12,inks:[{x:.1,y:.5},{x:.9,y:.5}],targets:[{x:.5,y:.15,r:.1},{x:.5,y:.85,r:.1}],seals:[{x:.35,y:.3,w:.04,h:.4},{x:.6,y:.3,w:.04,h:.4}]},
-  {name:'大师',strokes:10,inks:[{x:.5,y:.8}],targets:[{x:.15,y:.15,r:.08},{x:.85,y:.15,r:.08},{x:.5,y:.25,r:.09}],seals:[{x:.3,y:.35,w:.08,h:.04},{x:.62,y:.35,w:.08,h:.04}]},
+  {name:'迷宫',strokes:12,inks:[{x:.1,y:.5},{x:.9,y:.5}],targets:[{x:.5,y:.15,r:.1},{x:.5,y:.85,r:.1}],seals:[{x:.32,y:.26,w:.08,h:.45},{x:.58,y:.26,w:.08,h:.45}]},
+  {name:'大师',strokes:10,inks:[{x:.5,y:.8}],targets:[{x:.15,y:.15,r:.08},{x:.85,y:.15,r:.08},{x:.5,y:.25,r:.09}],seals:[{x:.26,y:.3,w:.12,h:.05},{x:.6,y:.3,w:.12,h:.05}]},
 ];
 
 function loadLevel(idx) {
@@ -192,11 +192,12 @@ function updateRipples(dt) {
         const nx = dx/dist, ny = dy/dist;
         p.vx += nx*push*60;
         p.vy += ny*push*60;
-        // Check seal collision
+        // Check seal collision against displayed square
         let blocked = false;
         const newX = p.x+nx*push*60, newY = p.y+ny*push*60;
         for(const s of seals){
-          if(newX>s.x&&newX<s.x+s.w&&newY>s.y&&newY<s.y+s.h){blocked=true;break}
+          const b = sealBounds(s);
+          if(newX>b.x&&newX<b.x+b.w&&newY>b.y&&newY<b.y+b.h){blocked=true;break}
         }
         if(!blocked){p.x=newX;p.y=newY}
       }
@@ -216,16 +217,17 @@ function updateInk(dt) {
     if(p.x>W){p.x=W;p.vx*=-.5}
     if(p.y<0){p.y=0;p.vy*=-.5}
     if(p.y>H){p.y=H;p.vy*=-.5}
-    // Seal collision
+    // Seal collision against displayed square
     for(const s of seals){
-      if(p.x>s.x&&p.x<s.x+s.w&&p.y>s.y&&p.y<s.y+s.h){
+      const b = sealBounds(s);
+      if(p.x>b.x&&p.x<b.x+b.w&&p.y>b.y&&p.y<b.y+b.h){
         // Push to nearest edge
-        const dl=p.x-s.x, dr=s.x+s.w-p.x, dt=p.y-s.y, db=s.y+s.h-p.y;
+        const dl=p.x-b.x, dr=b.x+b.w-p.x, dt=p.y-b.y, db=b.y+b.h-p.y;
         const minD=Math.min(dl,dr,dt,db);
-        if(minD===dl) p.x=s.x;
-        else if(minD===dr) p.x=s.x+s.w;
-        else if(minD===dt) p.y=s.y;
-        else p.y=s.y+s.h;
+        if(minD===dl) p.x=b.x;
+        else if(minD===dr) p.x=b.x+b.w;
+        else if(minD===dt) p.y=b.y;
+        else p.y=b.y+b.h;
         p.vx*=-.5;p.vy*=-.5;
       }
     }
@@ -360,14 +362,21 @@ function drawRealSeal(x,y,w,h,text,opacity=1) {
   ctx.restore();
 }
 
+// Get actual displayed seal bounds (square, centered in bounding box)
+function sealBounds(s){
+  const size = Math.min(s.w, s.h);
+  return {
+    x: s.x + (s.w - size)/2,
+    y: s.y + (s.h - size)/2,
+    w: size, h: size
+  };
+}
+
 function drawSeals() {
   for(const s of seals){
     if(sealImg.complete && sealImg.naturalWidth>0){
-      // Maintain square aspect ratio, center in seal area
-      const size = Math.min(s.w, s.h);
-      const cx = s.x + (s.w - size)/2;
-      const cy = s.y + (s.h - size)/2;
-      ctx.drawImage(sealImg, cx, cy, size, size);
+      const b = sealBounds(s);
+      ctx.drawImage(sealImg, b.x, b.y, b.w, b.h);
     }
   }
 }
@@ -446,7 +455,8 @@ function handleTap(x,y) {
   if(gameState==='playing'){
     // Check if tap is on a seal
     for(const s of seals){
-      if(x>s.x&&x<s.x+s.w&&y>s.y&&y<s.y+s.h) return; // can't tap on seals
+      const b = sealBounds(s);
+      if(x>b.x&&x<b.x+b.w&&y>b.y&&y<b.y+b.h) return; // can't tap on seals
     }
     addRipple(x,y);
   } else if(gameState==='won'){
