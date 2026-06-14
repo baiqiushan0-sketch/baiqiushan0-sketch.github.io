@@ -287,19 +287,78 @@ function drawTargets() {
   }
 }
 
+// ── Realistic Chinese seal renderer ──
+function drawRealSeal(x,y,w,h,text,opacity=1) {
+  ctx.save();
+  // Slight random rotation for natural feel
+  const rx=x+w/2, ry=y+h/2;
+  ctx.translate(rx,ry);
+  ctx.rotate((Math.random()-.5)*.03);
+  ctx.translate(-rx,-ry);
+  ctx.globalAlpha=opacity;
+
+  const pad=w*.08, iw=w-pad*2, ih=h-pad*2;
+
+  // 1. Outer border with irregular edges
+  ctx.strokeStyle='#b83a2a';
+  ctx.lineWidth=w*.06;
+  ctx.beginPath();
+  const segs=24, jitter=w*.02;
+  for(let i=0;i<segs;i++){
+    const t=i/segs*4;
+    let bx,by;
+    if(t<1){bx=x+pad+t*iw; by=y+pad}else if(t<2){bx=x+pad+iw; by=y+pad+(t-1)*ih}
+    else if(t<3){bx=x+pad+(3-t)*iw; by=y+pad+ih}else{bx=x+pad; by=y+pad+(4-t)*ih}
+    // Add jitter for handmade feel
+    const jx=bx+(Math.random()-.5)*jitter;
+    const jy=by+(Math.random()-.5)*jitter;
+    if(i===0) ctx.moveTo(jx,jy); else ctx.lineTo(jx,jy);
+  }
+  ctx.closePath();ctx.stroke();
+
+  // 2. Inner border (thinner)
+  ctx.strokeStyle='#b83a2a';
+  ctx.lineWidth=w*.025;
+  const innerPad=w*.15;
+  ctx.beginPath();
+  ctx.roundRect(x+innerPad,y+innerPad,w-innerPad*2,h-innerPad*2,w*.04);
+  ctx.stroke();
+
+  // 3. Fill with seal paste texture
+  // Base red
+  const fillGrad=ctx.createRadialGradient(rx,ry,0,rx,ry,w*.7);
+  fillGrad.addColorStop(0,'#c94030');fillGrad.addColorStop(.6,'#b83020');fillGrad.addColorStop(1,'#a02018');
+  ctx.fillStyle=fillGrad;
+  ctx.fillRect(x+pad*1.5,y+pad*1.5,w-pad*3,h-pad*3);
+
+  // 4. Uneven paste texture - random darker/lighter spots
+  for(let i=0;i<12;i++){
+    const sx=x+pad+Math.random()*(w-pad*2);
+    const sy=y+pad+Math.random()*(h-pad*2);
+    const sr=w*.03+Math.random()*w*.08;
+    const spot=ctx.createRadialGradient(sx,sy,0,sx,sy,sr);
+    const dark=Math.random()>.5;
+    spot.addColorStop(0,dark?'rgba(80,0,0,.15)':'rgba(255,200,180,.08)');
+    spot.addColorStop(1,'transparent');
+    ctx.fillStyle=spot;
+    ctx.fillRect(sx-sr,sy-sr,sr*2,sr*2);
+  }
+
+  // 5. White carved text (阴刻)
+  ctx.fillStyle='#f5efe0';
+  const fontSize=h*.38;
+  ctx.font=`bold ${fontSize}px 'STKaiti','KaiTi','FangSong','SimSun',serif`;
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  // Slightly uneven text opacity
+  ctx.globalAlpha=opacity*(.78+Math.random()*.08);
+  ctx.fillText(text,rx,ry);
+
+  ctx.restore();
+}
+
 function drawSeals() {
   for(const s of seals){
-    // Red seal square 印章
-    ctx.fillStyle='rgba(180,40,30,.35)';
-    ctx.fillRect(s.x,s.y,s.w,s.h);
-    ctx.strokeStyle='rgba(180,40,30,.5)';
-    ctx.lineWidth=1.5;
-    ctx.strokeRect(s.x,s.y,s.w,s.h);
-    // Seal character (simplified)
-    ctx.fillStyle='rgba(255,240,220,.25)';
-    ctx.font=`${s.h*.4}px 'PingFang SC','KaiTi',serif`;
-    ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillText('印',s.x+s.w/2,s.y+s.h/2);
+    drawRealSeal(s.x,s.y,s.w,s.h,'印',.75);
   }
 }
 
@@ -336,18 +395,9 @@ function drawRipples() {
 }
 
 function drawSealStamp() {
-  // Bottom-right: artist seal mark
-  const sx = W*.88, sy = H*.88, ss = Math.min(W,H)*.06;
-  ctx.fillStyle='rgba(180,40,30,.4)';
-  ctx.fillRect(sx,sy,ss,ss);
-  ctx.strokeStyle='rgba(180,40,30,.55)';
-  ctx.lineWidth=1;
-  ctx.strokeRect(sx,sy,ss,ss);
-  ctx.fillStyle='rgba(255,240,220,.3)';
-  ctx.font=`${ss*.5}px 'PingFang SC','KaiTi',serif`;
-  ctx.textAlign='center';ctx.textBaseline='middle';
-  ctx.fillText('白',sx+ss*.35,sy+ss*.35);
-  ctx.fillText('秋',sx+ss*.65,sy+ss*.65);
+  const ss = Math.min(W,H)*.07;
+  const sx = W - ss*1.5, sy = H - ss*1.5;
+  drawRealSeal(sx,sy,ss,ss,'白秋',.65);
 }
 
 // ── Game loop ──
