@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>墨韵 · Ink Ripple</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:#0a0806;color:#c8bfa8;font-family:'PingFang SC','Microsoft YaHei',serif;
+  overflow:hidden;height:100vh;width:100vw;touch-action:manipulation;
+  user-select:none;-webkit-user-select:none;
+}
+#c{position:fixed;top:0;left:0;width:100%;height:100%}
+#back{position:fixed;top:16px;left:16px;z-index:25}
+#back a{color:rgba(255,255,255,.2);text-decoration:none;font-size:.65rem;letter-spacing:2px;transition:color .3s}
+#back a:hover{color:rgba(255,255,255,.5)}
+#ui{position:fixed;top:16px;right:16px;z-index:10;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+#level-name{font-size:.65rem;color:rgba(200,168,88,.5);letter-spacing:3px}
+#strokes{display:flex;gap:3px}
+#strokes span{width:3px;height:18px;background:rgba(200,60,40,.6);border-radius:1px;transition:all .3s}
+#strokes span.used{background:rgba(200,60,40,.1);height:8px}
+#level-num{font-size:.55rem;color:rgba(255,255,255,.15);letter-spacing:1px}
+#msg{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:30;pointer-events:none;
+  font-size:clamp(1rem,3vw,1.8rem);font-weight:300;letter-spacing:6px;opacity:0;transition:opacity .6s}
+#msg.show{opacity:1}
+#msg.win{color:#d4a843;text-shadow:0 0 40px rgba(212,168,67,.3)}
+#msg.info{color:rgba(255,255,255,.4)}
+#hint{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:10;pointer-events:none;
+  font-size:.55rem;color:rgba(255,255,255,.12);letter-spacing:2px}
+</style>
+</head>
+<body>
+<div id="back"><a href="../index.html">← 返回合集</a></div>
+<div id="ui">
+  <div id="level-name">初探</div>
+  <div id="strokes"></div>
+  <div id="level-num">1 / 6</div>
+</div>
+<div id="msg"></div>
+<div id="hint">轻点水面 · 涟漪推墨</div>
+<canvas id="c"></canvas>
+<script>
+/* ═══════════════ 墨韵 · Ink Ripple ═══════════════ */
+
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const msgEl = document.getElementById('msg');
+const strokesEl = document.getElementById('strokes');
+const levelNameEl = document.getElementById('level-name');
+const levelNumEl = document.getElementById('level-num');
+const hintEl = document.getElementById('hint');
+
+let W,H;
+
+// ── Paper texture cache ──
+let paperCanvas, paperCtx;
+function buildPaper() {
+  paperCanvas = document.createElement('canvas');
+  paperCanvas.width = W; paperCanvas.height = H;
+  paperCtx = paperCanvas.getContext('2d');
+  // Base: warm rice-paper color with gradient variation
+  const bgGrad = paperCtx.createRadialGradient(W*.3,H*.2,0,W*.5,H*.5,W);
+  bgGrad.addColorStop(0,'#f5f0e6');bgGrad.addColorStop(.5,'#f0ead8');bgGrad.addColorStop(1,'#e8e0cc');
+  paperCtx.fillStyle=bgGrad;paperCtx.fillRect(0,0,W,H);
+  // Fibers
+  paperCtx.strokeStyle='rgba(180,160,130,.04)';
+  for(let i=0;i<600;i++){
+    const x=Math.random()*W,y=Math.random()*H,len=3+Math.random()*15,angle=Math.random()*Math.PI;
+    paperCtx.lineWidth=.3+Math.random()*.4;
+    paperCtx.beginPath();paperCtx.moveTo(x,y);paperCtx.lineTo(x+Math.cos(angle)*len,y+Math.sin(angle)*len);
+    paperCtx.stroke();
+  }
+  // Subtle brown stains
+  for(let i=0;i<8;i++){
+    const sx=Math.random()*W,sy=Math.random()*H,sr=20+Math.random()*50;
+    const stain=paperCtx.createRadialGradient(sx,sy,0,sx,sy,sr);
+    stain.addColorStop(0,'rgba(160,120,80,.03)');stain.addColorStop(1,'transparent');
+    paperCtx.fillStyle=stain;paperCtx.fillRect(sx-sr,sy-sr,sr*2,sr*2);
+  }
+}
+
+// ── Game state ──
+const INK_COUNT = 600;
+let inkParticles = [];     // {x,y,size,alpha,vx,vy}
+let targets = [];          // {x,y,r,covered:bool}
+let seals = [];            // {x,y,w,h} 印章障碍物
+let ripples = [];          // {x,y,r,maxR,strength,age}
+let strokesLeft = 0;
+let totalStrokes = 0;
+let currentLevel = 0;
+let gameState = 'idle';    // idle | playing | won
+let wonTimer = 0;
+let hintTimer = 0;
+
+// ── Level data ──
+const levels = [
+  {name:'初探',strokes:5,inks:[{x:.3,y:.4}],targets:[{x:.6,y:.45,r:.12}],seals:[]},
+  {name:'双引',strokes:6,inks:[{x:.25,y:.5},{x:.75,y:.5}],targets:[{x:.35,y:.3,r:.1},{x:.65,y:.7,r:.1}],seals:[]},
+  {name:'绕印',strokes:8,inks:[{x:.2,y:.5}],targets:[{x:.75,y:.5,r:.12}],seals:[{x:.45,y:.35,w:.08,h:.3}]},
+  {name:'四散',strokes:9,inks:[{x:.5,y:.5}],targets:[{x:.15,y:.2,r:.08},{x:.85,y:.2,r:.08},{x:.15,y:.8,r:.08},{x:.85,y:.8,r:.08}],seals:[]},
+  {name:'迷宫',strokes:12,inks:[{x:.1,y:.5},{x:.9,y:.5}],targets:[{x:.5,y:.15,r:.1},{x:.5,y:.85,r:.1}],seals:[{x:.35,y:.3,w:.04,h:.4},{x:.6,y:.3,w:.04,h:.4}]},
+  {name:'大师',strokes:10,inks:[{x:.5,y:.8}],targets:[{x:.15,y:.15,r:.08},{x:.85,y:.15,r:.08},{x:.5,y:.25,r:.09}],seals:[{x:.3,y:.35,w:.08,h:.04},{x:.62,y:.35,w:.08,h:.04}]},
+];
+
+function loadLevel(idx) {
+  const lv = levels[idx];
+  currentLevel = idx;
+  strokesLeft = lv.strokes;
+  totalStrokes = lv.strokes;
+  ripples = [];
+  inkParticles = [];
+  wonTimer = 0;
+  gameState = 'playing';
+  msgEl.classList.remove('show','win','info');
+  hintEl.textContent = '轻点水面 · 涟漪推墨';
+  levelNameEl.textContent = lv.name;
+  levelNumEl.textContent = `${idx+1} / ${levels.length}`;
+
+  // Parse targets & seals
+  targets = lv.targets.map(t=>({x:t.x*W,y:t.y*H,r:t.r*Math.min(W,H),covered:false}));
+  seals = (lv.seals||[]).map(s=>({x:s.x*W,y:s.y*H,w:s.w*W,h:s.h*Math.min(W,H)}));
+
+  // Spawn ink particles around ink sources
+  for(const src of lv.inks){
+    const sx = src.x*W, sy = src.y*H;
+    const count = Math.floor(INK_COUNT / lv.inks.length);
+    for(let i=0;i<count;i++){
+      const angle = Math.random()*Math.PI*2;
+      const dist = Math.random()*Math.min(W,H)*.08;
+      inkParticles.push({
+        x: sx+Math.cos(angle)*dist,
+        y: sy+Math.sin(angle)*dist,
+        size: 1.5+Math.random()*4,
+        alpha: .15+Math.random()*.35,
+        vx:0, vy:0
+      });
+    }
+  }
+  // Build stroke indicators
+  strokesEl.innerHTML = '';
+  for(let i=0;i<lv.strokes;i++){
+    const s = document.createElement('span');
+    strokesEl.appendChild(s);
+  }
+  updateStrokeUI();
+}
+
+function updateStrokeUI() {
+  const spans = strokesEl.children;
+  for(let i=0;i<spans.length;i++){
+    spans[i].classList.toggle('used', i >= strokesLeft);
+  }
+}
+
+// ── Ripple effect ──
+function addRipple(x,y) {
+  if(strokesLeft<=0||gameState!=='playing') return;
+  strokesLeft--;
+  updateStrokeUI();
+  ripples.push({x,y,r:0,maxR:Math.min(W,H)*.7,strength:1,age:0});
+  if(strokesLeft===0) hintEl.textContent = '';
+}
+
+function updateRipples(dt) {
+  const speed = Math.min(W,H)*.8; // pixels per second
+  for(let i=ripples.length-1;i>=0;i--){
+    const rp = ripples[i];
+    rp.r += speed*dt;
+    rp.age += dt;
+    if(rp.r > rp.maxR){
+      ripples.splice(i,1);
+      continue;
+    }
+    // Push ink particles in expanding ring
+    const ringW = Math.min(W,H)*.04;
+    const innerR = rp.r - ringW*.5;
+    const outerR = rp.r + ringW*.5;
+    const strength = rp.strength*(1-rp.r/rp.maxR);
+
+    for(const p of inkParticles){
+      const dx = p.x - rp.x, dy = p.y - rp.y;
+      const dist = Math.sqrt(dx*dx+dy*dy);
+      if(dist<.1) continue; // avoid center singularity
+      if(dist>=innerR && dist<=outerR){
+        // Push radially outward
+        const push = strength*.08*(1-Math.abs(dist-rp.r)/(ringW*.5));
+        const nx = dx/dist, ny = dy/dist;
+        p.vx += nx*push*60;
+        p.vy += ny*push*60;
+        // Check seal collision
+        let blocked = false;
+        const newX = p.x+nx*push*60, newY = p.y+ny*push*60;
+        for(const s of seals){
+          if(newX>s.x&&newX<s.x+s.w&&newY>s.y&&newY<s.y+s.h){blocked=true;break}
+        }
+        if(!blocked){p.x=newX;p.y=newY}
+      }
+    }
+  }
+}
+
+// ── Update ──
+function updateInk(dt) {
+  // Apply velocity with damping
+  for(const p of inkParticles){
+    p.x += p.vx*dt;
+    p.y += p.vy*dt;
+    p.vx *= .88; p.vy *= .88;
+    // Bounce off edges
+    if(p.x<0){p.x=0;p.vx*=-.5}
+    if(p.x>W){p.x=W;p.vx*=-.5}
+    if(p.y<0){p.y=0;p.vy*=-.5}
+    if(p.y>H){p.y=H;p.vy*=-.5}
+    // Seal collision
+    for(const s of seals){
+      if(p.x>s.x&&p.x<s.x+s.w&&p.y>s.y&&p.y<s.y+s.h){
+        // Push to nearest edge
+        const dl=p.x-s.x, dr=s.x+s.w-p.x, dt=p.y-s.y, db=s.y+s.h-p.y;
+        const minD=Math.min(dl,dr,dt,db);
+        if(minD===dl) p.x=s.x;
+        else if(minD===dr) p.x=s.x+s.w;
+        else if(minD===dt) p.y=s.y;
+        else p.y=s.y+s.h;
+        p.vx*=-.5;p.vy*=-.5;
+      }
+    }
+  }
+
+  // Check target coverage
+  for(const t of targets){
+    let cover = 0, total = 0;
+    for(const p of inkParticles){
+      const dx=p.x-t.x, dy=p.y-t.y;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<t.r){cover+=p.alpha;total++}
+    }
+    t.covered = cover > .15 || total > 8;
+  }
+
+  // Win check
+  if(gameState==='playing' && targets.every(t=>t.covered)){
+    gameState='won';wonTimer=0;
+    msgEl.textContent='墨韵已成';
+    msgEl.classList.add('show','win');
+    hintEl.textContent = '';
+    setTimeout(()=>msgEl.classList.remove('show','win'),2500);
+  }
+}
+
+// ── Render ──
+function drawPaper() {
+  ctx.drawImage(paperCanvas,0,0);
+}
+
+function drawTargets() {
+  for(const t of targets){
+    // Faint red circular brush stroke
+    ctx.strokeStyle = t.covered?'rgba(200,60,40,.15)':'rgba(200,60,40,.25)';
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([3,5]);
+    ctx.beginPath();ctx.arc(t.x,t.y,t.r,0,Math.PI*2);ctx.stroke();
+    ctx.setLineDash([]);
+    if(t.covered){
+      // Subtle red glow
+      const g = ctx.createRadialGradient(t.x,t.y,0,t.x,t.y,t.r);
+      g.addColorStop(0,'rgba(200,60,40,.06)');g.addColorStop(1,'transparent');
+      ctx.fillStyle=g;ctx.beginPath();ctx.arc(t.x,t.y,t.r,0,Math.PI*2);ctx.fill();
+    }
+  }
+}
+
+function drawSeals() {
+  for(const s of seals){
+    // Red seal square 印章
+    ctx.fillStyle='rgba(180,40,30,.35)';
+    ctx.fillRect(s.x,s.y,s.w,s.h);
+    ctx.strokeStyle='rgba(180,40,30,.5)';
+    ctx.lineWidth=1.5;
+    ctx.strokeRect(s.x,s.y,s.w,s.h);
+    // Seal character (simplified)
+    ctx.fillStyle='rgba(255,240,220,.25)';
+    ctx.font=`${s.h*.4}px 'PingFang SC','KaiTi',serif`;
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('印',s.x+s.w/2,s.y+s.h/2);
+  }
+}
+
+function drawInk() {
+  // Render ink particles as soft dark blobs
+  // Use multiple passes: larger blur first, then darker core
+  for(const p of inkParticles){
+    if(p.alpha<.02) continue;
+    const g = ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.size);
+    const a = p.alpha;
+    g.addColorStop(0,`rgba(20,15,10,${a})`);
+    g.addColorStop(.4,`rgba(30,25,18,${a*.7})`);
+    g.addColorStop(1,'transparent');
+    ctx.fillStyle=g;
+    ctx.beginPath();ctx.arc(p.x,p.y,p.size*1.5,0,Math.PI*2);ctx.fill();
+  }
+}
+
+function drawRipples() {
+  for(const rp of ripples){
+    const alpha = (1-rp.r/rp.maxR)*.15;
+    if(alpha<.01) continue;
+    ctx.strokeStyle=`rgba(255,255,255,${alpha})`;
+    ctx.lineWidth=1.5+Math.random()*.3;
+    ctx.beginPath();ctx.arc(rp.x,rp.y,rp.r,0,Math.PI*2);ctx.stroke();
+    // Inner echo
+    const echoR = rp.r-Math.min(W,H)*.02;
+    if(echoR>0){
+      ctx.strokeStyle=`rgba(255,255,255,${alpha*.4})`;
+      ctx.lineWidth=.6;
+      ctx.beginPath();ctx.arc(rp.x,rp.y,echoR,0,Math.PI*2);ctx.stroke();
+    }
+  }
+}
+
+function drawSealStamp() {
+  // Bottom-right: artist seal mark
+  const sx = W*.88, sy = H*.88, ss = Math.min(W,H)*.06;
+  ctx.fillStyle='rgba(180,40,30,.4)';
+  ctx.fillRect(sx,sy,ss,ss);
+  ctx.strokeStyle='rgba(180,40,30,.55)';
+  ctx.lineWidth=1;
+  ctx.strokeRect(sx,sy,ss,ss);
+  ctx.fillStyle='rgba(255,240,220,.3)';
+  ctx.font=`${ss*.5}px 'PingFang SC','KaiTi',serif`;
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('白',sx+ss*.35,sy+ss*.35);
+  ctx.fillText('秋',sx+ss*.65,sy+ss*.65);
+}
+
+// ── Game loop ──
+let lastTime = 0;
+function loop(time) {
+  requestAnimationFrame(loop);
+  const dt = Math.min((time-lastTime)/1000,.05);
+  lastTime = time;
+
+  if(gameState==='playing'){
+    updateRipples(dt);
+    updateInk(dt);
+  }
+
+  // Render
+  drawPaper();
+  drawTargets();
+  drawSeals();
+  drawInk();
+  drawRipples();
+  drawSealStamp();
+
+  // Won state
+  if(gameState==='won'){
+    wonTimer+=dt;
+    if(wonTimer>2.5 && currentLevel<levels.length-1){
+      // Auto-advance
+    }
+  }
+}
+
+// ── Input ──
+function handleTap(x,y) {
+  if(gameState==='playing'){
+    // Check if tap is on a seal
+    for(const s of seals){
+      if(x>s.x&&x<s.x+s.w&&y>s.y&&y<s.y+s.h) return; // can't tap on seals
+    }
+    addRipple(x,y);
+  } else if(gameState==='won'){
+    // Next level or restart
+    if(currentLevel<levels.length-1){
+      loadLevel(currentLevel+1);
+    } else {
+      showMsg('全部完成 · 大师之作','win');
+      setTimeout(()=>loadLevel(0),3000);
+    }
+  }
+}
+
+canvas.addEventListener('click',e=>handleTap(e.clientX,e.clientY));
+canvas.addEventListener('touchstart',e=>{
+  e.preventDefault();
+  const t=e.touches[0];
+  handleTap(t.clientX,t.clientY);
+},{passive:false});
+
+// Keyboard
+document.addEventListener('keydown',e=>{
+  if(e.key==='r'||e.key==='R') loadLevel(currentLevel);
+  if(e.key==='n'||e.key==='N'&&currentLevel<levels.length-1) loadLevel(currentLevel+1);
+  if(e.key==='p'||e.key==='P'&&currentLevel>0) loadLevel(currentLevel-1);
+});
+
+function showMsg(text,cls) {
+  msgEl.textContent=text;msgEl.classList.add('show',cls);
+  setTimeout(()=>msgEl.classList.remove('show',cls),2000);
+}
+
+// ── Resize ──
+function resize() {
+  W=window.innerWidth;H=window.innerHeight;
+  canvas.width=W;canvas.height=H;
+  buildPaper();
+  // Reload current level (reposition everything)
+  if(currentLevel>=0&&currentLevel<levels.length) loadLevel(currentLevel);
+}
+window.addEventListener('resize',()=>{
+  resize();
+  if(gameState==='playing') gameState='playing'; // preserve state
+});
+
+// ── Init ──
+resize();
+loadLevel(0);
+lastTime = performance.now();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
