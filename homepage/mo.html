@@ -255,17 +255,34 @@ function drawPaper() {
 
 function drawTargets() {
   for(const t of targets){
-    // Faint red circular brush stroke
-    ctx.strokeStyle = t.covered?'rgba(200,60,40,.15)':'rgba(200,60,40,.25)';
-    ctx.lineWidth = 1.2;
-    ctx.setLineDash([3,5]);
+    // Outer glow ring
+    const glow = ctx.createRadialGradient(t.x,t.y,t.r*.6,t.x,t.y,t.r);
+    glow.addColorStop(0,'transparent');
+    glow.addColorStop(.7,t.covered?'rgba(200,60,40,.04)':'rgba(255,60,30,.12)');
+    glow.addColorStop(1,'transparent');
+    ctx.fillStyle=glow;ctx.beginPath();ctx.arc(t.x,t.y,t.r,0,Math.PI*2);ctx.fill();
+
+    // Main dashed ring - bolder and more visible
+    ctx.strokeStyle=t.covered?'rgba(200,60,40,.18)':'rgba(255,50,30,.55)';
+    ctx.lineWidth=2.5;
+    ctx.setLineDash([5,4]);
     ctx.beginPath();ctx.arc(t.x,t.y,t.r,0,Math.PI*2);ctx.stroke();
+
+    // Inner ring for depth
+    ctx.strokeStyle=t.covered?'rgba(200,60,40,.1)':'rgba(255,80,50,.3)';
+    ctx.lineWidth=.8;
+    ctx.setLineDash([2,6]);
+    ctx.beginPath();ctx.arc(t.x,t.y,t.r*.85,0,Math.PI*2);ctx.stroke();
     ctx.setLineDash([]);
-    if(t.covered){
-      // Subtle red glow
-      const g = ctx.createRadialGradient(t.x,t.y,0,t.x,t.y,t.r);
-      g.addColorStop(0,'rgba(200,60,40,.06)');g.addColorStop(1,'transparent');
-      ctx.fillStyle=g;ctx.beginPath();ctx.arc(t.x,t.y,t.r,0,Math.PI*2);ctx.fill();
+
+    // Center dot anchor
+    if(!t.covered){
+      ctx.fillStyle='rgba(255,60,25,.6)';
+      ctx.beginPath();ctx.arc(t.x,t.y,3,0,Math.PI*2);ctx.fill();
+    } else {
+      const g2 = ctx.createRadialGradient(t.x,t.y,0,t.x,t.y,t.r);
+      g2.addColorStop(0,'rgba(200,60,40,.08)');g2.addColorStop(1,'transparent');
+      ctx.fillStyle=g2;ctx.beginPath();ctx.arc(t.x,t.y,t.r,0,Math.PI*2);ctx.fill();
     }
   }
 }
