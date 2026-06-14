@@ -363,11 +363,11 @@ function drawRealSeal(x,y,w,h,text,opacity=1) {
 function drawSeals() {
   for(const s of seals){
     if(sealImg.complete && sealImg.naturalWidth>0){
-      ctx.drawImage(sealImg, s.x, s.y, s.w, s.h);
-    } else {
-      // Fallback: simple red square
-      ctx.fillStyle='rgba(180,40,30,.4)';
-      ctx.fillRect(s.x,s.y,s.w,s.h);
+      // Maintain square aspect ratio, center in seal area
+      const size = Math.min(s.w, s.h);
+      const cx = s.x + (s.w - size)/2;
+      const cy = s.y + (s.h - size)/2;
+      ctx.drawImage(sealImg, cx, cy, size, size);
     }
   }
 }
