@@ -371,13 +371,24 @@ function onHandResults(results){
     const lm=results.multiHandLandmarks[0];
     handData = lm;
 
-    // 在骨骼预览画布上绘制（CSS scaleX(-1) 统一镜像）
+    // 在骨骼预览画布上绘制
+    // 注意：sc canvas 设置了 CSS scaleX(-1) 镜像，所以这里绘制时无需额外翻转
+    sctx.save();
     sctx.clearRect(0,0,sc.width,sc.height);
+    // 摄像机画面镜像显示（canvas已CSS翻转，画到canvas上最终会镜像）
     sctx.drawImage(V,0,0,sc.width,sc.height);
-    if(window.drawConnectors&&window.HAND_CONNECTIONS){
-      drawConnectors(sctx,lm,HAND_CONNECTIONS,{color:'#00ff88',lineWidth:2});
-      drawLandmarks(sctx,lm,{color:'#ff6b4a',lineWidth:1,radius:3,fillColor:'#ffaa00'});
+
+    // 绘制骨骼连线（绿色）和关键点（橙红色）
+    if(window.drawConnectors && window.HAND_CONNECTIONS){
+      try{
+        window.drawConnectors(sctx, lm, window.HAND_CONNECTIONS, {color:'#00ff88',lineWidth:2});
+        window.drawLandmarks(sctx, lm, {color:'#ff6b4a',lineWidth:1,radius:3,fillColor:'#ffaa00'});
+      }catch(e){
+        // 骨骼绘制失败不影响主逻辑
+        console.warn('骨骼绘制失败:', e.message);
+      }
     }
+    sctx.restore();
 
     const g=detectGestureFromLandmarks(lm);
     if(!g)return;
@@ -412,29 +423,19 @@ function onHandResults(results){
       gsEl.textContent='--';opEl.textContent='--';
       lastGesture='';gestureStable=0;
     }
-    // 无手时清骨骼预览（CSS scaleX(-1) 镜像）
+    // 无手时只显示摄像头画面（清掉骨骼）
+    sctx.save();
     sctx.clearRect(0,0,sc.width,sc.height);
     sctx.drawImage(V,0,0,sc.width,sc.height);
+    sctx.restore();
   }
 }
 
-// ===== 初始化 MediaPipe Hands =====
-let hands=null, camera=null;
+// 删除旧的 initMediaPipe 函数，直接内联到 start()
+// (Hands初始化已移到 start() 中)
 
-async function initMediaPipe(){
-  loading.classList.add('show');
-  hands = new Hands({
-    locateFile: (file) => `mediapipe/${file}`
-  });
-  hands.setOptions({
-    maxNumHands: 1,
-    modelComplexity: 1,
-    minDetectionConfidence: 0.7,
-    minTrackingConfidence: 0.5
-  });
-  hands.onResults(onHandResults);
-  loading.classList.remove('show');
-}
+// ===== 全局变量：MediaPipe =====
+let hands=null, camera=null;
 
 // ===== 动画循环 =====
 const clock=new THREE.Clock();
@@ -525,27 +526,65 @@ anim();
 // ===== 启动 =====
 async function start(){
   btn.disabled=true;errEl.style.display='none';
+  document.getElementById('loading').classList.add('show');
   try{
-    // 初始化 MediaPipe
-    await initMediaPipe();
+    // 初始化 MediaPipe Hands
+    try {
+      hands = new Hands({
+        locateFile: (file) => {
+          // Hands模型的WASM/数据文件在mediapipe目录
+          const base = `mediapipe/`;
+          return base + file;
+        }
+      });
+      hands.setOptions({
+        maxNumHands: 1,
+        modelComplexity: 1,
+        minDetectionConfidence: 0.7,
+        minTrackingConfidence: 0.5
+      });
+      hands.onResults(onHandResults);
+      console.log('MediaPipe Hands 初始化完成');
+    } catch(e) {
+      console.error('Hands初始化失败:', e);
+      throw new Error('MediaPipe加载失败: ' + e.message);
+    }
+
+    // 等待Hands完全初始化（内部会自动加载模型文件）
+    try { await hands.initialize(); } catch(e) { console.warn('hands.initialize警告(可忽略):', e.message); }
+    document.getElementById('loading').classList.remove('show');
 
     // 启动摄像头
     camera = new Camera(V, {
       onFrame: async () => {
-        if(hands) await hands.send({image: V});
+        if(hands) {
+          try {
+            await hands.send({image: V});
+          } catch(e) {
+            console.warn('Hands.send error:', e);
+          }
+        }
       },
       width: 640, height: 480
     });
     await camera.start();
+    console.log('摄像头已启动');
+    stEl.textContent = '摄像头就绪';
 
     dot.className='on';
     document.getElementById('ov').style.display='none';
     ghEls.forEach(el=>el.classList.toggle('active',parseInt(el.dataset.mode)===0));
   }catch(e){
+    console.error('启动失败:', e);
     btn.disabled=false;errEl.style.display='block';
-    console.error(e);
-    if(e.name==='NotAllowedError')errEl.textContent='请允许摄像头权限后刷新';
-    else errEl.textContent='启动失败: '+(e.message||String(e));
+    document.getElementById('loading').classList.remove('show');
+    if(e.name==='NotAllowedError'){
+      errEl.textContent='请允许摄像头权限后刷新重试';
+    } else if(e.message&&e.message.includes('MediaPipe')){
+      errEl.textContent='模型加载失败，请检查网络连接后刷新';
+    } else {
+      errEl.textContent='启动失败: '+(e.message||String(e));
+    }
   }
 }
 btn.addEventListener('click',start);
