@@ -868,133 +868,92 @@ function buildDB(){
     {id:'rpg',name:'角色扮演',emoji:'🎲',cat:'culture'},{id:'hot_spring',name:'温泉',emoji:'♨️',cat:'nature'},
     {id:'alligator2',name:'短吻鳄',emoji:'🐊',cat:'life'},
   ];
-  // ═══ EXPANDED: 200+ MORE COMBOS ═══
-  // ── More Basic ──
-  addCombo('water','stone','pebble');addCombo('water','sand','wet_sand');
-  addCombo('fire','sand','glass');addCombo('fire','ice','water');
-  addCombo('wind','snow','blizzard');addCombo('wind','dust','dust_storm');
-  addCombo('earth','water','mud');addCombo('earth','wind','erosion');
-  addCombo('steam','ice','water');addCombo('steam','fire','energy');
-  addCombo('lava','ice','stone');addCombo('lava','water','obsidian');
-  addCombo('mud','sun','brick');addCombo('mud','wind','dust');
-  addCombo('rain','earth','plant');addCombo('rain','fire','steam');
-  addCombo('smoke','water','fog');addCombo('smoke','wind','dust');
-  addCombo('storm','water','flood');addCombo('storm','fire','lightning');
-  addCombo('snow','fire','water');addCombo('snow','earth','avalanche');
-  addCombo('ice','fire','water');addCombo('ice','earth','permafrost');
-  addCombo('cloud','earth','fog');addCombo('cloud','fire','lightning');
-  addCombo('wave','earth','erosion');addCombo('wave','fire','steam');
-  addCombo('sand','earth','sandstone');addCombo('sand','fire','glass');
-  addCombo('glass','water','lens');addCombo('glass','earth','sand');
-  addCombo('brick','water','dam');addCombo('brick','fire','ceramic');
-  addCombo('plant','fire','ash');addCombo('plant','ice','frozen_plant');
-  addCombo('lightning','water','electricity');addCombo('lightning','earth','magnet');
-  addCombo('tornado','water','waterspout');addCombo('tornado','fire','fire_tornado');
-  addCombo('volcano','water','geyser');addCombo('volcano','ice','glacier_volcano');
-  addCombo('geyser','ice','frozen_geyser');addCombo('geyser','fire','steam');
-  addCombo('hotspring','snow','onsen');addCombo('hotspring','plant','spa');
-
-  // ── Nature Expansions ──
-  addCombo('tree','sun','fruit_tree');addCombo('tree','wind','leaf');
-  addCombo('tree','fire','charcoal');addCombo('tree','ice','frozen_tree');
-  addCombo('flower','sun','sunflower');addCombo('flower','fire','ash');
+  // ═══ EXPANDED: Clean logically-sound combos ═══
+  // ── Nature (real phenomena only) ──
+  addCombo('water','sand','wet_sand');addCombo('wind','snow','blizzard');
+  addCombo('snow','earth','avalanche');addCombo('ice','earth','permafrost');
+  addCombo('cloud','earth','fog');addCombo('sand','earth','sandstone');
+  addCombo('plant','fire','ash');addCombo('brick','water','dam');
+  addCombo('brick','fire','ceramic');addCombo('tornado','water','waterspout');
+  addCombo('tornado','fire','fire_tornado');addCombo('volcano','ice','glacier_volcano');
+  addCombo('geyser','ice','frozen_geyser');addCombo('hotspring','snow','onsen');
+  addCombo('tree','fire','charcoal');addCombo('flower','sun','sunflower');
   addCombo('flower','water','lily');addCombo('flower','wind','pollen');
-  addCombo('forest','fire','wildfire');addCombo('forest','water','rainforest');
-  addCombo('forest','snow','snow_forest');addCombo('forest','animal','ecosystem');
-  addCombo('mountain','snow','avalanche');addCombo('mountain','fire','volcano');
-  addCombo('mountain','water','waterfall');addCombo('mountain','wind','erosion');
-  addCombo('ocean','fire','underwater_volcano');addCombo('ocean','snow','iceberg');
-  addCombo('ocean','moon','tide');addCombo('ocean','sun','evaporation');
-  addCombo('river','fire','hot_spring');addCombo('river','ice','frozen_river');
-  addCombo('river','mountain','canyon');addCombo('river','forest','swamp');
-  addCombo('desert','water','oasis');addCombo('desert','wind','sandstorm');
-  addCombo('desert','ice','cold_desert');addCombo('desert','plant','cactus');
+  addCombo('forest','fire','wildfire');addCombo('forest','snow','snow_forest');
+  addCombo('forest','animal','ecosystem');addCombo('mountain','snow','avalanche');
+  addCombo('mountain','water','waterfall');addCombo('ocean','fire','underwater_volcano');
+  addCombo('ocean','snow','iceberg');addCombo('ocean','moon','tide');
+  addCombo('river','ice','frozen_river');addCombo('river','mountain','canyon');
+  addCombo('desert','water','oasis');addCombo('desert','plant','cactus');
   addCombo('island','fire','volcanic_island');addCombo('island','wind','palm_tree');
-  addCombo('island','snow','ice_island');addCombo('island','animal','galapagos');
-  addCombo('cave','water','underground_lake');addCombo('cave','fire','forge');
-  addCombo('cave','ice','ice_cave');addCombo('cave','light','crystal_cave');
-  addCombo('swamp','fire','will_o_wisp');addCombo('swamp','sun','marsh');
-  addCombo('swamp','plant','mangrove');addCombo('swamp','animal','alligator');
+  addCombo('cave','water','underground_lake');addCombo('cave','ice','ice_cave');
+  addCombo('cave','light','crystal_cave');addCombo('swamp','fire','will_o_wisp');
 
-  // ── Life Expansions ──
+  // ── Human professions ──
   addCombo('human','fire','cooking');addCombo('human','water','swimming');
-  addCombo('human','wind','flying');addCombo('human','earth','farming');
-  addCombo('human','tree','woodcutter');addCombo('human','stone','miner');
-  addCombo('human','animal','hunter');addCombo('human','fish','fisherman');
-  addCombo('human','plant','farmer');addCombo('human','metal','blacksmith');
-  addCombo('human','cloth','tailor');addCombo('human','paper','writer');
-  addCombo('human','book','scholar');addCombo('human','sword','warrior');
-  addCombo('human','magic','wizard');addCombo('human','god','prophet');
-  addCombo('human','money','merchant');addCombo('human','music','musician');
-  addCombo('human','art','artist');addCombo('human','food','chef');
-  addCombo('dog','human','friend');addCombo('cat','human','pet');
-  addCombo('horse','human','cavalry');addCombo('bird','human','angel');
-  addCombo('fish','human','mermaid');addCombo('dragon','human','dragon_rider');
-  addCombo('wolf','human','werewolf');addCombo('bear','human','werebear');
-  addCombo('snake','human','medusa');addCombo('spider','human','spider_man');
-  addCombo('bee','human','beekeeper');addCombo('chicken','human','farmer');
-  addCombo('cow','human','farmer');addCombo('pig','human','farmer');
+  addCombo('human','earth','farming');addCombo('human','tree','woodcutter');
+  addCombo('human','stone','miner');addCombo('human','animal','hunter');
+  addCombo('human','fish','fisherman');addCombo('human','plant','farmer');
+  addCombo('human','metal','blacksmith');addCombo('human','cloth','tailor');
+  addCombo('human','paper','writer');addCombo('human','book','scholar');
+  addCombo('human','sword','warrior');addCombo('human','money','merchant');
+  addCombo('human','music','musician');addCombo('human','art','artist');
+  addCombo('human','food','chef');addCombo('dog','human','friend');
+  addCombo('cat','human','pet');addCombo('horse','human','cavalry');
+  addCombo('bee','human','beekeeper');
 
-  // ── Food/Cooking ──
+  // ── Food ──
   addCombo('cooking','meat','steak');addCombo('cooking','fish','grilled_fish');
-  addCombo('cooking','egg_food','omelette');addCombo('cooking','wheat','bread');
-  addCombo('cooking','rice','fried_rice');addCombo('cooking','water','soup');
+  addCombo('cooking','egg_food','omelette');addCombo('cooking','rice','fried_rice');
   addCombo('cooking','vegetable','stir_fry');addCombo('cooking','dough','pizza');
-  addCombo('apple','pie','apple_pie');addCombo('grape','sugar','raisin');
   addCombo('lemon','water','lemonade');addCombo('orange','water','orange_juice');
   addCombo('coffee','milk','latte');addCombo('tea','milk','milk_tea');
   addCombo('chocolate','milk','chocolate_milk');addCombo('icecream','coffee','affogato');
   addCombo('bread','meat','sandwich');addCombo('bread','egg_food','toast');
   addCombo('rice','fish','sushi');addCombo('rice','meat','donburi');
-  addCombo('noodle','meat','mein');addCombo('noodle','soup','ramen');
-  addCombo('potato','fire','baked_potato');addCombo('potato','oil','fries');
+  addCombo('noodle','soup','ramen');addCombo('potato','fire','baked_potato');
+  addCombo('potato','oil','fries');addCombo('grape','sugar','raisin');
 
-  // ── Tech ──
+  // ── Tech (real technology) ──
   addCombo('metal','electricity','wire');addCombo('wire','electricity','circuit');
   addCombo('circuit','computer','cpu');addCombo('cpu','computer','laptop');
   addCombo('phone','camera','smartphone');addCombo('smartphone','internet','app');
   addCombo('computer','music','digital_music');addCombo('computer','art','digital_art');
-  addCombo('computer','book','ebook');addCombo('computer','money','crypto');
-  addCombo('internet','money','crypto');addCombo('internet','video','youtube');
-  addCombo('internet','social','social_media');addCombo('internet','shopping','ecommerce');
-  addCombo('rocket','moon','moon_landing');addCombo('rocket','mars','mars_mission');
-  addCombo('satellite','earth','gps');addCombo('satellite','internet','starlink');
-  addCombo('robot','human','android');addCombo('robot','car','self_driving_car');
-  addCombo('ai','human','singularity');addCombo('ai','art','ai_art');
-  addCombo('drone','camera','aerial_photo');addCombo('drone','weapon','drone_strike');
-  addCombo('laser','weapon','laser_gun');addCombo('laser','medicine','laser_surgery');
-  addCombo('battery','car','electric_car');addCombo('battery','phone','power_bank');
-  addCombo('solar_panel','house','solar_house');addCombo('windmill','electricity','wind_power');
+  addCombo('computer','book','ebook');addCombo('internet','video','youtube');
+  addCombo('internet','shopping','ecommerce');addCombo('rocket','moon','moon_landing');
+  addCombo('rocket','mars','mars_mission');addCombo('satellite','earth','gps');
+  addCombo('satellite','internet','starlink');addCombo('robot','human','android');
+  addCombo('robot','car','self_driving_car');addCombo('drone','camera','aerial_photo');
+  addCombo('drone','weapon','drone_strike');addCombo('laser','weapon','laser_gun');
+  addCombo('laser','medicine','laser_surgery');addCombo('battery','car','electric_car');
+  addCombo('battery','phone','power_bank');addCombo('solar_panel','house','solar_house');
+  addCombo('windmill','electricity','wind_power');
 
   // ── Culture ──
   addCombo('china','wall','great_wall');addCombo('china','river','yangtze');
-  addCombo('china','mountain','huangshan');addCombo('china','art','calligraphy');
-  addCombo('china','food','chinese_food');addCombo('china','tea','chinese_tea');
-  addCombo('japan','mountain','fuji');addCombo('japan','flower','sakura');
-  addCombo('japan','food','japanese_food');addCombo('japan','art','origami');
-  addCombo('egypt','river','nile');addCombo('egypt','pyramid','giza');
-  addCombo('rome','empire','roman_empire');addCombo('rome','road','roman_road');
-  addCombo('knight','dragon','dragon_slayer');addCombo('knight','king','round_table');
-  addCombo('samurai','sword','katana');addCombo('ninja','weapon','shuriken');
-  addCombo('pirate','ship','pirate_ship');addCombo('pirate','gold','treasure');
-  addCombo('king','castle','palace');addCombo('queen','castle','palace');
+  addCombo('china','art','calligraphy');addCombo('china','food','chinese_food');
+  addCombo('china','tea','chinese_tea');addCombo('japan','mountain','fuji');
+  addCombo('japan','flower','sakura');addCombo('japan','food','japanese_food');
+  addCombo('japan','art','origami');addCombo('egypt','river','nile');
+  addCombo('egypt','pyramid','giza');addCombo('knight','dragon','dragon_slayer');
+  addCombo('knight','king','round_table');addCombo('samurai','sword','katana');
+  addCombo('ninja','weapon','shuriken');addCombo('pirate','ship','pirate_ship');
+  addCombo('pirate','gold','treasure');addCombo('king','castle','palace');
 
-  // ── Abstract ──
+  // ── Abstract (cultural/mythological references) ──
   addCombo('love','death','tragedy');addCombo('love','time','eternity');
-  addCombo('love','war','passion');addCombo('love','magic','enchantment');
   addCombo('death','time','immortality');addCombo('death','magic','necromancy');
   addCombo('time','magic','time_travel');addCombo('time','space','spacetime');
-  addCombo('dream','magic','vision');addCombo('dream','death','nightmare');
-  addCombo('god','death','underworld');addCombo('god','war','ares');
-  addCombo('god','love','aphrodite');addCombo('god','wisdom','athena');
-  addCombo('peace','war','diplomacy');addCombo('peace','love','harmony');
-  addCombo('chaos','order','balance');addCombo('chaos','magic','wild_magic');
-  addCombo('freedom','order','democracy');addCombo('freedom','war','revolution');
-  addCombo('knowledge','power','wisdom');addCombo('knowledge','time','history');
-  addCombo('truth','lie','deception');addCombo('truth','justice','law');
+  addCombo('dream','death','nightmare');addCombo('god','death','underworld');
+  addCombo('god','war','ares');addCombo('god','love','aphrodite');
+  addCombo('god','wisdom','athena');addCombo('peace','war','diplomacy');
+  addCombo('peace','love','harmony');addCombo('chaos','order','balance');
+  addCombo('freedom','order','democracy');addCombo('knowledge','power','wisdom');
+  addCombo('knowledge','time','history');addCombo('truth','justice','law');
   addCombo('beauty','art','masterpiece');addCombo('beauty','nature','landscape');
   addCombo('music','poetry','song');addCombo('music','dance','ballet');
   addCombo('game','sport','esports');addCombo('game','story','rpg');
+  addCombo('love','war','passion');addCombo('dream','magic','vision');
 
   for(const e of missing){if(!allElements.has(e.id)) allElements.set(e.id,e)}
 }
