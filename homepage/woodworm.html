@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>木虫 · Woodworm</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:#0d0a06;color:#c8b898;font-family:'PingFang SC','Microsoft YaHei',serif;
+  overflow:hidden;height:100vh;width:100vw;touch-action:none;
+  user-select:none;-webkit-user-select:none;
+}
+#c{display:block}
+#back{position:fixed;top:16px;left:16px;z-index:25}
+#back a{color:rgba(255,255,255,.2);text-decoration:none;font-size:.65rem;letter-spacing:2px;transition:color .3s}
+#back a:hover{color:rgba(255,255,255,.5)}
+#hud{position:fixed;top:20px;right:20px;z-index:10;text-align:right}
+#score{font-size:clamp(1.8rem,5vw,3rem);font-weight:200;color:#d4b896;letter-spacing:3px}
+#rings-label{font-size:.55rem;color:rgba(212,184,150,.4);letter-spacing:2px}
+#best{font-size:.6rem;color:rgba(212,184,150,.25)}
+#msg{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:30;pointer-events:none;
+  font-size:clamp(.8rem,2.5vw,1.2rem);font-weight:300;letter-spacing:4px;opacity:0;transition:opacity .5s}
+#msg.show{opacity:1}
+#msg.go{color:#e8a870}
+#hint{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);z-index:10;pointer-events:none;
+  font-size:.55rem;color:rgba(255,255,255,.1);letter-spacing:2px;transition:opacity .5s}
+</style>
+</head>
+<body>
+<div id="back"><a href="../index.html">← 返回合集</a></div>
+<div id="hud">
+  <div id="score">0</div>
+  <div id="rings-label">年轮</div>
+  <div id="best">最佳 0</div>
+</div>
+<div id="msg"></div>
+<div id="hint">按住屏幕左右 · 引导木虫钻孔</div>
+<canvas id="c"></canvas>
+<script>
+/* ═══════════════ 木虫 · Woodworm ═══════════════ */
+
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const scoreEl=document.getElementById('score'),bestEl=document.getElementById('best');
+const msgEl=document.getElementById('msg'),hintEl=document.getElementById('hint');
+
+let W,H,cx,cy,radius,scale;
+
+// ── Game state ──
+let angle=0;           // current angular position (radians, 0=right)
+let currentRing=0;     // which ring we're on (0=center)
+let score=0,best=0;
+let ringData=[];       // [{r, gaps:[{startAngle, endAngle}], hardness}]
+let gameState='waiting'; // waiting | playing | over
+let particles=[];
+let shakeAmount=0;
+
+// ── Input ──
+let touchLeft=false,touchRight=false,mouseX=0;
+let steerTarget=0;     // -1 to 1 steering
+let steerVelocity=0;
+
+// ── Init ──
+function init(){
+  try{best=parseInt(localStorage.getItem('wurm_best'))||0}catch{best=0}
+  bestEl.textContent='最佳 '+best;
+  W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;
+  cx=W/2;cy=H/2;radius=Math.min(W,H)*.42;scale=radius/200;
+  generateRings();
+  angle=0;currentRing=0;score=0;particles=[];
+  steerTarget=0;steerVelocity=0;shakeAmount=0;
+  scoreEl.textContent='0';
+  msgEl.classList.remove('show','go');
+  hintEl.style.opacity='1';
+  gameState='waiting';
+}
+
+function generateRings(){
+  ringData=[];
+  const totalRings=60;
+  for(let i=0;i<totalRings;i++){
+    const r=(i+1)*radius/totalRings;
+    // Difficulty increases with depth
+    const progress=i/totalRings;
+    const gapWidth=.3+Math.random()*.4; // radians, gets smaller
+    const gapWidthActual=gapWidth*(1-progress*.7); // harder = smaller gaps
+    const numGaps=Math.floor(1+Math.random()*2*(1-progress*.5));
+    const gaps=[];
+    for(let g=0;g<numGaps;g++){
+      const center=Math.random()*Math.PI*2;
+      gaps.push({start:center-gapWidthActual/2, end:center+gapWidthActual/2});
+    }
+    // Merge overlapping gaps
+    gaps.sort((a,b)=>a.start-b.start);
+    const merged=[];
+    for(const g of gaps){
+      if(merged.length===0||g.start>merged[merged.length-1].end+.05){
+        merged.push(g);
+      }else{
+        merged[merged.length-1].end=Math.max(merged[merged.length-1].end,g.end);
+      }
+    }
+    ringData.push({r, gaps:merged, hardness:.3+progress*.5});
+  }
+}
+
+// ── Update ──
+function update(dt){
+  if(gameState!=='playing') return;
+
+  // Steering
+  const steerForce=(touchLeft?-1:touchRight?1:0);
+  steerTarget+=(steerForce-steerTarget)*Math.min(dt*8,1);
+  steerVelocity+=(steerTarget-steerVelocity)*Math.min(dt*12,1);
+
+  // Angular speed: base rotation + steering
+  const angularSpeed=1.5+steerVelocity*2.5; // rad/s
+  angle+=angularSpeed*dt;
+  angle=angle%(Math.PI*2);
+  if(angle<0) angle+=Math.PI*2;
+
+  // Advance to next ring
+  const radialSpeed=radius/12; // pixels per second
+  const currentR=currentRing<ringData.length?ringData[currentRing].r:radius;
+  const nextR=currentRing+1<ringData.length?ringData[currentRing+1].r:radius;
+  const wormR=(currentRing<ringData.length?ringData[currentRing].r:0)+radialSpeed*dt*.1;
+
+  // Check if worm reached next ring
+  while(currentRing<ringData.length-1&&wormR>=ringData[currentRing+1].r){
+    currentRing++;
+    score=currentRing;
+    scoreEl.textContent=score;
+    // Spawn drill particles
+    spawnDrillParticles(ringData[currentRing].r,angle,10);
+    // Check if passed through gap
+    if(!isAngleInGap(currentRing,angle)){
+      // Hit ring! Game over
+      gameState='over';
+      shakeAmount=1;
+      spawnDeathParticles(ringData[currentRing].r,angle,30);
+      if(score>best){best=score;try{localStorage.setItem('wurm_best',best)}catch{};bestEl.textContent='最佳 '+best}
+      msgEl.textContent='撞上年轮';
+      msgEl.classList.add('show');
+      hintEl.style.opacity='0';
+      setTimeout(()=>{msgEl.classList.remove('show');msgEl.textContent='点击重新开始'} ,1500);
+      setTimeout(()=>msgEl.classList.add('show','go'),1600);
+    }
+  }
+
+  // Win check
+  if(currentRing>=ringData.length-1){
+    gameState='over';
+    if(score>best){best=score;try{localStorage.setItem('wurm_best',best)}catch{};bestEl.textContent='最佳 '+best}
+    msgEl.textContent='钻穿树心！';
+    msgEl.classList.add('show','go');
+    hintEl.style.opacity='0';
+    setTimeout(()=>msgEl.classList.remove('show','go'),2000);
+  }
+
+  // Shake decay
+  shakeAmount*=Math.pow(.05,dt);
+  if(shakeAmount<.001) shakeAmount=0;
+
+  // Particles
+  for(let i=particles.length-1;i>=0;i--){
+    const p=particles[i];p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;
+    p.vy+=80*dt;
+    if(p.life<=0){particles.splice(i,1)}
+  }
+}
+
+function isAngleInGap(ringIdx,a){
+  if(ringIdx>=ringData.length) return true;
+  const ring=ringData[ringIdx];
+  // Normalize angle to [0, 2π)
+  let na=a%(Math.PI*2);if(na<0) na+=Math.PI*2;
+  for(const gap of ring.gaps){
+    let gs=gap.start%(Math.PI*2),ge=gap.end%(Math.PI*2);
+    if(gs<0) gs+=Math.PI*2; if(ge<0) ge+=Math.PI*2;
+    // Handle wrap-around
+    if(gs<=ge){if(na>=gs&&na<=ge) return true}
+    else{if(na>=gs||na<=ge) return true}
+  }
+  return false;
+}
+
+// ── Particles ──
+function spawnDrillParticles(r,a,count){
+  const x=cx+Math.cos(a)*r,y=cy+Math.sin(a)*r;
+  for(let i=0;i<count;i++){
+    const angle=a+Math.PI+(Math.random()-.5)*.8;
+    const speed=40+Math.random()*120;
+    particles.push({
+      x,y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,
+      life:.3+Math.random()*.5,size:1+Math.random()*2.5,
+      color:Math.random()>.3?'#c8a070':'#8b6914'
+    });
+  }
+}
+function spawnDeathParticles(r,a,count){
+  const x=cx+Math.cos(a)*r,y=cy+Math.sin(a)*r;
+  for(let i=0;i<count;i++){
+    particles.push({
+      x,y,vx:(Math.random()-.5)*200,vy:(Math.random()-.5)*200-60,
+      life:.5+Math.random()*.8,size:2+Math.random()*4,
+      color:'#d4a870'
+    });
+  }
+}
+
+// ── Render ──
+function draw(){
+  ctx.clearRect(0,0,W,H);
+
+  // Background
+  ctx.fillStyle='#0d0a06';ctx.fillRect(0,0,W,H);
+
+  // Shake offset
+  const sx=(Math.random()-.5)*shakeAmount*12,sy=(Math.random()-.5)*shakeAmount*12;
+  ctx.save();ctx.translate(cx+sx,cy+sy);
+
+  // Draw tree rings
+  for(let i=ringData.length-1;i>=0;i--){
+    const ring=ringData[i];
+    const progress=i/ringData.length;
+    // Wood color: heartwood darker, sapwood lighter
+    const baseR=140+progress*40,baseG=90+progress*30,baseB=55+progress*15;
+    const alpha=.3+progress*.25;
+
+    // Ring fill
+    const prevR=i>0?ringData[i-1].r:0;
+    ctx.beginPath();ctx.arc(0,0,ring.r,0,Math.PI*2);
+    ctx.arc(0,0,prevR,0,Math.PI*2,true);
+    ctx.fillStyle=`rgba(${baseR},${baseG},${baseB},${alpha})`;
+    ctx.fill();
+
+    // Ring line (darker for harder rings)
+    ctx.beginPath();ctx.arc(0,0,ring.r,0,Math.PI*2);
+    const hardness=ring.hardness||.3;
+    ctx.strokeStyle=`rgba(${60+hardness*100},${30+hardness*50},${15+hardness*30},${.5+hardness*.4})`;
+    ctx.lineWidth=1+hardness*1.5;
+    ctx.setLineDash([]);
+
+    // Draw ring with gaps
+    const fullRing=ring.gaps.length===0;
+    if(fullRing){
+      ctx.stroke();
+    }else{
+      // Draw solid segments between gaps
+      const sorted=[...ring.gaps].sort((a,b)=>a.start-b.start);
+      for(let g=0;g<sorted.length;g++){
+        const gapEnd=sorted[g].end;
+        const nextStart=g<sorted.length-1?sorted[g+1].start:sorted[0].start+Math.PI*2;
+        ctx.beginPath();ctx.arc(0,0,ring.r,gapEnd,nextStart);ctx.stroke();
+      }
+    }
+  }
+
+  // Bark outer ring
+  ctx.beginPath();ctx.arc(0,0,radius+4,0,Math.PI*2);
+  ctx.strokeStyle='rgba(80,45,25,.8)';ctx.lineWidth=6;ctx.stroke();
+  ctx.beginPath();ctx.arc(0,0,radius+8,0,Math.PI*2);
+  ctx.strokeStyle='rgba(60,30,15,.6)';ctx.lineWidth=4;ctx.stroke();
+
+  // Gap highlight glow (shows safe passages ahead)
+  if(gameState==='playing'||gameState==='waiting'){
+    const previewRings=3;
+    for(let i=0;i<previewRings;i++){
+      const ri=currentRing+i+1;
+      if(ri>=ringData.length) break;
+      const ring=ringData[ri];
+      for(const gap of ring.gaps){
+        const alpha=.08+.02*i;
+        ctx.beginPath();ctx.arc(0,0,ring.r,gap.start,gap.end);
+        ctx.strokeStyle=`rgba(255,220,160,${alpha})`;ctx.lineWidth=8;
+        ctx.stroke();
+      }
+    }
+  }
+
+  // Worm (wood-boring beetle)
+  const wormR=currentRing<ringData.length?ringData[currentRing].r:0;
+  const wx=Math.cos(angle)*wormR,wy=Math.sin(angle)*wormR;
+  ctx.save();ctx.translate(wx,wy);ctx.rotate(angle+Math.PI/2);
+
+  // Body segments
+  const segColors=['#3a2a18','#4a3520','#3d2d1a'];
+  for(let s=2;s>=0;s--){
+    ctx.fillStyle=segColors[s];
+    ctx.beginPath();ctx.ellipse(0,-s*3.5,4-s*.5,6,0,0,Math.PI*2);ctx.fill();
+  }
+  // Head
+  ctx.fillStyle='#5a4030';
+  ctx.beginPath();ctx.arc(0,-13,4.5,0,Math.PI*2);ctx.fill();
+  // Eyes
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-2,-14,1.2,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(2,-14,1.2,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#000';ctx.beginPath();ctx.arc(-1.5,-14,.6,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(2.5,-14,.6,0,Math.PI*2);ctx.fill();
+  // Mandibles
+  ctx.strokeStyle='#3a2010';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(-1.5,-17.5);ctx.lineTo(-2,-19);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(1.5,-17.5);ctx.lineTo(2,-19);ctx.stroke();
+  // Legs
+  ctx.strokeStyle='#3a2515';ctx.lineWidth=.8;
+  for(let l=0;l<6;l++){
+    const ly=-7+l*3;
+    ctx.beginPath();ctx.moveTo(-3.5,ly);ctx.lineTo(-7,ly-3);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(3.5,ly);ctx.lineTo(7,ly-3);ctx.stroke();
+  }
+  ctx.restore();
+
+  // Particles
+  for(const p of particles){
+    const a=p.life*2;if(a>1) a=1;
+    ctx.fillStyle=p.color.replace(')',`,${a})`).replace('rgb','rgba');
+    if(p.color.startsWith('#')){
+      const r=parseInt(p.color.slice(1,3),16),g=parseInt(p.color.slice(3,5),16),b=parseInt(p.color.slice(5,7),16);
+      ctx.fillStyle=`rgba(${r},${g},${b},${a})`;
+    }
+    ctx.beginPath();ctx.arc(p.x-cx,p.y-cy,p.size,0,Math.PI*2);ctx.fill();
+  }
+
+  // Sawdust trail effect around worm
+  ctx.beginPath();ctx.arc(wx,wy,6,0,Math.PI*2);
+  ctx.fillStyle='rgba(200,160,100,.15)';
+  ctx.fill();
+
+  ctx.restore();
+}
+
+// ── Game loop ──
+let lastTime=0;
+function loop(t){
+  requestAnimationFrame(loop);
+  const dt=Math.min((t-lastTime)/1000,.05);lastTime=t;
+  update(dt);draw();
+}
+
+// ── Input ──
+canvas.addEventListener('mousedown',e=>{
+  if(gameState==='over'){init();gameState='playing';msgEl.classList.remove('show','go');hintEl.style.opacity='0'}
+  else if(gameState==='waiting'){gameState='playing';hintEl.style.opacity='0'}
+  mouseX=e.clientX;
+});
+canvas.addEventListener('mousemove',e=>{mouseX=e.clientX});
+canvas.addEventListener('mouseup',()=>{mouseX=0});
+
+canvas.addEventListener('touchstart',e=>{
+  e.preventDefault();
+  if(gameState==='over'){init();gameState='playing';msgEl.classList.remove('show','go');hintEl.style.opacity='0'}
+  else if(gameState==='waiting'){gameState='playing';hintEl.style.opacity='0'}
+  updateTouch(e);
+},{passive:false});
+canvas.addEventListener('touchmove',e=>{e.preventDefault();updateTouch(e)},{passive:false});
+canvas.addEventListener('touchend',()=>{touchLeft=false;touchRight=false});
+
+function updateTouch(e){
+  touchLeft=false;touchRight=false;
+  for(const t of e.touches){
+    if(t.clientX<cx) touchLeft=true;
+    else touchRight=true;
+  }
+}
+
+// Keyboard
+document.addEventListener('keydown',e=>{
+  if(gameState==='over'){init();gameState='playing';msgEl.classList.remove('show','go');hintEl.style.opacity='0'}
+  else if(gameState==='waiting'){gameState='playing';hintEl.style.opacity='0'}
+  if(e.key==='ArrowLeft'||e.key==='a') touchLeft=true;
+  if(e.key==='ArrowRight'||e.key==='d') touchRight=true;
+});
+document.addEventListener('keyup',e=>{
+  if(e.key==='ArrowLeft'||e.key==='a') touchLeft=false;
+  if(e.key==='ArrowRight'||e.key==='d') touchRight=false;
+});
+
+// ── Resize ──
+window.addEventListener('resize',()=>{
+  W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;
+  cx=W/2;cy=H/2;radius=Math.min(W,H)*.42;scale=radius/200;
+  generateRings();
+});
+
+// ── Start ──
+init();lastTime=performance.now();requestAnimationFrame(loop);
+</script>
+</body>
+</html>
