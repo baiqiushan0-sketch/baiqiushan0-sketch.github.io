@@ -372,23 +372,60 @@ function onHandResults(results){
     handData = lm;
 
     // 在骨骼预览画布上绘制
-    // 注意：sc canvas 设置了 CSS scaleX(-1) 镜像，所以这里绘制时无需额外翻转
-    sctx.save();
     sctx.clearRect(0,0,sc.width,sc.height);
-    // 摄像机画面镜像显示（canvas已CSS翻转，画到canvas上最终会镜像）
     sctx.drawImage(V,0,0,sc.width,sc.height);
 
-    // 绘制骨骼连线（绿色）和关键点（橙红色）
-    if(window.drawConnectors && window.HAND_CONNECTIONS){
-      try{
-        window.drawConnectors(sctx, lm, window.HAND_CONNECTIONS, {color:'#00ff88',lineWidth:2});
-        window.drawLandmarks(sctx, lm, {color:'#ff6b4a',lineWidth:1,radius:3,fillColor:'#ffaa00'});
-      }catch(e){
-        // 骨骼绘制失败不影响主逻辑
-        console.warn('骨骼绘制失败:', e.message);
+    // 直接绘制骨骼（不依赖drawing_utils）
+    const w=sc.width, h=sc.height;
+
+    // 骨骼连线定义（21个关键点的连接关系）
+    const CONNS=[
+      [0,1],[1,2],[2,3],[3,4],       // 拇指
+      [0,5],[5,6],[6,7],[7,8],       // 食指
+      [5,9],[9,10],[10,11],[11,12],  // 中指
+      [9,13],[13,14],[14,15],[15,16],// 无名指
+      [13,17],[17,18],[18,19],[19,20],// 小指
+      [0,17]                          // 手掌
+    ];
+
+    // 画连线（绿色荧光）
+    sctx.strokeStyle='#00ff88';
+    sctx.lineWidth=2;
+    sctx.shadowColor='#00ff88';
+    sctx.shadowBlur=4;
+    for(const [i,j] of CONNS){
+      const a=lm[i], b2=lm[j];
+      if(!a||!b2)continue;
+      sctx.beginPath();
+      sctx.moveTo(a.x*w, a.y*h);
+      sctx.lineTo(b2.x*w, b2.y*h);
+      sctx.stroke();
+    }
+    sctx.shadowBlur=0;
+
+    // 画关键点（橙红渐变）
+    for(let i=0;i<21;i++){
+      const p=lm[i];
+      if(!p)continue;
+      const px=p.x*w, py=p.y*h;
+      // 外圈发光
+      sctx.beginPath();
+      sctx.arc(px,py,4,0,Math.PI*2);
+      sctx.fillStyle='rgba(255,107,74,0.4)';
+      sctx.fill();
+      // 内圈实心
+      sctx.beginPath();
+      sctx.arc(px,py,2,0,Math.PI*2);
+      sctx.fillStyle='#ffaa00';
+      sctx.fill();
+      // 指尖用白色高亮
+      if([4,8,12,16,20].includes(i)){
+        sctx.beginPath();
+        sctx.arc(px,py,3,0,Math.PI*2);
+        sctx.fillStyle='#ffffff';
+        sctx.fill();
       }
     }
-    sctx.restore();
 
     const g=detectGestureFromLandmarks(lm);
     if(!g)return;
@@ -423,11 +460,9 @@ function onHandResults(results){
       gsEl.textContent='--';opEl.textContent='--';
       lastGesture='';gestureStable=0;
     }
-    // 无手时只显示摄像头画面（清掉骨骼）
-    sctx.save();
+    // 无手时只显示摄像头画面
     sctx.clearRect(0,0,sc.width,sc.height);
     sctx.drawImage(V,0,0,sc.width,sc.height);
-    sctx.restore();
   }
 }
 
@@ -550,8 +585,7 @@ async function start(){
       throw new Error('MediaPipe加载失败: ' + e.message);
     }
 
-    // 等待Hands完全初始化（内部会自动加载模型文件）
-    try { await hands.initialize(); } catch(e) { console.warn('hands.initialize警告(可忽略):', e.message); }
+    // 模型由 send() 自动懒加载，不需要显式 initialize
     document.getElementById('loading').classList.remove('show');
 
     // 启动摄像头
