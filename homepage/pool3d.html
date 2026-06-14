@@ -648,7 +648,7 @@ function updateCueVis(){
 
 /* ═══════════════════ INPUT ═══════════════════ */
 const IN={
-  down:false,start:new THREE.Vector3(),angle:Math.PI,dragId:null,aiming:false,
+  down:false,start:new THREE.Vector3(),angle:Math.PI/2,dragId:null,aiming:false,
 };
 const rc=new THREE.Raycaster();
 const tPlane=new THREE.Plane(new THREE.Vector3(0,1,0),-BR);
@@ -670,9 +670,16 @@ function updateAim(wp){
 }
 
 function setCue(cue,angle,pull){
-  const d=BR+.04+pull;
-  cueGrp.position.set(cue.pos.x+Math.sin(angle)*d,BR,cue.pos.z+Math.cos(angle)*d);
-  cueGrp.rotation.y=angle;cueGrp.rotation.x=-.05;
+  const halfCue=cueL/2;
+  const gap=BR+.03+pull;
+  /* cue stick center is behind the cu eball (opposite of aim direction) */
+  cueGrp.position.set(
+    cue.pos.x-Math.sin(angle)*(gap+halfCue),
+    BR,
+    cue.pos.z-Math.cos(angle)*(gap+halfCue)
+  );
+  /* lay flat: rotate vertical cue (Y) to horizontal (XZ plane), then aim */
+  cueGrp.rotation.set(-Math.PI/2,angle,0);
   cueGrp.visible=true;
 }
 
@@ -863,7 +870,7 @@ function resetGame(){
   rackBalls();updateBS();updateTurnLabel();updateCueVis();
   $pwF.style.height='0%';$pwP.textContent='0%';
   $msg.classList.remove('on');$alert.classList.remove('on');
-  const cue=balls.find(b=>b.cue);if(cue){IN.angle=Math.PI;setCue(cue,IN.angle,0);}
+  const cue=balls.find(b=>b.cue);if(cue){IN.angle=Math.PI/2;setCue(cue,IN.angle,0);}
   msg('🎱 开球！',1600);
   $turn.textContent='玩家 1 · 开球';
 }
