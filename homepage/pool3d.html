@@ -402,7 +402,7 @@ cueGrp.add(new THREE.Mesh(new THREE.CylinderGeometry(.005,.0055,.018,24),
 ).position.y=.5*cueL-.003;
 cueGrp.add(new THREE.Mesh(new THREE.CylinderGeometry(.0045,.005,.012,24),
   new THREE.MeshStandardMaterial({color:'#2850a0',roughness:.48,metalness:.08}))
-).position.y=.5*cueL+.01);
+).position.y=.5*cueL+.01;
 
 /* ═══════════════════ GAME STATE ═══════════════════ */
 const S={
@@ -582,9 +582,16 @@ function checkEndShot(){
     }
   }
 
+  /* foul: no object ball contact */
+  if(!S.foul&&!S.firstHit&&S.pocketed.filter(b=>!b.cue).length===0){
+    S.foul=true;S.foulMsg='未击中目标球';
+    S.ballInHand=true;
+  }
+
   /* foul check: no rail contact */
   if(!S.foul&&S.pocketed.length===0&&S.firstHit&&!S._railHit){
     S.foul=true;S.foulMsg='无球碰库';
+    S.ballInHand=true;
   }
 
   /* check win/loss */
