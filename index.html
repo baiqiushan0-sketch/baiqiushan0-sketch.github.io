@@ -17,6 +17,7 @@
   --emerald:#50c8a0; --emerald-dim:rgba(80,200,160,.18);
   --amber:#d4984a; --amber-dim:rgba(212,152,74,.18);
   --aqua:#3ad8d0; --aqua-dim:rgba(58,216,208,.18);
+  --slate:#8899aa; --slate-dim:rgba(136,153,170,.18);
   --rust:#c87850; --rust-dim:rgba(200,120,80,.18);
   --text:#d0c8b8; --text2:#908878; --text3:#585040;
   --radius:20px; --radius-sm:10px;
@@ -125,6 +126,7 @@ body::before{
 .project-card:nth-child(5) .card-accent{background:var(--amber)}
 .project-card:nth-child(6) .card-accent{background:var(--aqua)}
 .project-card:nth-child(7) .card-accent{background:var(--purple)}
+.project-card:nth-child(8) .card-accent{background:var(--slate)}
 .project-card:hover .card-accent{width:70%}
 
 /* Visual area */
@@ -146,6 +148,7 @@ body::before{
 .project-card:nth-child(5) .card-visual{background:linear-gradient(160deg,#1a1410 0%,#201810 30%,#281808 60%,#1e1408 100%)}
 .project-card:nth-child(6) .card-visual{background:linear-gradient(160deg,#0a1a18 0%,#0c201e 30%,#0a2822 60%,#081e1a 100%)}
 .project-card:nth-child(7) .card-visual{background:linear-gradient(160deg,#121220 0%,#161830 30%,#181a40 60%,#121830 100%)}
+.project-card:nth-child(8) .card-visual{background:linear-gradient(160deg,#14181e 0%,#181e26 30%,#1a222c 60%,#141a20 100%)}
 
 /* Card icon SVG */
 .card-icon-svg{width:80px;height:80px;filter:drop-shadow(0 0 20px rgba(200,168,88,.15));transition:all var(--transition)}
@@ -156,6 +159,7 @@ body::before{
 .project-card:nth-child(5) .card-icon-svg{color:var(--amber)}
 .project-card:nth-child(6) .card-icon-svg{color:var(--aqua)}
 .project-card:nth-child(7) .card-icon-svg{color:var(--purple)}
+.project-card:nth-child(8) .card-icon-svg{color:var(--slate)}
 .project-card:hover .card-icon-svg{filter:drop-shadow(0 0 30px currentColor)}
 
 /* Card info */
@@ -170,6 +174,7 @@ body::before{
 .project-card:nth-child(5) .card-tag{background:rgba(212,152,74,.07);color:var(--amber);border:1px solid rgba(212,152,74,.1)}
 .project-card:nth-child(6) .card-tag{background:rgba(58,216,208,.07);color:var(--aqua);border:1px solid rgba(58,216,208,.1)}
 .project-card:nth-child(7) .card-tag{background:rgba(152,136,216,.07);color:var(--purple);border:1px solid rgba(152,136,216,.1)}
+.project-card:nth-child(8) .card-tag{background:rgba(136,153,170,.07);color:var(--slate);border:1px solid rgba(136,153,170,.1)}
 .card-desc{font-size:.78rem;color:var(--text2);line-height:1.65;flex:1;margin-bottom:.5rem}
 
 /* Arrow hint */
@@ -414,6 +419,36 @@ body::before{
       <div class="card-arrow-hint">→</div>
     </a>
 
+
+    <!-- 3D台球 -->
+    <a class="project-card reveal reveal-delay-7" href="homepage/pool3d.html">
+      <div class="card-accent"></div>
+      <div class="card-visual">
+        <canvas class="cv-particle" data-color="rgba(200,168,88,CLR)" data-count="35"></canvas>
+        <div class="visual-content">
+          <svg class="card-icon-svg" viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="10" y="10" width="60" height="40" rx="4" stroke-opacity=".15"/>
+            <rect x="14" y="14" width="52" height="32" rx="2" stroke-opacity=".2" fill="currentColor" fill-opacity=".03"/>
+            <circle cx="40" cy="30" r="8" fill="currentColor" fill-opacity=".25" stroke-opacity=".4"/>
+            <circle cx="24" cy="22" r="3.5" fill="currentColor" fill-opacity=".15"/>
+            <circle cx="56" cy="38" r="3.5" fill="currentColor" fill-opacity=".12"/>
+            <line x1="40" y1="30" x2="52" y2="22" stroke-opacity=".35" stroke-width="1.2"/>
+            <circle cx="52" cy="22" r="2.5" fill="currentColor" fill-opacity=".2"/>
+            <rect x="16" y="56" width="48" height="6" rx="3" stroke-opacity=".25" fill="currentColor" fill-opacity=".05"/>
+            <line x1="24" y1="56" x2="24" y2="62" stroke-opacity=".3"/>
+            <line x1="40" y1="56" x2="40" y2="62" stroke-opacity=".3"/>
+            <line x1="56" y1="56" x2="56" y2="62" stroke-opacity=".3"/>
+          </svg>
+          <span class="visual-label">3D体育 · 台球</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="card-tags"><span class="card-tag">3D游戏</span><span class="card-tag">体育模拟</span><span class="card-tag">Three.js</span></div>
+        <h3>3D台球 · Pool</h3>
+        <p class="card-desc">写实3D台球，真实物理碰撞+库边反弹，拖拽瞄准松手击球，8球规则，手机电脑双端</p>
+      </div>
+      <div class="card-arrow-hint">→</div>
+    </a>
 
     <!-- 更多 -->
     <a class="project-card reveal reveal-delay-8" href="skill_g113593/skill_g113593.html">
