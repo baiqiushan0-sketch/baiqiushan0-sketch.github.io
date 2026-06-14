@@ -999,17 +999,10 @@ function buildDB(){
   for(const e of missing){if(!allElements.has(e.id)) allElements.set(e.id,e)}
 }
 
-// ── Smart fallback ──
+// ── Fallback: only allow same-element (Super X) or predefined combos ──
 function generateResult(a,b){
   if(a.id===b.id) return {id:`super_${a.id}`,name:`超级${a.name}`,emoji:a.emoji,cat:a.cat};
-  const patterns=[
-    {name:`${a.name}${b.name}`,emoji:a.emoji},
-    {name:`${b.name}之${a.name}`,emoji:b.emoji},
-    {name:`${a.name}的${b.name}`,emoji:a.emoji},
-    {name:`${b.name}${a.name}`,emoji:b.emoji},
-  ];
-  const p=patterns[Math.floor((a.name.length+b.name.length)%patterns.length)];
-  return {id:`${a.id}_${b.id}`.slice(0,40),name:p.name,emoji:p.emoji,cat:a.cat};
+  return null; // No predefined combo → refuse to combine
 }
 
 function getComboResult(id1,id2){
@@ -1132,7 +1125,7 @@ function onElementClick(el){
 function doCombine(){
   if(!selected[0]||!selected[1]) return;
   const a=selected[0],b=selected[1],result=getComboResult(a.id,b.id);
-  if(!result){showToast('无法合成');selected=[null,null];renderAll();return}
+  if(!result){showToast('❌ 这两种元素无法合成');selected=[null,null];renderAll();return}
   const isNew=!discovered.has(result.id);
   if(!allElements.has(result.id)) allElements.set(result.id,result);
   if(isNew){discovered.add(result.id);discoveryOrder.push(result.id)}
