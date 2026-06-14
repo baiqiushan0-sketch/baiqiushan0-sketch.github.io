@@ -236,6 +236,7 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
   <button onclick="openBeast()"><span class="bi"><svg class="ic ic-lg"><use href="#ic-paw"/></svg></span>灵兽</button>
   <button onclick="openAchieve()"><span class="bi"><svg class="ic ic-lg"><use href="#ic-medal"/></svg></span>成就</button>
   <button onclick="openShop()"><span class="bi"><svg class="ic ic-lg"><use href="#ic-shop"/></svg></span>坊市</button>
+  <button onclick="openSave()"><span class="bi">💾</span>存档</button>
 </div>
 </div>
 
@@ -820,7 +821,183 @@ STORY_POOL.arena=[
     {text:'在台下押注(💎100)',cls:'ok',effect:{gold:()=>rnd(-100,400),exp:()=>rnd(20,80)},outcome:()=>P.gold>=100?(chance(55)?'押中了！赢了不少灵石':'押错了…但看比赛也长了见识'):'灵石不够只能看比赛了'}]},
 ];
 
-console.log('✅ 仙途v4.0 — 动态剧情引擎已加载，剧情池: '+Object.keys(STORY_POOL).length+'类事件');
+
+
+// ===== 灵湖 (spiritLake) =====
+STORY_POOL.spiritLake=[
+  {tpl:'{place}有一片波光粼粼的灵湖，湖水呈淡蓝色，湖面上飘着缕缕灵雾。你伸手触碰湖水——温润的灵力从指尖涌入经脉。\n\n湖中心有一座小岛，隐约可见岛上生长着一株发光的灵植。湖水中还有灵鱼在游动，偶尔跃出水面。',
+   choices:[
+    {text:'游到湖心岛采灵植',cls:'pri',effect:{item:()=>pick(HERBS),exp:()=>rnd(80,300),hpBonus:()=>rnd(10,50)},outcome:()=>'游到一半被灵鱼群环绕——但它们没有恶意，反而引导你到了岛上'},
+    {text:'在湖边打坐吸收灵气',cls:'ok',effect:{exp:()=>rnd(60,250),def:()=>rnd(3,15),heal:()=>Math.floor(effMaxHp()*0.3)},outcome:()=>'湖水蒸腾的灵雾被你大量吸入，神清气爽'},
+    {text:'下湖捕捉灵鱼',cls:'cy',effect:{gold:()=>rnd(150,500),exp:()=>rnd(30,120)},outcome:()=>'灵鱼在坊市能卖好价钱！'}]},
+  {tpl:'{place}灵湖的水面上出现了不可思议的景象——湖水中倒映的不是天空，而是一片星空！你仔细看发现湖底沉着几块"星陨石"——从天外坠落的星辰碎片。\n\n{npc}也在湖边，他看到你后说："道友也是来捞星陨石的？我们合作如何？"',
+   choices:[
+    {text:'合作打捞(分一半)',cls:'ok',effect:{gold:()=>rnd(200,600),exp:()=>rnd(50,200),item:()=>pick(ORE_NAMES)},outcome:()=>'两人合作捞上了好几块星陨石，各取一半'},
+    {text:'独吞全部星陨石',cls:'dan',effect:{gold:()=>rnd(300,900),exp:()=>rnd(40,180)},outcome:()=>chance(65)?'你凭借修为优势捞到了大部分':'被{npc}抢先一步…但也捞到了一些'},
+    {text:'放弃捞石，吸收星光',cls:'pri',effect:{exp:()=>rnd(100,400),talent:()=>chance(30)?1:0},outcome:()=>'星光直接入体比灵石更纯净'}]},
+  {tpl:'{place}灵湖边有一个小渔村，村里的修士以养殖灵鱼为生。今天恰好是每年一度的"灵鱼节"——最大的灵鱼将作为祭品献给湖神。\n\n村长{npc}看到你这个外来修士，热情邀请你参加钓鱼比赛。"头奖是一枚{herb}，已经养了三百年了。"',
+   choices:[
+    {text:'参加钓鱼比赛',cls:'pri',effect:{item:()=>pick(HERBS),exp:()=>rnd(60,200),gold:()=>rnd(50,150)},outcome:()=>chance(55)?'你钓上了一条大灵鱼，赢得了比赛！':'没钓到最大的，但参与奖也不错'},
+    {text:'向村长请教养鱼之道',cls:'ok',effect:{exp:()=>rnd(40,180),def:()=>rnd(3,10),hpBonus:()=>rnd(10,40)},outcome:()=>'养鱼之道中蕴含了许多天地至理'},
+    {text:'直接买些灵鱼带走',cls:'',effect:{gold:()=>-50,item:()=>'灵鱼',exp:()=>rnd(20,80)},outcome:()=>P.gold>=50?'买了几条肥美的灵鱼':'钱不够…只能看看'}]},
+];
+
+STORY_POOL.herbField=[
+  {tpl:'{place}有一大片野生灵田！{herb}在这里随处可见，品质比人工种植的还要好。灵田中还有一些采药修士在小心地采摘。\n\n一位老药师{npc}正在教授几个徒弟辨认灵药的方法。看到你后，老药师笑道："道友若是懂行，可以自己采。若是不确定，老夫可以帮你把关。"',
+   choices:[
+    {text:'大量采摘灵药',cls:'pri',effect:{item:()=>pick(HERBS),gold:()=>rnd(80,300),exp:()=>rnd(30,100)},outcome:()=>'学会了辨认几种珍贵灵药的要领'},
+    {text:'向老药师学习',cls:'ok',effect:{exp:()=>rnd(60,250),talent:()=>chance(25)?1:0,item:()=>pick(HERBS)},outcome:()=>'老药师传授了独门采药秘诀'},
+    {text:'帮老药师整理药田',cls:'cy',effect:{gold:()=>rnd(100,300),hpBonus:()=>rnd(5,25)},outcome:()=>'劳动中接触了大量灵药灵气，体质提升'}]},
+];
+
+STORY_POOL.blackMarket=[
+  {tpl:'{place}的密林深处有一个隐蔽的地下黑市。这里没有仙城的规矩，什么都能买卖——禁术功法、妖丹、血炼法器、甚至灵根。\n\n一个戴着面具的{npc}向你招手："道友是新面孔？来黑市找什么东西？我们这里应有尽有…只要你出得起价钱。"\n\n空气中弥漫着邪恶的气息，这里显然不是什么正经地方。',
+   choices:[
+    {text:'购买禁术功法(💎500)',cls:'dan',effect:{atk:()=>rnd(15,50),skill:()=>chance(40)?pick(SKILLS.slice(12)).n:null,talent:()=>1},outcome:()=>P.gold>=500?'虽然功法来路不正…但确实强大':'灵石不够，黑市商人不接受赊账'},
+    {text:'举报黑市给仙城(有风险)',cls:'pri',effect:{gold:()=>rnd(200,600),exp:()=>rnd(60,200)},outcome:()=>chance(60)?'仙城奖励了举报者！':'黑市有后台…你被赶了出来'},
+    {text:'只在黑市外围看看',cls:'',effect:{exp:()=>rnd(30,120),gold:()=>rnd(50,200)},outcome:()=>'黑市虽邪，但外围的一些小摊还算正常'}]},
+];
+
+STORY_POOL.ancientShip=[
+  {tpl:'{place}的云层中隐约可见一艘巨大的飞行法舟——那是上古修士留下的"天舟"！已经在上空漂浮了不知多少年。\n\n你用飞行术飞上舟体，发现舟上保存完好：灵石驱动的机关仍在运转，船舱内还有大量货物——丹药、法器、灵材应有尽有。\n\n这艘船似乎曾是一艘商船，在航行中遭遇了什么变故…',
+   choices:[
+    {text:'搜刮船舱货物',cls:'pri',effect:{gold:()=>rnd(200,800),equip:()=>chance(50)?pick(EQUIP_TEMPLATES.slice(5,12)).n:null,item:()=>pick(HERBS)},outcome:()=>'商船的存货真是丰富！'},
+    {text:'研究飞舟的灵石引擎',cls:'ok',effect:{exp:()=>rnd(80,350),def:()=>rnd(5,20),talent:()=>chance(25)?1:0},outcome:()=>'上古机关术的精妙让你大开眼界'},
+    {text:'修复飞舟使其降落',cls:'cy',effect:{gold:()=>rnd(100,500),exp:()=>rnd(40,180)},outcome:()=>chance(50)?'成功修复！附近仙城出了大价钱购买这艘天舟':'修复失败了…但引擎核心还能卖钱'}]},
+];
+
+STORY_POOL.skyPalace=[
+  {tpl:'{place}的云端出现了一座金碧辉煌的宫殿——天宫遗迹！传说这是{highRealm}真仙飞升前的居所。\n\n宫殿悬浮在万丈高空，周围有仙鹤环绕，七彩祥云托底。你用了全部灵力才飞到宫殿入口。\n\n大门虚掩，里面传来淡淡的仙乐之声…',
+   choices:[
+    {text:'进入正殿(勇闯)',cls:'dan',effect:{exp:()=>rnd(150,600),equip:()=>chance(50)?pick(EQUIP_TEMPLATES.slice(10)).n:null,talent:()=>chance(35)?1:0},outcome:()=>chance(55)?'正殿中还有仙宝留存！':'宫殿的禁制还没完全消散…吃了一些苦头'},
+    {text:'在宫殿外围修炼',cls:'pri',effect:{exp:()=>rnd(100,400),hpBonus:()=>rnd(20,80),def:()=>rnd(5,20)},outcome:()=>'外围的仙灵之气已经比凡间浓郁百倍'},
+    {text:'参观偏殿花园',cls:'ok',effect:{item:()=>pick(HERBS),gold:()=>rnd(150,500),exp:()=>rnd(40,150)},outcome:()=>'仙家花园中的灵植都已长了数千年'}]},
+];
+
+STORY_POOL.soulTower=[
+  {tpl:'{place}矗立着一座阴森的黑色高塔——镇魂塔。塔身刻满了镇压亡魂的符咒，塔内隐约传来凄厉的哭嚎声。\n\n这是上古时期镇压凶魂怨灵的地方。塔共有七层，每层镇压着不同等级的亡魂。一些胆大的修士会进入塔中猎杀亡魂获取魂晶。\n\n塔门口的石碑写着："入塔者需有{rd}以上修为。"',
+   choices:[
+    {text:'进入塔中猎取魂晶',cls:'dan',effect:{exp:()=>rnd(100,500),atk:()=>rnd(8,35),gold:()=>rnd(100,400)},outcome:()=>chance(55)?'你击败了数只凶魂，收获了不少魂晶！':'凶魂太强…你退了出来但战斗经验大涨'},
+    {text:'在塔外吸收散逸魂力',cls:'pri',effect:{exp:()=>rnd(60,250),talent:()=>chance(20)?1:0,def:()=>rnd(3,15)},outcome:()=>'散逸的魂力虽然稀薄但更加安全'},
+    {text:'超度塔外徘徊的亡魂',cls:'',effect:{exp:()=>rnd(40,200),hpBonus:()=>rnd(10,50)},outcome:()=>'超度亡魂后，它们将残余的灵力馈赠于你'}]},
+];
+
+STORY_POOL.bloodPool=[
+  {tpl:'{place}深处有一个散发着浓烈血腥味的血池。池水呈深红色，不断冒着气泡。这是上古魔族留下的血炼之池——用万灵之血淬炼肉身的地方。\n\n血池虽邪，但若利用得当，可以大幅提升肉身体质。不过意志不坚者会被血池中的煞气侵蚀心智。\n\n池边散落着一些已经石化的妖兽骸骨。',
+   choices:[
+    {text:'以血池淬炼肉身(有风险)',cls:'dan',effect:{atk:()=>rnd(10,50),hpBonus:()=>rnd(30,150),permAtk:()=>rnd(3,15)},outcome:()=>chance(50)?'血池淬炼成功！肉身强度大幅提升':'煞气太重…虽然淬炼了肉身但损耗了些气血'},
+    {text:'收集池边的血晶石',cls:'ok',effect:{gold:()=>rnd(150,600),item:()=>pick(ORE_NAMES)},outcome:()=>'血晶石是魔修们争抢的稀有材料'},
+    {text:'净化血池(善举)',cls:'pri',effect:{exp:()=>rnd(100,400),talent:()=>1,hpBonus:()=>rnd(10,40)},outcome:()=>'你以灵力净化了血池，天道降下功德'}]},
+];
+
+STORY_POOL.crystalCave=[
+  {tpl:'{place}有一个闪耀着七彩光芒的水晶洞穴。洞壁上生长着各种灵晶——紫晶、蓝晶、绿晶、红晶…每一块都蕴含着不同的灵力属性。\n\n洞穴深处还有一座由纯灵晶构成的天然宝座，坐在上面可以全速吸收周围灵晶的灵力。\n\n不过水晶洞中有一群灵晶兽在守护——这些由晶石孕育的生灵会攻击闯入者。',
+   choices:[
+    {text:'坐在宝座上修炼',cls:'pri',effect:{exp:()=>rnd(150,500),talent:()=>chance(30)?1:0,hpBonus:()=>rnd(15,60)},outcome:()=>'灵晶之力源源不断涌入，修炼速度是外界的十倍！'},
+    {text:'开采灵晶带走',cls:'ok',effect:{gold:()=>rnd(200,800),item:()=>pick(ORE_NAMES),exp:()=>rnd(30,100)},outcome:()=>'开采了一些高品质灵晶，价值不菲'},
+    {text:'尝试驯服灵晶兽',cls:'dan',effect:{beast:()=>chance(50)?pick(BEASTS.slice(6)).n:null,exp:()=>rnd(50,200)},outcome:()=>chance(45)?'一只小灵晶兽对你产生了兴趣！':'灵晶兽不喜欢被打扰…但它们也给了你一些晶石碎片'}]},
+];
+
+STORY_POOL.phoenixNest=[
+  {tpl:'{place}的山巅上有一棵万年梧桐树，树上筑着一个巨大的巢——那是凤凰的巢！\n\n凤凰不在巢中，但巢里留有一根凤凰翎、几片涅槃时掉落的羽毛和几枚没有孵化的凤凰蛋。\n\n凤凰翎是绝世炼器材料，凤凰蛋可以孵化出小凤凰作为灵兽！但凤凰很快就会回来…你必须赶紧做决定。',
+   choices:[
+    {text:'取走凤凰翎',cls:'pri',effect:{equip:()=>pick(EQUIP_TEMPLATES.slice(12)).n,exp:()=>rnd(80,300),atk:()=>rnd(5,25)},outcome:()=>'凤凰翎中蕴含的火焰之力可以融入法器'},
+    {text:'尝试孵凤凰蛋',cls:'ok',effect:{beast:()=>pick(BEASTS.slice(10)).n,exp:()=>rnd(60,200)},outcome:()=>chance(40)?'小凤凰破壳而出，认你为主！':'蛋没有孵化…但你学到了凤凰之火的奥妙'},
+    {text:'收集涅槃羽毛',cls:'cy',effect:{gold:()=>rnd(200,600),heal:()=>Math.floor(effMaxHp()*0.5),item:()=>pick(HERBS)},outcome:()=>'涅槃羽毛有极强的治愈之力'}]},
+];
+
+STORY_POOL.dragonGrave=[
+  {tpl:'{place}隐藏着一处龙墓——远古巨龙的埋骨之地。巨大的龙骨横亘在山谷中，仅肋骨就有数十丈长。龙骨虽已石化但龙威犹存。\n\n龙墓中散落着龙鳞碎片、龙牙和龙晶。这些材料在修仙界价值连城，尤其是龙晶——传说可以炼制仙品法器。\n\n龙墓入口的石碑写着："打扰龙眠者，当承受龙之诅咒。"',
+   choices:[
+    {text:'采集龙晶(承受诅咒风险)',cls:'dan',effect:{atk:()=>rnd(10,50),equip:()=>chance(40)?pick(EQUIP_TEMPLATES.slice(14)).n:null},outcome:()=>chance(55)?'成功获取龙晶！龙威淬炼了你的意志':'龙之诅咒生效…你的气运暂时下降，但收获仍在'},
+    {text:'参拜龙骨吸收龙威',cls:'pri',effect:{exp:()=>rnd(80,400),atk:()=>rnd(8,30),def:()=>rnd(5,15)},outcome:()=>'怀着敬意参拜，龙魂反而认可了你'},
+    {text:'收集龙鳞碎片变卖',cls:'ok',effect:{gold:()=>rnd(300,1000)},outcome:()=>'龙鳞碎片在坊市被疯抢一空'}]},
+];
+
+STORY_POOL.celestialStair=[
+  {tpl:'{place}出现了一道通向天际的阶梯——登仙阶！传说这是上古时期凡人登仙的道路，共九万九千九百九十九级台阶。\n\n每一级台阶都蕴含着不同的天道法则。越往上走需要越强的修为和意志力。据说走完整个登仙阶就可以直接飞升仙界。\n\n你站在了第一级台阶前，感受着从上方传来的庞大威压…',
+   choices:[
+    {text:'挑战攀登(尽力而为)',cls:'dan',effect:{exp:()=>rnd(100,600),talent:()=>chance(30)?2:1,atk:()=>rnd(5,30)},outcome:()=>'你一口气爬了数百级台阶！虽然离终点还很远，但收获巨大'},
+    {text:'在低阶台阶上修炼',cls:'pri',effect:{exp:()=>rnd(80,350),def:()=>rnd(5,20),hpBonus:()=>rnd(20,80)},outcome:()=>'低阶台阶的天道法则已经足够你参悟'},
+    {text:'观察台阶上的天道铭文',cls:'ok',effect:{exp:()=>rnd(50,250),talent:()=>1},outcome:()=>'铭文中蕴含着深奥的天道至理'}]},
+];
+
+STORY_POOL.karmaPool=[
+  {tpl:'{place}隐藏着一池神奇的因果之水。池水清澈如镜，但映照的不是你的面容——而是你的前世今生！\n\n你可以看到自己过去的善行和恶行在水中化作光影流转。善行化为金色光点，恶行化为黑色漩涡。\n\n{npc}的虚影出现在池边："此池可观因果，亦可洗因果。你的选择将改变你的命运。"',
+   choices:[
+    {text:'洗涤恶因(消耗修为)',cls:'pri',effect:{talent:()=>2,hpBonus:()=>rnd(20,80),exp:()=>rnd(30,150)},outcome:()=>'以修为为代价洗涤了部分恶因，心境大增'},
+    {text:'强化善果',cls:'ok',effect:{def:()=>rnd(5,25),hpBonus:()=>rnd(30,100),exp:()=>rnd(50,200)},outcome:()=>'金色的善果光芒大盛，天道眷顾于你'},
+    {text:'只看不干涉',cls:'',effect:{exp:()=>rnd(40,200),talent:()=>chance(20)?1:0},outcome:()=>'旁观因果流转也是一种修炼'}]},
+];
+
+STORY_POOL.thunderValley=[
+  {tpl:'{place}是一个终年被雷电笼罩的峡谷——万雷谷。谷中雷电不断劈下，每一道都堪比小天劫。\n\n谷底有一种极其稀有的"雷击木"——树木被雷劈了千年而不倒，已经吸收了海量的雷霆之力。\n\n进入谷中需要极高的防御力和意志力，但同时也能得到雷霆的淬炼。',
+   choices:[
+    {text:'深入谷中采集雷击木',cls:'dan',effect:{atk:()=>rnd(10,50),item:()=>pick(ORE_NAMES),exp:()=>rnd(60,250)},outcome:()=>chance(55)?'成功采集到上品雷击木！':'被雷劈了几下…但也算体验了雷霆淬体'},
+    {text:'在谷口接受雷霆淬体',cls:'pri',effect:{exp:()=>rnd(80,300),hpBonus:()=>rnd(20,100),atk:()=>rnd(5,20)},outcome:()=>'适度的雷霆淬体让体质大幅提升'},
+    {text:'研究雷电规律',cls:'ok',effect:{exp:()=>rnd(40,200),def:()=>rnd(3,18)},outcome:()=>'掌握了雷电的规律，以后渡劫会更有把握'}]},
+];
+
+STORY_POOL.icePalace=[
+  {tpl:'{place}的极寒之地中矗立着一座完全由万年寒冰建成的宫殿。宫殿晶莹剔透，在阳光下折射出七彩光芒。\n\n宫殿的地下室有一口"寒玉床"——躺在上面可以加速修炼冰属性功法，并且延缓衰老。\n\n但宫殿的温度极低，普通修士待不了多久就会被冻僵。',
+   choices:[
+    {text:'在寒玉床上修炼',cls:'pri',effect:{exp:()=>rnd(100,400),hpBonus:()=>rnd(15,60),def:()=>rnd(5,20)},outcome:()=>'寒玉床上的修炼效率惊人！但差点被冻僵'},
+    {text:'采集宫殿的万年寒冰',cls:'ok',effect:{gold:()=>rnd(200,700),item:()=>pick(ORE_NAMES)},outcome:()=>'万年寒冰是炼制寒属性法器的绝佳材料'},
+    {text:'探索宫殿密室',cls:'cy',effect:{equip:()=>chance(40)?pick(EQUIP_TEMPLATES.slice(8,15)).n:null,exp:()=>rnd(50,200)},outcome:()=>'宫殿密室里还藏着前人遗留的宝物'}]},
+];
+
+STORY_POOL.mushroomForest=[
+  {tpl:'{place}有一片神奇的灵芝林地！各种珍稀灵芝在这里疯狂生长——赤灵芝、紫灵芝、血灵芝、云灵芝…\n\n林地被一层淡淡的荧光笼罩，空气中的灵气浓度是外界的数倍。一些灵芝已经长到了人形大小，散发着醉人的药香。\n\n一个{npc}采药人正在林边犹豫："这里的灵芝虽好，但林中有毒雾…"',
+   choices:[
+    {text:'大量采摘灵芝',cls:'pri',effect:{item:()=>pick(HERBS),exp:()=>rnd(60,200),gold:()=>rnd(100,300),hpBonus:()=>rnd(10,40)},outcome:()=>'采了一大篮子各种灵芝！收获满满'},
+    {text:'服用人形灵芝',cls:'ok',effect:{exp:()=>rnd(150,500),heal:()=>Math.floor(effMaxHp()*0.6),permAtk:()=>rnd(2,8)},outcome:()=>'人形灵芝药力惊人！炼化后浑身充满力量'},
+    {text:'帮采药人采集并分享',cls:'',effect:{exp:()=>rnd(40,150),talent:()=>chance(20)?1:0,def:()=>rnd(2,10)},outcome:()=>'采药人感动地分享了他的采药秘诀'}]},
+];
+
+STORY_POOL.volcanoMouth=[
+  {tpl:'{place}的火山口喷涌着地心烈焰！熔岩在脚下翻滚，空气中弥漫着硫磺味和浓郁的火属性灵气。\n\n火山口中有一块"烈焰金晶"——在地心烈焰中淬炼了万年而成的极品材料。但温度极高，需要用大量灵力护体才能接近。\n\n火山口边缘还有一些火属性灵草在顽强生长。',
+   choices:[
+    {text:'采集烈焰金晶(高风险)',cls:'dan',effect:{equip:()=>pick(EQUIP_TEMPLATES.slice(12)).n,exp:()=>rnd(80,350),atk:()=>rnd(8,40)},outcome:()=>chance(50)?'在灵力耗尽前成功取到了金晶！':'太烫了…但金晶的余温也淬炼了你的灵力'},
+    {text:'采集火属性灵草',cls:'ok',effect:{item:()=>pick(HERBS),exp:()=>rnd(40,180),gold:()=>rnd(80,300)},outcome:()=>'火山边缘的灵草品质极高'},
+    {text:'利用地火淬炼法器',cls:'pri',effect:{exp:()=>rnd(60,250),atk:()=>rnd(5,20),def:()=>rnd(3,12)},outcome:()=>'地心之火淬炼了你的武器和灵力'}]},
+];
+
+STORY_POOL.abyss=[
+  {tpl:'{place}的地面上裂开了一道深不见底的裂缝——深渊！深渊中传来古老而强大的气息，仿佛连通着另一个世界。\n\n裂缝边缘有一些从深渊中飘出的"虚空精华"——一种混沌的原始能量。虚空精华可以被炼化为修为，但其中也混杂着未知的危险。\n\n{npc}正在裂缝边缘收集虚空精华，看到你后说："小心点，深渊中随时可能喷发虚空风暴。"',
+   choices:[
+    {text:'冒险收集虚空精华',cls:'dan',effect:{exp:()=>rnd(100,500),talent:()=>chance(30)?1:0,atk:()=>rnd(5,25)},outcome:()=>chance(60)?'成功收集了大量虚空精华！':'虚空风暴突然喷发…你在风暴边缘坚持了下来'},
+    {text:'在裂缝边修炼吸收',cls:'pri',effect:{exp:()=>rnd(60,300),hpBonus:()=>rnd(15,60),def:()=>rnd(3,15)},outcome:()=>'深渊散发的气息虽危险但精纯'},
+    {text:'向{npc}购买虚空精华(💎200)',cls:'ok',effect:{exp:()=>rnd(150,400),gold:()=>-200},outcome:()=>P.gold>=200?'安全地获得了虚空精华':'灵石不够…只能自己冒险了'}]},
+];
+
+// ===== 扩展已有剧情池 =====
+// 为奇遇添加更多故事
+STORY_POOL.adventure.push(
+  {tpl:'{place}中你捡到了一枚断裂的玉简。玉简已经严重损坏，只能读取到片段信息。\n\n玉简中记载了一位{npc}临终前的一段话："我在{place}藏了一件{artifact}…坐标是…"后面的信息已经无法辨识。\n\n虽然坐标残缺，但根据上下文，藏宝地点应该不远。',
+   choices:[
+    {text:'按线索寻宝',cls:'pri',effect:{gold:()=>rnd(100,500),equip:()=>chance(40)?pick(EQUIP_TEMPLATES.slice(4,10)).n:null},outcome:()=>chance(55)?'凭着模糊的线索找到了藏宝地点！':'线索不全…但过程本身就很有价值'},
+    {text:'修复玉简获取完整信息',cls:'ok',effect:{exp:()=>rnd(60,250),talent:()=>chance(20)?1:0},outcome:()=>'修复玉简的过程中学到了不少'},
+    {text:'变卖残破玉简',cls:'',effect:{gold:()=>rnd(50,200)},outcome:()=>'虽然是残片但年代久远也有人收藏'}]},
+  {tpl:'{place}中你遇到一位修士在路边摆了个小茶摊。他自称是退隐的{rd}散修{npc}，在此煮茶论道已经十年。\n\n"来喝杯茶吧。"他热情招呼道，"这是我自己种的悟道茶，喝了能静心凝神。"\n\n一杯茶下肚，你突然感到灵台一片清明，以前想不通的修炼难题豁然开朗。',
+   choices:[
+    {text:'多喝几杯继续论道',cls:'pri',effect:{exp:()=>rnd(80,350),talent:()=>chance(30)?1:0,def:()=>rnd(3,15)},outcome:()=>'和高手论道总是收获最大的'},
+    {text:'请教悟道茶的种植方法',cls:'ok',effect:{item:()=>pick(HERBS),exp:()=>rnd(40,180),hpBonus:()=>rnd(10,40)},outcome:()=>'学到了一些种植灵茶的知识'},
+    {text:'买些茶叶带走(💎30)',cls:'',effect:{heal:()=>Math.floor(effMaxHp()*0.2),exp:()=>rnd(20,100)},outcome:()=>P.gold>=30?'买了一些悟道茶路上喝':'灵石不够…只能喝免费的'}]},
+  {tpl:'{place}突然起了大雾，能见度不足三丈。你在雾中摸索前行，隐约听到前方有打斗声。\n\n走近一看，两个修士正在争夺一株发光的灵植——{herb}！两人实力相当打得难解难分，灵植被丢在一旁。\n\n两人同时看到了你："道友来得正好！帮我对付他，灵植分你一半！"另一个人也喊道："别听他的！他是骗子！"',
+   choices:[
+    {text:'趁乱取走灵植',cls:'dan',effect:{item:()=>pick(HERBS),exp:()=>rnd(50,200),gold:()=>rnd(30,150)},outcome:()=>chance(60)?'趁他们不注意拿起灵植就跑！':'被抓到了…但灵植确实在你手里'},
+    {text:'调和两人矛盾',cls:'pri',effect:{exp:()=>rnd(60,250),talent:()=>chance(25)?1:0,def:()=>rnd(3,10)},outcome:()=>'你以理服人，两人和解后各送了一些谢礼'},
+    {text:'无视争端继续赶路',cls:'',effect:{exp:()=>rnd(20,100)},outcome:()=>'不想介入他人的争端…但雾中又发现了其他好东西'}]}
+);
+
+STORY_POOL.legacy.push(
+  {tpl:'{place}洞府中有一面古老的石壁，壁上记载着一种已经失传的修炼功法——"{beastName}变"！\n\n这是模拟灵兽修炼方式的罕见功法，修炼者可以临时获得灵兽的部分能力。石壁上的文字是用上古文字写的，需要花费很大功夫才能解读。\n\n壁旁有一具骸骨，似乎是试图参悟功法的前辈，可惜未能成功。',
+   choices:[
+    {text:'全力参悟功法',cls:'pri',effect:{exp:()=>rnd(100,400),skill:()=>chance(40)?pick(SKILLS.slice(8,15)).n:null,atk:()=>rnd(5,25)},outcome:()=>'成功解读了部分功法，虽然不完整但受益匪浅！'},
+    {text:'拓印碑文后慢慢研究',cls:'ok',effect:{exp:()=>rnd(60,200),gold:()=>rnd(80,300)},outcome:()=>'拓片可以卖也可以自己留着慢慢研究'},
+    {text:'参拜前辈骸骨',cls:'',effect:{exp:()=>rnd(40,150),hpBonus:()=>rnd(10,50)},outcome:()=>'前辈留下的残存灵力馈赠了你'}]}
+);
+console.log('✅ 仙途v5.0 — 动态剧情引擎已加载，剧情池: '+Object.keys(STORY_POOL).length+'类事件');
 
 // ═══════════════════════════════════════
 // 核心数据
@@ -1010,7 +1187,27 @@ const CELL_TYPES={
   tradeFair:{icon:'⛺',n:'仙集',desc:'修士云集的交易集市'},
   dreamLand:{icon:'🌙',n:'梦境',desc:'幻境中的修炼之地'},
   arena:{icon:'⚔️',n:'擂台',desc:'修士比武的擂台'},
-  empty:{icon:'·',n:'空地',desc:''}};
+  
+  // 新增18种事件
+  spiritLake:{icon:'🏞️',n:'灵湖',desc:'灵气汇聚的湖泊'},
+  herbField:{icon:'🌾',n:'灵田',desc:'大片野生灵药田'},
+  blackMarket:{icon:'🌑',n:'黑市',desc:'地下修仙黑市'},
+  beastTide:{icon:'🌊',n:'兽潮来袭',desc:'妖兽大军压境'},
+  ancientShip:{icon:'🚢',n:'远古飞舟',desc:'上古修士的飞行法器'},
+  skyPalace:{icon:'🏰',n:'天宫遗迹',desc:'悬浮于云端的宫殿'},
+  soulTower:{icon:'🗼',n:'镇魂塔',desc:'镇压远古凶魂的塔'},
+  bloodPool:{icon:'🩸',n:'血池',desc:'魔族遗留的血炼之池'},
+  crystalCave:{icon:'💎',n:'水晶洞',desc:'布满灵晶的洞穴'},
+  phoenixNest:{icon:'🔥',n:'凤凰巢',desc:'神兽凤凰的栖息地'},
+  dragonGrave:{icon:'🐉',n:'龙墓',desc:'远古巨龙的长眠之地'},
+  celestialStair:{icon:'🪜',n:'登仙阶',desc:'通往上界的阶梯'},
+  karmaPool:{icon:'☯️',n:'因果池',desc:'映照前世今生的池水'},
+  thunderValley:{icon:'⚡',n:'万雷谷',desc:'终年落雷的峡谷'},
+  icePalace:{icon:'❄️',n:'冰宫',desc:'极寒之地的冰雪宫殿'},
+  mushroomForest:{icon:'🍄',n:'灵芝林',desc:'千年灵芝遍布的林地'},
+  volcanoMouth:{icon:'🌋',n:'火山口',desc:'地心烈焰的出口'},
+  abyss:{icon:'🕳️',n:'深渊裂缝',desc:'通向未知之地的裂缝'},
+empty:{icon:'·',n:'空地',desc:''}};
 
 // ═══════════════════════════════════════
 // 成就系统
@@ -1125,11 +1322,7 @@ function checkRealmUp(){
 // ═══════════════════════════════════════
 function genMap(){
   P.mapCells=[];
-  const pool=['train','train','enemy','enemy','treasure','shop','secret','beast','equip','skill',
-    'adventure','legacy','partner','furnace','mine','spring','ruin','tribulation','stele','garden','demon',
-    'auction','formation','battlefield','miasma','tower','evil','sage','deepSecret','talisman','fruit',
-    'immortalCave','pillShop','beastDen','spiritVein','tradeRoute','starPlatform','soulPool','cave',
-    'celestialGate','swordGrave','pillRiver','beastWave','meditation','timeRift','thunderPool','divineTree','tradeFair','dreamLand','arena'];
+  const pool=getMapPool();
   for(let i=0;i<5000;i++){
     let type=pool[Math.floor(Math.random()*pool.length)];
     if(i>0&&i%20===0)type='boss';
@@ -1137,11 +1330,7 @@ function genMap(){
   }
 }
 // Also update the auto-extend pool
-function getMapPool(){return ['train','train','enemy','enemy','treasure','shop','secret','beast','equip','skill',
-    'adventure','legacy','partner','furnace','mine','spring','ruin','tribulation','stele','garden','demon',
-    'auction','formation','battlefield','miasma','tower','evil','sage','deepSecret','talisman','fruit',
-    'immortalCave','pillShop','beastDen','spiritVein','tradeRoute','starPlatform','soulPool','cave',
-    'celestialGate','swordGrave','pillRiver','beastWave','meditation','timeRift','thunderPool','divineTree','tradeFair','dreamLand','arena'];}
+function getMapPool(){return ['train','train','enemy','enemy','treasure','shop','secret','beast','equip','skill','adventure','legacy','partner','furnace','mine','spring','ruin','tribulation','stele','garden','demon','auction','formation','battlefield','miasma','tower','evil','sage','deepSecret','talisman','fruit','immortalCave','pillShop','beastDen','spiritVein','tradeRoute','starPlatform','soulPool','cave','celestialGate','swordGrave','pillRiver','beastWave','meditation','timeRift','thunderPool','divineTree','tradeFair','dreamLand','arena','spiritLake','herbField','blackMarket','ancientShip','skyPalace','soulTower','bloodPool','crystalCave','phoenixNest','dragonGrave','celestialStair','karmaPool','thunderValley','icePalace','mushroomForest','volcanoMouth','abyss'];}
 
 function cellAt(idx){return P.mapCells[idx]||{type:'empty',done:true};}
 
@@ -1250,7 +1439,7 @@ function encounter(idx){
     thunderPool:()=>doStoryEvent(idx,'thunderPool'),divineTree:()=>doStoryEvent(idx,'divineTree'),
     tradeFair:()=>doStoryEvent(idx,'tradeFair'),dreamLand:()=>doStoryEvent(idx,'dreamLand'),
     arena:()=>doStoryEvent(idx,'arena'),
-  };
+arena:()=>doStoryEvent(idx,'arena'),spiritLake:()=>doStoryEvent(idx,'spiritLake'),herbField:()=>doStoryEvent(idx,'herbField'),blackMarket:()=>doStoryEvent(idx,'blackMarket'),ancientShip:()=>doStoryEvent(idx,'ancientShip'),skyPalace:()=>doStoryEvent(idx,'skyPalace'),soulTower:()=>doStoryEvent(idx,'soulTower'),bloodPool:()=>doStoryEvent(idx,'bloodPool'),crystalCave:()=>doStoryEvent(idx,'crystalCave'),phoenixNest:()=>doStoryEvent(idx,'phoenixNest'),dragonGrave:()=>doStoryEvent(idx,'dragonGrave'),celestialStair:()=>doStoryEvent(idx,'celestialStair'),karmaPool:()=>doStoryEvent(idx,'karmaPool'),thunderValley:()=>doStoryEvent(idx,'thunderValley'),icePalace:()=>doStoryEvent(idx,'icePalace'),mushroomForest:()=>doStoryEvent(idx,'mushroomForest'),volcanoMouth:()=>doStoryEvent(idx,'volcanoMouth'),abyss:()=>doStoryEvent(idx,'abyss'),  };
   if(handlers[c.type])handlers[c.type](idx);
   else doTrain(idx);
 }
@@ -1606,14 +1795,7 @@ function openBeast(){
 function deployBeast(){P.beastDeployed=true;showToast(`🐾 ${P.beast.n} 出战！`);openBeast();renderMap();save();}
 function recallBeast(){P.beastDeployed=false;showToast(`${P.beast.n} 已召回`);openBeast();renderMap();save();}
 
-function openAchieve(){
-  let h='';
-  for(const a of ACHIEVEMENTS){
-    const got=P.achievements&&P.achievements.includes(a.id);
-    h+=`<div class="row"><span>${got?a.icon:'🔒'} ${a.n}</span><span style="font-size:.5rem;color:${got?'#81c784':'rgba(200,180,140,.3)'}">${a.desc}</span></div>`;
-  }
-  showModal('🏆 成就 ('+(P.achievements?.length||0)+'/'+ACHIEVEMENTS.length+')',h,[{text:'关闭',cls:''}]);
-}
+
 
 let shopTab='weapon';
 function openShop(tab){
@@ -1692,4 +1874,112 @@ setTimeout(()=>{
   if(allDone)console.warn('⚠️ 检测到前方所有格子已完成，可能是存档问题。按R键重置位置。');
 },500);
 console.log('🎮 仙途v3.0 已启动 | 按R键可重置位置 | 地图:'+P.mapCells.length+'格 | 剧情池:'+Object.keys(STORY_POOL).length+'类');
+
+
+// ═══════════════════════════════════════
+// 存档系统
+// ═══════════════════════════════════════
+function saveGame(slot){
+  if(!slot)slot='auto';
+  const data={
+    P:JSON.parse(JSON.stringify(P)),
+    time:new Date().toLocaleString(),
+    preview:`${rd().n} | 第${P.currentLayer+1}层 | 💎${nval(P.gold)}`
+  };
+  localStorage.setItem('xiutu5_slot_'+slot,JSON.stringify(data));
+  showToast(slot==='auto'?'💾 已自动保存':'💾 存档成功 ['+slot+']');
+}
+
+function loadGame(slot){
+  if(!slot)slot='auto';
+  try{
+    const raw=localStorage.getItem('xiutu5_slot_'+slot);
+    if(!raw){showToast('该存档位为空');return false;}
+    const data=JSON.parse(raw);
+    Object.assign(P,data.P);
+    if(!P.bag)P.bag=[];
+    if(!P.consumables)P.consumables=[];
+    if(!P.achievements)P.achievements=[];
+    if(!P.achvBonus)P.achvBonus={atk:0,def:0,hpBonus:0,goldBonus:0};
+    if(!P.equippedArmor)P.equippedArmor=null;
+    if(!P.equippedAcc)P.equippedAcc=null;
+    if(!P.pillsUsed)P.pillsUsed={atkTemp:0,defTemp:0,lasts:0};
+    renderMap();save();showToast('📂 读档成功');
+    return true;
+  }catch(e){showToast('❌ 存档损坏');return false;}
+}
+
+function exportSave(slot){
+  if(!slot)slot='auto';
+  const raw=localStorage.getItem('xiutu5_slot_'+slot);
+  if(!raw){showToast('该存档位为空');return;}
+  const blob=new Blob([raw],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='xiutu_save_'+slot+'.json';
+  a.click();
+  showToast('📥 存档已导出为文件');
+}
+
+function importSave(slot){
+  const input=document.createElement('input');
+  input.type='file';input.accept='.json';
+  input.onchange=e=>{
+    const file=e.target.files[0];
+    if(!file)return;
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      try{
+        const data=JSON.parse(ev.target.result);
+        if(!data.P){showToast('❌ 无效的存档文件');return;}
+        localStorage.setItem('xiutu5_slot_'+slot,JSON.stringify(data));
+        showToast('📤 存档已导入到 ['+slot+']');
+      }catch(ex){showToast('❌ 文件格式错误');}
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+function deleteSave(slot){
+  if(!slot||slot==='auto'){showToast('不能删除自动存档');return;}
+  if(confirm('确定删除存档 ['+slot+'] ？此操作不可恢复。')){
+    localStorage.removeItem('xiutu5_slot_'+slot);
+    showToast('🗑️ 存档已删除');
+  }
+}
+
+function openSave(){
+  let h='';
+  const slots=['auto','slot1','slot2','slot3','slot4','slot5'];
+  const slotNames={auto:'🔄自动存档',slot1:'📁档位一',slot2:'📁档位二',slot3:'📁档位三',slot4:'📁档位四',slot5:'📁档位五'};
+
+  for(const s of slots){
+    const raw=localStorage.getItem('xiutu5_slot_'+s);
+    let info='<span style="color:var(--text3)">空</span>';
+    if(raw){
+      try{const d=JSON.parse(raw);info=`<span style="font-size:.5rem;color:var(--gold)">${d.preview||''}</span><br><span style="font-size:.45rem;color:var(--text3)">${d.time||''}</span>`;}catch(e){info='<span style="color:var(--red)">损坏</span>';}
+    }
+    h+=`<div class="ui-card${s==='auto'?' hl':''}">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-weight:bold;font-size:.65rem">${slotNames[s]}</span>
+        <span>${info}</span>
+      </div>
+      <div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap">
+        <button class="btn ok sm" onclick="loadGame('${s}');modal.classList.add('hidden')">📂读档</button>
+        <button class="btn pri sm" onclick="saveGame('${s}')">💾存档</button>
+        <button class="btn cy sm" onclick="exportSave('${s}')">📥导出</button>
+        <button class="btn sm" onclick="importSave('${s}')">📤导入</button>
+        ${s!=='auto'?`<button class="btn dan sm" onclick="deleteSave('${s}')">🗑️删</button>`:''}
+      </div></div>`;
+  }
+  h+=`<div class="deco-line"></div>
+    <p style="font-size:.5rem;color:var(--text3)">💡 提示：游戏每60秒自动存档。可导出存档为JSON文件备份。</p>
+    <button class="btn pri" onclick="saveGame('auto');modal.classList.add('hidden')">💾 立即保存</button>`;
+  showModal('💾 存档管理',h,[{text:'关闭',cls:''}]);
+}
+
+// 自动存档定时器
+setInterval(()=>{saveGame('auto');},60000);
+
 </script>
