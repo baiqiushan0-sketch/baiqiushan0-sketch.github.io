@@ -561,61 +561,65 @@ anim();
 // ===== 启动 =====
 async function start(){
   btn.disabled=true;errEl.style.display='none';
+  errEl.textContent='';
+
+  // 检查是否HTTPS（file://打不开摄像头）
+  if(window.location.protocol==='file:'){
+    errEl.style.display='block';
+    errEl.textContent='请通过 http:// 或 https:// 打开此页面（file:// 无法使用摄像头）。建议用GitHub Pages或本地起一个服务器。';
+    btn.disabled=false;
+    return;
+  }
+
   document.getElementById('loading').classList.add('show');
+  document.getElementById('loading').querySelector('.ld').textContent='⏳ 加载手部模型...';
+
   try{
     // 初始化 MediaPipe Hands
-    try {
-      hands = new Hands({
-        locateFile: (file) => {
-          // Hands模型的WASM/数据文件在mediapipe目录
-          const base = `mediapipe/`;
-          return base + file;
-        }
-      });
-      hands.setOptions({
-        maxNumHands: 1,
-        modelComplexity: 1,
-        minDetectionConfidence: 0.7,
-        minTrackingConfidence: 0.5
-      });
-      hands.onResults(onHandResults);
-      console.log('MediaPipe Hands 初始化完成');
-    } catch(e) {
-      console.error('Hands初始化失败:', e);
-      throw new Error('MediaPipe加载失败: ' + e.message);
-    }
+    hands = new Hands({
+      locateFile: (file) => `mediapipe/${file}`
+    });
+    hands.setOptions({
+      maxNumHands: 1,
+      modelComplexity: 1,
+      minDetectionConfidence: 0.7,
+      minTrackingConfidence: 0.5
+    });
+    hands.onResults(onHandResults);
+    console.log('✅ Hands对象已创建');
 
-    // 模型由 send() 自动懒加载，不需要显式 initialize
-    document.getElementById('loading').classList.remove('show');
-
-    // 启动摄像头
+    // 启动摄像头（hands模型由第一帧的send()懒加载）
+    document.getElementById('loading').querySelector('.ld').textContent='⏳ 启动摄像头...';
     camera = new Camera(V, {
       onFrame: async () => {
-        if(hands) {
-          try {
-            await hands.send({image: V});
-          } catch(e) {
-            console.warn('Hands.send error:', e);
-          }
-        }
+        if(hands) await hands.send({image: V});
       },
       width: 640, height: 480
     });
     await camera.start();
-    console.log('摄像头已启动');
-    stEl.textContent = '摄像头就绪';
+    console.log('✅ 摄像头已启动');
 
+    document.getElementById('loading').classList.remove('show');
+    stEl.textContent = '摄像头就绪（模型加载中...）';
     dot.className='on';
     document.getElementById('ov').style.display='none';
     ghEls.forEach(el=>el.classList.toggle('active',parseInt(el.dataset.mode)===0));
+
+    // 设置超时：如果20秒内还没检测到手，提示可能模型加载慢
+    setTimeout(()=>{
+      if(!window._hasHand && stEl.textContent.includes('模型加载中')){
+        stEl.textContent = '模型仍在加载...请耐心等待';
+      }
+    },20000);
+
   }catch(e){
     console.error('启动失败:', e);
     btn.disabled=false;errEl.style.display='block';
     document.getElementById('loading').classList.remove('show');
     if(e.name==='NotAllowedError'){
       errEl.textContent='请允许摄像头权限后刷新重试';
-    } else if(e.message&&e.message.includes('MediaPipe')){
-      errEl.textContent='模型加载失败，请检查网络连接后刷新';
+    } else if(e.message&&e.message.includes('getUserMedia')){
+      errEl.textContent='摄像头不可用：请确保使用HTTPS访问，且浏览器支持摄像头';
     } else {
       errEl.textContent='启动失败: '+(e.message||String(e));
     }
