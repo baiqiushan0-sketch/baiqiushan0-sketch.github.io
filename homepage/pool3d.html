@@ -38,6 +38,8 @@ body{background:var(--bg);overflow:hidden;touch-action:none;font-family:'Segoe U
 .btn{padding:8px 18px;border-radius:20px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.45);color:var(--text);cursor:pointer;font-size:clamp(11px,1.8vw,13px);backdrop-filter:blur(6px);transition:all .18s;white-space:nowrap;letter-spacing:.03em}
 .btn:active{background:rgba(255,255,255,.12);transform:scale(.94)}
 .btn.au{border-color:rgba(200,168,88,.35);color:var(--gold)}
+.btn.active{background:rgba(200,168,88,.15);border-color:var(--gold);color:var(--gold);animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 8px rgba(200,168,88,.2)}50%{box-shadow:0 0 18px rgba(200,168,88,.5)}}
 
 /* mobile tweaks */
 @media(max-width:600px){
@@ -54,9 +56,9 @@ body{background:var(--bg);overflow:hidden;touch-action:none;font-family:'Segoe U
 <div id="msg"></div><div id="alert"></div>
 <div id="bs"></div>
 <div id="btns">
-  <button class="btn au" id="b-rst">🔄 重新开局</button>
+  <button class="btn au" id="b-lock">🔓 锁定方向</button>
+  <button class="btn" id="b-rst">🔄 重开</button>
   <button class="btn" id="b-cam">📷 视角</button>
-  <button class="btn" id="b-top">🔝 俯视</button>
 </div>
 
 <script type="importmap">
@@ -648,7 +650,8 @@ function updateCueVis(){
 
 /* ═══════════════════ INPUT ═══════════════════ */
 const IN={
-  down:false,start:new THREE.Vector3(),angle:Math.PI/2,dragId:null,aiming:false,
+  down:false,start:new THREE.Vector3(),angle:0,dragId:null,aiming:false,
+  locked:false,lockY:0,lockPower:0,
 };
 const rc=new THREE.Raycaster();
 const tPlane=new THREE.Plane(new THREE.Vector3(0,1,0),-BR);
@@ -661,24 +664,36 @@ function tablePt(e){
   return rc.ray.intersectPlane(tPlane,tg)?tg:null;
 }
 
-function updateAim(wp){
+function updateAimFromEvent(e){
+  if(S.moving||S.over) return;
   const cue=balls.find(b=>b.cue);
-  if(!cue||cue.out||S.moving||S.over) return;
+  if(!cue||cue.out) return;
+  const wp=tablePt(e);
+  if(!wp) return;
   const dx=cue.pos.x-wp.x,dz=cue.pos.z-wp.z;
   IN.angle=Math.atan2(dx,dz);
   setCue(cue,IN.angle,0);
 }
 
+function updatePowerFromY(clientY){
+  if(!IN.locked||S.moving||S.over) return;
+  const h=window.innerHeight;
+  /* clientY: 0=top of screen, h=bottom. Pull down (larger Y) = more power */
+  const raw=(clientY-IN.lockY)/h;
+  const p=Math.max(0,Math.min(1,raw*2.5+.15)); /* map to 0-1 range */
+  S.power=p;$pwF.style.height=(p*100)+'%';$pwP.textContent=Math.round(p*100)+'%';
+  const cue=balls.find(b=>b.cue);
+  if(cue&&!cue.out) setCue(cue,IN.angle,p*.28);
+}
+
 function setCue(cue,angle,pull){
   const halfCue=cueL/2;
   const gap=BR+.03+pull;
-  /* cue stick center is behind the cu eball (opposite of aim direction) */
   cueGrp.position.set(
     cue.pos.x-Math.sin(angle)*(gap+halfCue),
     BR,
     cue.pos.z-Math.cos(angle)*(gap+halfCue)
   );
-  /* lay flat: rotate vertical cue (Y) to horizontal (XZ plane), then aim */
   cueGrp.rotation.set(-Math.PI/2,angle,0);
   cueGrp.visible=true;
 }
@@ -696,81 +711,115 @@ function shoot(power){
   playHit(.35,400+Math.random()*200,.04);
 }
 
-/* mouse */
-canvas.addEventListener('pointerdown',e=>{
-  if(e.pointerType==='touch') return; // handled by touch events
+function lockAim(e){
+  if(S.moving||S.over) return;if(S.placing) return;
+  const cue=balls.find(b=>b.cue);if(!cue||cue.out) return;
   initAudio();
-  if(S.over) return;if(S.moving) return;
-  if(S.placing){const wp=tablePt(e);if(wp) placeCue(wp.x,wp.z);return;}
-  const wp=tablePt(e);if(!wp) return;
-  IN.down=true;IN.start.copy(wp);IN.aiming=true;updateAim(wp);
-});
+  IN.locked=true;
+  IN.lockY=e.clientY;
+  IN.lockPower=0;
+  S.power=0;
+  $pwF.style.height='0%';$pwP.textContent='0%';
+  document.getElementById('b-lock').textContent='🔒 松手击球';
+  document.getElementById('b-lock').classList.add('active');
+  msg('🔒 方向锁定 — 上下移动控制力度',1800);
+}
+
+function unlockAndShoot(){
+  if(!IN.locked) return;
+  IN.locked=false;
+  document.getElementById('b-lock').textContent='🔓 锁定方向';
+  document.getElementById('b-lock').classList.remove('active');
+  if(S.power>.012){shoot(S.power);S.power=0;}
+  IN.lockPower=0;
+  $pwF.style.height='0%';$pwP.textContent='0%';
+}
+
+/* ── mouse ── */
 canvas.addEventListener('pointermove',e=>{
   if(e.pointerType==='touch') return;
   if(S.placing){const wp=tablePt(e);if(wp) placeCue(wp.x,wp.z);return;}
-  if(!IN.down||!IN.aiming||S.moving) return;
-  const wp=tablePt(e);if(!wp||!IN.start) return;
-  const dist=wp.distanceTo(IN.start),p=Math.min(dist/.75,1);
-  S.power=p;$pwF.style.height=(p*100)+'%';$pwP.textContent=Math.round(p*100)+'%';
-  const cue=balls.find(b=>b.cue);if(cue&&!cue.out) setCue(cue,IN.angle,p*.28);
-});
-canvas.addEventListener('pointerup',e=>{
-  if(e.pointerType==='touch') return;
-  if(!IN.down) return;IN.down=false;IN.aiming=false;
-  if(S.power>.012){shoot(S.power);S.power=0;}IN.start=null;
+  if(S.moving) return;
+
+  if(IN.locked){
+    /* locked: vertical movement controls power */
+    updatePowerFromY(e.clientY);
+  }else{
+    /* free: mouse moves on table = aim */
+    updateAimFromEvent(e);
+  }
 });
 
-/* touch */
+/* ── keyboard ── */
+window.addEventListener('keydown',e=>{
+  if(e.repeat) return; /* ignore key repeat */
+  switch(e.key){
+    case 'r':case 'R':resetGame();break;
+    case 'c':case 'C':cycleCam();break;
+    case 't':case 'T':setCam(1);break;
+    case ' ':
+      e.preventDefault();
+      if(S.placing){
+        const cue=balls.find(b=>b.cue);
+        if(cue){cue.pos.set(-TL/2,BR,0);cue.out=false;cue.mesh.visible=true;cue.mesh.position.copy(cue.pos);cue.vel.set(0,0,0);S.placing=false;S.ballInHand=false;updateCueVis();}
+        return;
+      }
+      if(!IN.locked) lockAim({clientY:window.innerHeight*.55});
+      break;
+  }
+});
+window.addEventListener('keyup',e=>{
+  if(e.key===' '&&IN.locked){e.preventDefault();unlockAndShoot();}
+});
+
+/* ── mobile lock button ── */
+document.getElementById('b-lock').addEventListener('pointerdown',e=>{
+  e.preventDefault();e.stopPropagation();
+  if(S.moving||S.over) return;
+  if(IN.locked){unlockAndShoot();}else{lockAim({clientY:e.clientY});}
+});
+/* prevent the lock button from propagating to canvas */
+document.getElementById('b-lock').addEventListener('touchstart',e=>{
+  e.preventDefault();e.stopPropagation();
+  if(S.moving||S.over) return;
+  initAudio();
+  if(IN.locked){unlockAndShoot();}else{lockAim({clientY:e.touches[0].clientY});}
+});
+
+/* ── touch ── */
 canvas.addEventListener('touchstart',e=>{
   initAudio();
   if(S.over||S.moving) return;
   if(e.touches.length===1){
     if(S.placing){const wp=tablePt(e.touches[0]);if(wp) placeCue(wp.x,wp.z);e.preventDefault();return;}
-    const wp=tablePt(e.touches[0]);if(!wp) return;
-    IN.down=true;IN.start.copy(wp);IN.aiming=true;IN.dragId=e.touches[0].identifier;
-    updateAim(wp);
+    const wp=tablePt(e.touches[0]);
+    if(wp){updateAimFromEvent(e.touches[0]);}
   }
   e.preventDefault();
 },{passive:false});
 canvas.addEventListener('touchmove',e=>{
   if(S.placing&&e.touches.length===1){const wp=tablePt(e.touches[0]);if(wp) placeCue(wp.x,wp.z);e.preventDefault();return;}
-  if(!IN.down||!IN.aiming) return;
-  let t=null;for(let i=0;i<e.touches.length;i++){if(e.touches[i].identifier===IN.dragId){t=e.touches[i];break;}}
-  if(!t) return;
-  const wp=tablePt(t);if(!wp||!IN.start) return;
-  const dist=wp.distanceTo(IN.start),p=Math.min(dist/.75,1);
-  S.power=p;$pwF.style.height=(p*100)+'%';$pwP.textContent=Math.round(p*100)+'%';
-  const cue=balls.find(b=>b.cue);if(cue&&!cue.out) setCue(cue,IN.angle,p*.28);
-  e.preventDefault();
+  if(S.moving) return;
+  if(IN.locked&&e.touches.length===1){
+    updatePowerFromY(e.touches[0].clientY);
+    e.preventDefault();
+  }else if(!IN.locked&&e.touches.length===1){
+    updateAimFromEvent(e.touches[0]);
+    e.preventDefault();
+  }
 },{passive:false});
-canvas.addEventListener('touchend',e=>{
-  let found=false;for(let i=0;i<e.touches.length;i++){if(e.touches[i].identifier===IN.dragId){found=true;break;}}
-  if(!found){IN.down=false;IN.aiming=false;if(S.power>.012){shoot(S.power);S.power=0;}IN.start=null;IN.dragId=null;}
-});
 
 /* cue ball placement */
 function placeCue(x,z){
   const cue=balls.find(b=>b.cue);if(!cue) return;
   const cx=Math.max(-TL+BR,Math.min(TL-BR,x));
   const cz=Math.max(-TW+BR,Math.min(TW-BR,z));
-  /* check overlap */
   for(const b of actives()){if(b.cue)continue;if(Math.sqrt((cx-b.pos.x)**2+(cz-b.pos.z)**2)<BR*2.001)return;}
   cue.pos.set(cx,BR,cz);cue.out=false;cue.mesh.visible=true;cue.mesh.position.copy(cue.pos);
   cue.vel.set(0,0,0);
   S.ballInHand=false;S.placing=false;
   updateCueVis();msg('白球已放置',1000);
 }
-
-/* keyboard */
-window.addEventListener('keydown',e=>{
-  switch(e.key){
-    case 'r':case 'R':resetGame();break;
-    case 'c':case 'C':cycleCam();break;
-    case 't':case 'T':setCam(1);break;
-    case ' ':e.preventDefault();
-      if(S.placing){const cue=balls.find(b=>b.cue);if(cue){cue.pos.set(-TL/2,BR,0);cue.out=false;cue.mesh.visible=true;cue.mesh.position.copy(cue.pos);cue.vel.set(0,0,0);S.placing=false;S.ballInHand=false;updateCueVis();}}break;
-  }
-});
 
 /* ═══════════════════ CAMERA ═══════════════════ */
 const VIEWS=[
@@ -854,7 +903,10 @@ function animate(ts){
   /* idle cue positioning */
   if(!S.moving&&!S.over&&!S.placing){
     const cue=balls.find(b=>b.cue);
-    if(cue&&!cue.out){cueGrp.visible=true;setCue(cue,IN.angle,0);}
+    if(cue&&!cue.out){
+      cueGrp.visible=true;
+      setCue(cue,IN.angle,IN.locked?S.power*.28:0);
+    }
   }
 
   if(S.placing) cueGrp.visible=false;
@@ -867,10 +919,13 @@ function resetGame(){
   S.moving=false;S.player=1;S.p1type=null;S.p2type=null;S.over=false;S.winner=null;
   S.foul=false;S.foulMsg='';S.pocketed=[];S.firstHit=null;
   S.ballInHand=false;S.placing=false;S.power=0;S.shots=0;
+  IN.locked=false;IN.lockPower=0;
+  document.getElementById('b-lock').textContent='🔓 锁定方向';
+  document.getElementById('b-lock').classList.remove('active');
   rackBalls();updateBS();updateTurnLabel();updateCueVis();
   $pwF.style.height='0%';$pwP.textContent='0%';
   $msg.classList.remove('on');$alert.classList.remove('on');
-  const cue=balls.find(b=>b.cue);if(cue){IN.angle=Math.PI/2;setCue(cue,IN.angle,0);}
+  const cue=balls.find(b=>b.cue);if(cue){IN.angle=0;setCue(cue,IN.angle,0);}
   msg('🎱 开球！',1600);
   $turn.textContent='玩家 1 · 开球';
 }
