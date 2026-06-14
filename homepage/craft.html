@@ -783,7 +783,219 @@ function buildDB(){
     {id:'blood',name:'血液',emoji:'🩸',cat:'life'},{id:'clover',name:'三叶草',emoji:'🍀',cat:'nature'},
     {id:'trade',name:'交易',emoji:'🤝',cat:'abstract'},{id:'fog_id',name:'雾气',emoji:'🌫️',cat:'nature'},
     {id:'power_plant',name:'发电厂',emoji:'🏭',cat:'tech'},
+    // ── New elements for expanded combos ──
+    {id:'wet_sand',name:'湿沙',emoji:'🏖️',cat:'nature'},{id:'dust_storm',name:'沙尘',emoji:'💨',cat:'nature'},
+    {id:'erosion',name:'侵蚀',emoji:'🪨',cat:'nature'},{id:'flood',name:'洪水',emoji:'🌊',cat:'nature'},
+    {id:'avalanche',name:'雪崩',emoji:'🏔️',cat:'nature'},{id:'permafrost',name:'永冻土',emoji:'🧊',cat:'nature'},
+    {id:'sandstone',name:'砂岩',emoji:'🪨',cat:'material'},{id:'ash',name:'灰烬',emoji:'🪶',cat:'material'},
+    {id:'frozen_plant',name:'冻植物',emoji:'🥶',cat:'nature'},{id:'waterspout',name:'水龙卷',emoji:'🌊',cat:'nature'},
+    {id:'fire_tornado',name:'火龙卷',emoji:'🔥',cat:'nature'},{id:'glacier_volcano',name:'冰火山',emoji:'❄️',cat:'nature'},
+    {id:'frozen_geyser',name:'冰喷泉',emoji:'❄️',cat:'nature'},{id:'onsen',name:'温泉旅馆',emoji:'♨️',cat:'culture'},
+    {id:'spa',name:'水疗',emoji:'💆',cat:'culture'},{id:'fruit_tree',name:'果树',emoji:'🍎',cat:'nature'},
+    {id:'charcoal',name:'木炭',emoji:'🖤',cat:'material'},{id:'frozen_tree',name:'冰树',emoji:'🌲',cat:'nature'},
+    {id:'sunflower',name:'向日葵',emoji:'🌻',cat:'nature'},{id:'lily',name:'莲花',emoji:'🪷',cat:'nature'},
+    {id:'pollen',name:'花粉',emoji:'🌼',cat:'nature'},{id:'wildfire',name:'野火',emoji:'🔥',cat:'nature'},
+    {id:'rainforest',name:'雨林',emoji:'🌴',cat:'nature'},{id:'snow_forest',name:'雪林',emoji:'🌲',cat:'nature'},
+    {id:'ecosystem',name:'生态系统',emoji:'🌍',cat:'nature'},{id:'underwater_volcano',name:'海底火山',emoji:'🌋',cat:'nature'},
+    {id:'iceberg',name:'冰山',emoji:'🧊',cat:'nature'},{id:'tide',name:'潮汐',emoji:'🌊',cat:'nature'},
+    {id:'evaporation',name:'蒸发',emoji:'♨️',cat:'nature'},{id:'frozen_river',name:'冰河',emoji:'🧊',cat:'nature'},
+    {id:'cold_desert',name:'寒漠',emoji:'🏜️',cat:'nature'},{id:'cactus',name:'仙人掌',emoji:'🌵',cat:'nature'},
+    {id:'volcanic_island',name:'火山岛',emoji:'🏝️',cat:'nature'},{id:'palm_tree',name:'棕榈树',emoji:'🌴',cat:'nature'},
+    {id:'ice_island',name:'冰岛',emoji:'🧊',cat:'nature'},{id:'galapagos',name:'进化岛',emoji:'🐢',cat:'nature'},
+    {id:'underground_lake',name:'地下湖',emoji:'🌊',cat:'nature'},{id:'forge',name:'铁匠铺',emoji:'🔨',cat:'tech'},
+    {id:'ice_cave',name:'冰洞',emoji:'❄️',cat:'nature'},{id:'crystal_cave',name:'水晶洞',emoji:'💎',cat:'nature'},
+    {id:'will_o_wisp',name:'鬼火',emoji:'🟢',cat:'abstract'},{id:'marsh',name:'草沼',emoji:'🌾',cat:'nature'},
+    {id:'alligator',name:'鳄鱼',emoji:'🐊',cat:'life'},{id:'cooking',name:'烹饪',emoji:'🍳',cat:'culture'},
+    {id:'swimming',name:'游泳',emoji:'🏊',cat:'culture'},{id:'flying',name:'飞行',emoji:'🕊️',cat:'abstract'},
+    {id:'farming',name:'农耕',emoji:'🌾',cat:'culture'},{id:'woodcutter',name:'樵夫',emoji:'🪓',cat:'life'},
+    {id:'miner',name:'矿工',emoji:'⛏️',cat:'life'},{id:'hunter',name:'猎人',emoji:'🏹',cat:'life'},
+    {id:'fisherman',name:'渔夫',emoji:'🎣',cat:'life'},{id:'farmer',name:'农夫',emoji:'👨‍🌾',cat:'life'},
+    {id:'blacksmith',name:'铁匠',emoji:'⚒️',cat:'life'},{id:'tailor',name:'裁缝',emoji:'🧵',cat:'life'},
+    {id:'writer',name:'作家',emoji:'✍️',cat:'culture'},{id:'scholar',name:'学者',emoji:'🎓',cat:'culture'},
+    {id:'prophet',name:'先知',emoji:'🔮',cat:'abstract'},{id:'merchant',name:'商人',emoji:'💼',cat:'culture'},
+    {id:'musician',name:'音乐家',emoji:'🎵',cat:'culture'},{id:'artist',name:'艺术家',emoji:'🎨',cat:'culture'},
+    {id:'chef',name:'厨师',emoji:'👨‍🍳',cat:'culture'},{id:'friend',name:'朋友',emoji:'🤝',cat:'abstract'},
+    {id:'pet',name:'宠物',emoji:'🐱',cat:'life'},{id:'cavalry',name:'骑兵',emoji:'🐴',cat:'culture'},
+    {id:'dragon_rider',name:'龙骑士',emoji:'🐉',cat:'abstract'},{id:'werebear',name:'熊人',emoji:'🐻',cat:'abstract'},
+    {id:'medusa',name:'美杜莎',emoji:'🐍',cat:'abstract'},{id:'spider_man',name:'蜘蛛人',emoji:'🕷️',cat:'abstract'},
+    {id:'beekeeper',name:'养蜂人',emoji:'🐝',cat:'life'},{id:'steak',name:'牛排',emoji:'🥩',cat:'life'},
+    {id:'grilled_fish',name:'烤鱼',emoji:'🐟',cat:'life'},{id:'omelette',name:'煎蛋',emoji:'🍳',cat:'life'},
+    {id:'fried_rice',name:'炒饭',emoji:'🍚',cat:'culture'},{id:'stir_fry',name:'炒菜',emoji:'🥬',cat:'culture'},
+    {id:'apple_pie',name:'苹果派',emoji:'🥧',cat:'culture'},{id:'raisin',name:'葡萄干',emoji:'🍇',cat:'life'},
+    {id:'lemonade',name:'柠檬水',emoji:'🍋',cat:'life'},{id:'orange_juice',name:'橙汁',emoji:'🍊',cat:'life'},
+    {id:'latte',name:'拿铁',emoji:'☕',cat:'culture'},{id:'milk_tea',name:'奶茶',emoji:'🧋',cat:'culture'},
+    {id:'chocolate_milk',name:'巧克力奶',emoji:'🥛',cat:'culture'},{id:'affogato',name:'阿芙佳朵',emoji:'🍨',cat:'culture'},
+    {id:'toast',name:'吐司',emoji:'🍞',cat:'life'},{id:'donburi',name:'丼饭',emoji:'🍱',cat:'culture'},
+    {id:'mein',name:'拌面',emoji:'🍝',cat:'culture'},{id:'potato',name:'土豆',emoji:'🥔',cat:'life'},
+    {id:'baked_potato',name:'烤土豆',emoji:'🥔',cat:'life'},{id:'fries',name:'薯条',emoji:'🍟',cat:'culture'},
+    {id:'wire',name:'电线',emoji:'🔌',cat:'tech'},{id:'circuit',name:'电路',emoji:'🔌',cat:'tech'},
+    {id:'cpu',name:'处理器',emoji:'🔲',cat:'tech'},{id:'laptop',name:'笔记本',emoji:'💻',cat:'tech'},
+    {id:'smartphone',name:'智能手机',emoji:'📱',cat:'tech'},{id:'app',name:'应用',emoji:'📲',cat:'tech'},
+    {id:'digital_music',name:'数字音乐',emoji:'🎧',cat:'culture'},{id:'digital_art',name:'数字艺术',emoji:'🖥️',cat:'culture'},
+    {id:'ebook',name:'电子书',emoji:'📱',cat:'tech'},{id:'crypto',name:'加密货币',emoji:'🪙',cat:'tech'},
+    {id:'video',name:'视频',emoji:'📹',cat:'tech'},{id:'youtube',name:'视频网站',emoji:'▶️',cat:'tech'},
+    {id:'social',name:'社交',emoji:'💬',cat:'abstract'},{id:'shopping',name:'购物',emoji:'🛒',cat:'culture'},
+    {id:'ecommerce',name:'电商',emoji:'📦',cat:'tech'},{id:'moon_landing',name:'登月',emoji:'🌙',cat:'cosmic'},
+    {id:'mars_mission',name:'火星任务',emoji:'🔴',cat:'cosmic'},{id:'gps',name:'导航',emoji:'📍',cat:'tech'},
+    {id:'starlink',name:'星链',emoji:'🛰️',cat:'tech'},{id:'android',name:'仿生人',emoji:'🤖',cat:'tech'},
+    {id:'self_driving_car',name:'自动驾驶',emoji:'🚗',cat:'tech'},{id:'singularity',name:'奇点',emoji:'⚡',cat:'abstract'},
+    {id:'aerial_photo',name:'航拍',emoji:'📸',cat:'tech'},{id:'drone_strike',name:'无人机攻击',emoji:'💥',cat:'tech'},
+    {id:'laser_gun',name:'激光枪',emoji:'🔫',cat:'tech'},{id:'laser_surgery',name:'激光手术',emoji:'🏥',cat:'tech'},
+    {id:'electric_car',name:'电动车',emoji:'🚗',cat:'tech'},{id:'power_bank',name:'充电宝',emoji:'🔋',cat:'tech'},
+    {id:'solar_house',name:'太阳能屋',emoji:'🏠',cat:'tech'},{id:'wind_power',name:'风力发电',emoji:'💨',cat:'tech'},
+    {id:'great_wall',name:'长城',emoji:'🧱',cat:'culture'},{id:'yangtze',name:'长江',emoji:'🌊',cat:'culture'},
+    {id:'huangshan',name:'黄山',emoji:'⛰️',cat:'culture'},{id:'calligraphy',name:'书法',emoji:'🖌️',cat:'culture'},
+    {id:'chinese_food',name:'中餐',emoji:'🥡',cat:'culture'},{id:'chinese_tea',name:'中国茶',emoji:'🍵',cat:'culture'},
+    {id:'fuji',name:'富士山',emoji:'🗻',cat:'culture'},{id:'sakura',name:'樱花',emoji:'🌸',cat:'culture'},
+    {id:'japanese_food',name:'日料',emoji:'🍣',cat:'culture'},{id:'origami',name:'折纸',emoji:'📐',cat:'culture'},
+    {id:'nile',name:'尼罗河',emoji:'🌊',cat:'culture'},{id:'giza',name:'吉萨金字塔',emoji:'🔺',cat:'culture'},
+    {id:'roman_empire',name:'罗马帝国',emoji:'🏛️',cat:'culture'},{id:'roman_road',name:'罗马大道',emoji:'🛣️',cat:'culture'},
+    {id:'dragon_slayer',name:'屠龙勇士',emoji:'⚔️',cat:'abstract'},{id:'round_table',name:'圆桌骑士',emoji:'🛡️',cat:'culture'},
+    {id:'pirate_ship',name:'海盗船',emoji:'🏴‍☠️',cat:'culture'},{id:'treasure',name:'宝藏',emoji:'💎',cat:'culture'},
+    {id:'palace',name:'宫殿',emoji:'🏰',cat:'culture'},{id:'tragedy',name:'悲剧',emoji:'🎭',cat:'abstract'},
+    {id:'eternity',name:'永恒',emoji:'♾️',cat:'abstract'},{id:'passion',name:'热情',emoji:'🔥',cat:'abstract'},
+    {id:'enchantment',name:'魅惑',emoji:'✨',cat:'abstract'},{id:'immortality',name:'不朽',emoji:'💫',cat:'abstract'},
+    {id:'necromancy',name:'死灵术',emoji:'💀',cat:'abstract'},{id:'time_travel',name:'时空旅行',emoji:'⏰',cat:'abstract'},
+    {id:'vision',name:'幻象',emoji:'👁️',cat:'abstract'},{id:'nightmare',name:'噩梦',emoji:'👹',cat:'abstract'},
+    {id:'underworld',name:'冥界',emoji:'🌑',cat:'abstract'},{id:'ares',name:'战神',emoji:'⚔️',cat:'abstract'},
+    {id:'aphrodite',name:'爱神',emoji:'💕',cat:'abstract'},{id:'athena',name:'智慧女神',emoji:'🦉',cat:'abstract'},
+    {id:'diplomacy',name:'外交',emoji:'🤝',cat:'abstract'},{id:'harmony',name:'和谐',emoji:'🎵',cat:'abstract'},
+    {id:'balance',name:'平衡',emoji:'⚖️',cat:'abstract'},{id:'wild_magic',name:'狂野魔法',emoji:'✨',cat:'abstract'},
+    {id:'history',name:'历史',emoji:'📜',cat:'abstract'},{id:'lie',name:'谎言',emoji:'🤥',cat:'abstract'},
+    {id:'deception',name:'欺骗',emoji:'🎭',cat:'abstract'},{id:'masterpiece',name:'杰作',emoji:'🏆',cat:'culture'},
+    {id:'landscape',name:'风景',emoji:'🏞️',cat:'nature'},{id:'song',name:'歌曲',emoji:'🎶',cat:'culture'},
+    {id:'ballet',name:'芭蕾',emoji:'🩰',cat:'culture'},{id:'esports',name:'电竞',emoji:'🎮',cat:'culture'},
+    {id:'rpg',name:'角色扮演',emoji:'🎲',cat:'culture'},{id:'hot_spring',name:'温泉',emoji:'♨️',cat:'nature'},
+    {id:'alligator2',name:'短吻鳄',emoji:'🐊',cat:'life'},
   ];
+  // ═══ EXPANDED: 200+ MORE COMBOS ═══
+  // ── More Basic ──
+  addCombo('water','stone','pebble');addCombo('water','sand','wet_sand');
+  addCombo('fire','sand','glass');addCombo('fire','ice','water');
+  addCombo('wind','snow','blizzard');addCombo('wind','dust','dust_storm');
+  addCombo('earth','water','mud');addCombo('earth','wind','erosion');
+  addCombo('steam','ice','water');addCombo('steam','fire','energy');
+  addCombo('lava','ice','stone');addCombo('lava','water','obsidian');
+  addCombo('mud','sun','brick');addCombo('mud','wind','dust');
+  addCombo('rain','earth','plant');addCombo('rain','fire','steam');
+  addCombo('smoke','water','fog');addCombo('smoke','wind','dust');
+  addCombo('storm','water','flood');addCombo('storm','fire','lightning');
+  addCombo('snow','fire','water');addCombo('snow','earth','avalanche');
+  addCombo('ice','fire','water');addCombo('ice','earth','permafrost');
+  addCombo('cloud','earth','fog');addCombo('cloud','fire','lightning');
+  addCombo('wave','earth','erosion');addCombo('wave','fire','steam');
+  addCombo('sand','earth','sandstone');addCombo('sand','fire','glass');
+  addCombo('glass','water','lens');addCombo('glass','earth','sand');
+  addCombo('brick','water','dam');addCombo('brick','fire','ceramic');
+  addCombo('plant','fire','ash');addCombo('plant','ice','frozen_plant');
+  addCombo('lightning','water','electricity');addCombo('lightning','earth','magnet');
+  addCombo('tornado','water','waterspout');addCombo('tornado','fire','fire_tornado');
+  addCombo('volcano','water','geyser');addCombo('volcano','ice','glacier_volcano');
+  addCombo('geyser','ice','frozen_geyser');addCombo('geyser','fire','steam');
+  addCombo('hotspring','snow','onsen');addCombo('hotspring','plant','spa');
+
+  // ── Nature Expansions ──
+  addCombo('tree','sun','fruit_tree');addCombo('tree','wind','leaf');
+  addCombo('tree','fire','charcoal');addCombo('tree','ice','frozen_tree');
+  addCombo('flower','sun','sunflower');addCombo('flower','fire','ash');
+  addCombo('flower','water','lily');addCombo('flower','wind','pollen');
+  addCombo('forest','fire','wildfire');addCombo('forest','water','rainforest');
+  addCombo('forest','snow','snow_forest');addCombo('forest','animal','ecosystem');
+  addCombo('mountain','snow','avalanche');addCombo('mountain','fire','volcano');
+  addCombo('mountain','water','waterfall');addCombo('mountain','wind','erosion');
+  addCombo('ocean','fire','underwater_volcano');addCombo('ocean','snow','iceberg');
+  addCombo('ocean','moon','tide');addCombo('ocean','sun','evaporation');
+  addCombo('river','fire','hot_spring');addCombo('river','ice','frozen_river');
+  addCombo('river','mountain','canyon');addCombo('river','forest','swamp');
+  addCombo('desert','water','oasis');addCombo('desert','wind','sandstorm');
+  addCombo('desert','ice','cold_desert');addCombo('desert','plant','cactus');
+  addCombo('island','fire','volcanic_island');addCombo('island','wind','palm_tree');
+  addCombo('island','snow','ice_island');addCombo('island','animal','galapagos');
+  addCombo('cave','water','underground_lake');addCombo('cave','fire','forge');
+  addCombo('cave','ice','ice_cave');addCombo('cave','light','crystal_cave');
+  addCombo('swamp','fire','will_o_wisp');addCombo('swamp','sun','marsh');
+  addCombo('swamp','plant','mangrove');addCombo('swamp','animal','alligator');
+
+  // ── Life Expansions ──
+  addCombo('human','fire','cooking');addCombo('human','water','swimming');
+  addCombo('human','wind','flying');addCombo('human','earth','farming');
+  addCombo('human','tree','woodcutter');addCombo('human','stone','miner');
+  addCombo('human','animal','hunter');addCombo('human','fish','fisherman');
+  addCombo('human','plant','farmer');addCombo('human','metal','blacksmith');
+  addCombo('human','cloth','tailor');addCombo('human','paper','writer');
+  addCombo('human','book','scholar');addCombo('human','sword','warrior');
+  addCombo('human','magic','wizard');addCombo('human','god','prophet');
+  addCombo('human','money','merchant');addCombo('human','music','musician');
+  addCombo('human','art','artist');addCombo('human','food','chef');
+  addCombo('dog','human','friend');addCombo('cat','human','pet');
+  addCombo('horse','human','cavalry');addCombo('bird','human','angel');
+  addCombo('fish','human','mermaid');addCombo('dragon','human','dragon_rider');
+  addCombo('wolf','human','werewolf');addCombo('bear','human','werebear');
+  addCombo('snake','human','medusa');addCombo('spider','human','spider_man');
+  addCombo('bee','human','beekeeper');addCombo('chicken','human','farmer');
+  addCombo('cow','human','farmer');addCombo('pig','human','farmer');
+
+  // ── Food/Cooking ──
+  addCombo('cooking','meat','steak');addCombo('cooking','fish','grilled_fish');
+  addCombo('cooking','egg_food','omelette');addCombo('cooking','wheat','bread');
+  addCombo('cooking','rice','fried_rice');addCombo('cooking','water','soup');
+  addCombo('cooking','vegetable','stir_fry');addCombo('cooking','dough','pizza');
+  addCombo('apple','pie','apple_pie');addCombo('grape','sugar','raisin');
+  addCombo('lemon','water','lemonade');addCombo('orange','water','orange_juice');
+  addCombo('coffee','milk','latte');addCombo('tea','milk','milk_tea');
+  addCombo('chocolate','milk','chocolate_milk');addCombo('icecream','coffee','affogato');
+  addCombo('bread','meat','sandwich');addCombo('bread','egg_food','toast');
+  addCombo('rice','fish','sushi');addCombo('rice','meat','donburi');
+  addCombo('noodle','meat','mein');addCombo('noodle','soup','ramen');
+  addCombo('potato','fire','baked_potato');addCombo('potato','oil','fries');
+
+  // ── Tech ──
+  addCombo('metal','electricity','wire');addCombo('wire','electricity','circuit');
+  addCombo('circuit','computer','cpu');addCombo('cpu','computer','laptop');
+  addCombo('phone','camera','smartphone');addCombo('smartphone','internet','app');
+  addCombo('computer','music','digital_music');addCombo('computer','art','digital_art');
+  addCombo('computer','book','ebook');addCombo('computer','money','crypto');
+  addCombo('internet','money','crypto');addCombo('internet','video','youtube');
+  addCombo('internet','social','social_media');addCombo('internet','shopping','ecommerce');
+  addCombo('rocket','moon','moon_landing');addCombo('rocket','mars','mars_mission');
+  addCombo('satellite','earth','gps');addCombo('satellite','internet','starlink');
+  addCombo('robot','human','android');addCombo('robot','car','self_driving_car');
+  addCombo('ai','human','singularity');addCombo('ai','art','ai_art');
+  addCombo('drone','camera','aerial_photo');addCombo('drone','weapon','drone_strike');
+  addCombo('laser','weapon','laser_gun');addCombo('laser','medicine','laser_surgery');
+  addCombo('battery','car','electric_car');addCombo('battery','phone','power_bank');
+  addCombo('solar_panel','house','solar_house');addCombo('windmill','electricity','wind_power');
+
+  // ── Culture ──
+  addCombo('china','wall','great_wall');addCombo('china','river','yangtze');
+  addCombo('china','mountain','huangshan');addCombo('china','art','calligraphy');
+  addCombo('china','food','chinese_food');addCombo('china','tea','chinese_tea');
+  addCombo('japan','mountain','fuji');addCombo('japan','flower','sakura');
+  addCombo('japan','food','japanese_food');addCombo('japan','art','origami');
+  addCombo('egypt','river','nile');addCombo('egypt','pyramid','giza');
+  addCombo('rome','empire','roman_empire');addCombo('rome','road','roman_road');
+  addCombo('knight','dragon','dragon_slayer');addCombo('knight','king','round_table');
+  addCombo('samurai','sword','katana');addCombo('ninja','weapon','shuriken');
+  addCombo('pirate','ship','pirate_ship');addCombo('pirate','gold','treasure');
+  addCombo('king','castle','palace');addCombo('queen','castle','palace');
+
+  // ── Abstract ──
+  addCombo('love','death','tragedy');addCombo('love','time','eternity');
+  addCombo('love','war','passion');addCombo('love','magic','enchantment');
+  addCombo('death','time','immortality');addCombo('death','magic','necromancy');
+  addCombo('time','magic','time_travel');addCombo('time','space','spacetime');
+  addCombo('dream','magic','vision');addCombo('dream','death','nightmare');
+  addCombo('god','death','underworld');addCombo('god','war','ares');
+  addCombo('god','love','aphrodite');addCombo('god','wisdom','athena');
+  addCombo('peace','war','diplomacy');addCombo('peace','love','harmony');
+  addCombo('chaos','order','balance');addCombo('chaos','magic','wild_magic');
+  addCombo('freedom','order','democracy');addCombo('freedom','war','revolution');
+  addCombo('knowledge','power','wisdom');addCombo('knowledge','time','history');
+  addCombo('truth','lie','deception');addCombo('truth','justice','law');
+  addCombo('beauty','art','masterpiece');addCombo('beauty','nature','landscape');
+  addCombo('music','poetry','song');addCombo('music','dance','ballet');
+  addCombo('game','sport','esports');addCombo('game','story','rpg');
+
   for(const e of missing){if(!allElements.has(e.id)) allElements.set(e.id,e)}
 }
 
