@@ -16,6 +16,7 @@
   --purple:#9888d8; --purple-dim:rgba(152,136,216,.18);
   --emerald:#50c8a0; --emerald-dim:rgba(80,200,160,.18);
   --amber:#d4984a; --amber-dim:rgba(212,152,74,.18);
+  --aqua:#3ad8d0; --aqua-dim:rgba(58,216,208,.18);
   --text:#d0c8b8; --text2:#908878; --text3:#585040;
   --radius:20px; --radius-sm:10px;
   --shadow:0 30px 70px rgba(0,0,0,.55);
@@ -121,7 +122,8 @@ body::before{
 .project-card:nth-child(3) .card-accent{background:var(--red)}
 .project-card:nth-child(4) .card-accent{background:var(--emerald)}
 .project-card:nth-child(5) .card-accent{background:var(--amber)}
-.project-card:nth-child(6) .card-accent{background:var(--purple)}
+.project-card:nth-child(6) .card-accent{background:var(--aqua)}
+.project-card:nth-child(7) .card-accent{background:var(--purple)}
 .project-card:hover .card-accent{width:70%}
 
 /* Visual area */
@@ -141,7 +143,8 @@ body::before{
 .project-card:nth-child(3) .card-visual{background:linear-gradient(160deg,#1a1018 0%,#201525 30%,#2d1030 60%,#1a1025 100%)}
 .project-card:nth-child(4) .card-visual{background:linear-gradient(160deg,#0c1a16 0%,#0e201c 30%,#0c2818 60%,#0a1e16 100%)}
 .project-card:nth-child(5) .card-visual{background:linear-gradient(160deg,#1a1410 0%,#201810 30%,#281808 60%,#1e1408 100%)}
-.project-card:nth-child(6) .card-visual{background:linear-gradient(160deg,#121220 0%,#161830 30%,#181a40 60%,#121830 100%)}
+.project-card:nth-child(6) .card-visual{background:linear-gradient(160deg,#0a1a18 0%,#0c201e 30%,#0a2822 60%,#081e1a 100%)}
+.project-card:nth-child(7) .card-visual{background:linear-gradient(160deg,#121220 0%,#161830 30%,#181a40 60%,#121830 100%)}
 
 /* Card icon SVG */
 .card-icon-svg{width:80px;height:80px;filter:drop-shadow(0 0 20px rgba(200,168,88,.15));transition:all var(--transition)}
@@ -150,7 +153,8 @@ body::before{
 .project-card:nth-child(3) .card-icon-svg{color:var(--red)}
 .project-card:nth-child(4) .card-icon-svg{color:var(--emerald)}
 .project-card:nth-child(5) .card-icon-svg{color:var(--amber)}
-.project-card:nth-child(6) .card-icon-svg{color:var(--purple)}
+.project-card:nth-child(6) .card-icon-svg{color:var(--aqua)}
+.project-card:nth-child(7) .card-icon-svg{color:var(--purple)}
 .project-card:hover .card-icon-svg{filter:drop-shadow(0 0 30px currentColor)}
 
 /* Card info */
@@ -163,7 +167,8 @@ body::before{
 .project-card:nth-child(3) .card-tag{background:rgba(224,104,120,.07);color:var(--red);border:1px solid rgba(224,104,120,.1)}
 .project-card:nth-child(4) .card-tag{background:rgba(80,200,160,.07);color:var(--emerald);border:1px solid rgba(80,200,160,.1)}
 .project-card:nth-child(5) .card-tag{background:rgba(212,152,74,.07);color:var(--amber);border:1px solid rgba(212,152,74,.1)}
-.project-card:nth-child(6) .card-tag{background:rgba(152,136,216,.07);color:var(--purple);border:1px solid rgba(152,136,216,.1)}
+.project-card:nth-child(6) .card-tag{background:rgba(58,216,208,.07);color:var(--aqua);border:1px solid rgba(58,216,208,.1)}
+.project-card:nth-child(7) .card-tag{background:rgba(152,136,216,.07);color:var(--purple);border:1px solid rgba(152,136,216,.1)}
 .card-desc{font-size:.78rem;color:var(--text2);line-height:1.65;flex:1;margin-bottom:.5rem}
 
 /* Arrow hint */
@@ -193,6 +198,7 @@ body::before{
 .reveal-delay-3{transition-delay:.3s}.reveal-delay-4{transition-delay:.4s}
 .reveal-delay-5{transition-delay:.5s}
 .reveal-delay-6{transition-delay:.6s}
+.reveal-delay-7{transition-delay:.7s}
 
 /* ═══════════════════ RESPONSIVE ═══════════════════ */
 @media(max-width:768px){
@@ -379,8 +385,35 @@ body::before{
       <div class="card-arrow-hint">→</div>
     </a>
 
+    <!-- 无限合成 -->
+    <a class="project-card reveal reveal-delay-6" href="homepage/craft.html">
+      <div class="card-accent"></div>
+      <div class="card-visual">
+        <canvas class="cv-particle" data-color="rgba(58,216,208,CLR)" data-count="40"></canvas>
+        <div class="visual-content">
+          <svg class="card-icon-svg" viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="30" cy="30" r="14" stroke-opacity=".15"/>
+            <text x="24" y="36" font-size="18" fill="currentColor" fill-opacity=".35">💧</text>
+            <circle cx="50" cy="30" r="14" stroke-opacity=".15"/>
+            <text x="44" y="36" font-size="18" fill="currentColor" fill-opacity=".35">🔥</text>
+            <circle cx="40" cy="54" r="14" stroke-opacity=".2"/>
+            <text x="34" y="60" font-size="16" fill="currentColor" fill-opacity=".4">✨</text>
+            <line x1="36" y1="40" x2="38" y2="48" stroke-opacity=".25"/>
+            <line x1="48" y1="38" x2="42" y2="46" stroke-opacity=".25"/>
+          </svg>
+          <span class="visual-label">元素合成 · 无限发现</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="card-tags"><span class="card-tag">创意游戏</span><span class="card-tag">元素合成</span><span class="card-tag">350+组合</span></div>
+        <h3>无限合成 · Infinite Craft</h3>
+        <p class="card-desc">拖拽元素自由合成，350+组合数据库+智能规则引擎，从水火风土到宇宙哲学，每次发现都是惊喜</p>
+      </div>
+      <div class="card-arrow-hint">→</div>
+    </a>
+
     <!-- 更多 -->
-    <a class="project-card reveal reveal-delay-6" href="skill_g113593/skill_g113593.html">
+    <a class="project-card reveal reveal-delay-7" href="skill_g113593/skill_g113593.html">
       <div class="card-accent"></div>
       <div class="card-visual">
         <canvas class="cv-particle" data-color="rgba(152,136,216,CLR)" data-count="35"></canvas>

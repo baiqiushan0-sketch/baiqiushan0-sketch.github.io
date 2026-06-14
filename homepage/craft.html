@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>无限合成 · Infinite Craft</title>
+<style>
+/* ═══════════════ TOKENS ═══════════════ */
+:root{
+  --bg:#080814; --surface:rgba(12,10,24,.9); --surface2:rgba(18,14,32,.95);
+  --gold:#c8a858; --gold2:#f0d68a; --cyan:#00e5ff; --magenta:#ff4081;
+  --text:#c8bfa8; --text2:#8a8270; --text3:#4a4540;
+  --radius:14px; --radius-sm:8px;
+  --font:'PingFang SC','Microsoft YaHei',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{font-size:16px}
+body{
+  background:var(--bg);color:var(--text);font-family:var(--font);
+  min-height:100vh;overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;user-select:none;-webkit-user-select:none;
+  touch-action:manipulation;
+  background-image:radial-gradient(ellipse 60% 50% at 50% -20%,rgba(200,168,88,.03),transparent),radial-gradient(ellipse 50% 40% at 80% 80%,rgba(0,229,255,.02),transparent);
+}
+#back{position:fixed;top:16px;left:16px;z-index:50}
+#back a{color:rgba(255,255,255,.2);text-decoration:none;font-size:.65rem;letter-spacing:2px;transition:color .3s}
+#back a:hover{color:rgba(255,255,255,.5)}
+#particles{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+/* ═══════════════ APP ═══════════════ */
+#app{
+  position:relative;z-index:1;max-width:680px;margin:0 auto;
+  padding:60px 16px 40px;display:flex;flex-direction:column;gap:clamp(12px,2vh,20px);
+  min-height:100vh;
+}
+
+/* Header */
+.header{text-align:center}
+.header h1{font-size:clamp(1.5rem,4vw,2.2rem);font-weight:200;letter-spacing:6px;
+  background:linear-gradient(180deg,#f0e0b8,#c8a858);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;background-clip:text;margin-bottom:2px}
+.header .stats{font-size:.65rem;color:var(--text3);letter-spacing:2px}
+.header .stats span{color:var(--cyan);font-weight:600}
+
+/* ═══════════════ COMBINE AREA ═══════════════ */
+.combine-area{display:flex;align-items:center;justify-content:center;gap:clamp(8px,2vw,16px);padding:8px 0}
+.slot{
+  width:clamp(80px,18vw,110px);height:clamp(80px,18vw,110px);
+  border:2px dashed rgba(255,255,255,.06);border-radius:var(--radius);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  transition:all .25s;position:relative;cursor:pointer;
+  background:rgba(255,255,255,.01);
+}
+.slot.filled{border-color:rgba(200,168,88,.25);background:rgba(200,168,88,.04);border-style:solid}
+.slot .emoji{font-size:clamp(1.8rem,5vw,3rem);transition:transform .2s}
+.slot .name{font-size:.55rem;color:var(--text3);margin-top:4px;letter-spacing:1px;transition:color .2s}
+.slot.filled .name{color:var(--text2)}
+.slot .placeholder{font-size:.55rem;color:var(--text3);opacity:.5;letter-spacing:2px}
+.slot:hover{border-color:rgba(255,255,255,.1)}
+.slot.pulse{animation:slotPulse .4s ease}
+@keyframes slotPulse{0%,100%{box-shadow:0 0 0 rgba(200,168,88,0)}50%{box-shadow:0 0 30px rgba(200,168,88,.15)}}
+
+.combine-btn{
+  width:clamp(36px,8vw,50px);height:clamp(36px,8vw,50px);
+  border-radius:50%;border:1px solid rgba(200,168,88,.15);
+  background:rgba(200,168,88,.04);color:var(--gold);
+  font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .3s;flex-shrink:0;
+}
+.combine-btn.ready{border-color:rgba(200,168,88,.4);background:rgba(200,168,88,.12);animation:glowPulse 1.5s infinite}
+.combine-btn:active{transform:scale(.9)}
+@keyframes glowPulse{0%,100%{box-shadow:0 0 15px rgba(200,168,88,.1)}50%{box-shadow:0 0 30px rgba(200,168,88,.25)}}
+
+/* Result flash */
+.result-flash{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);z-index:60;pointer-events:none;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  transition:transform .3s cubic-bezier(.2,1.2,.5,1);
+}
+.result-flash.show{transform:translate(-50%,-50%) scale(1)}
+.result-flash .r-emoji{font-size:3.5rem;filter:drop-shadow(0 0 30px rgba(200,168,88,.5))}
+.result-flash .r-name{font-size:.8rem;color:var(--gold2);letter-spacing:2px;text-shadow:0 0 20px rgba(200,168,88,.4)}
+.result-flash .r-tag{font-size:.5rem;color:var(--cyan);letter-spacing:1px;padding:2px 8px;
+  border:1px solid rgba(0,229,255,.2);border-radius:10px}
+
+/* Known flash */
+.result-flash.known .r-emoji{filter:drop-shadow(0 0 20px rgba(120,120,120,.3))}
+.result-flash.known .r-name{color:var(--text3)}
+
+/* ═══════════════ SEARCH ═══════════════ */
+.search-wrap{position:relative}
+.search-wrap input{
+  width:100%;padding:10px 16px 10px 36px;font-size:.72rem;
+  background:var(--surface);border:1px solid rgba(255,255,255,.05);border-radius:25px;
+  color:var(--text);outline:none;font-family:inherit;letter-spacing:1px;transition:border-color .3s
+}
+.search-wrap input:focus{border-color:rgba(200,168,88,.2)}
+.search-wrap input::placeholder{color:var(--text3)}
+.search-wrap .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:.7rem;color:var(--text3)}
+
+/* ═══════════════ ELEMENTS GRID ═══════════════ */
+.elements-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(62px,14vw,78px),1fr));
+  gap:clamp(5px,1vw,8px);max-height:50vh;overflow-y:auto;padding:4px;
+  scroll-behavior:smooth;
+}
+.elements-grid::-webkit-scrollbar{width:4px}
+.elements-grid::-webkit-scrollbar-thumb{background:rgba(255,255,255,.05);border-radius:2px}
+
+.element-card{
+  aspect-ratio:1;border-radius:var(--radius-sm);
+  background:var(--surface);border:1px solid rgba(255,255,255,.03);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .2s;position:relative;
+  gap:2px;
+}
+.element-card:hover{background:var(--surface2);border-color:rgba(255,255,255,.08);transform:translateY(-2px)}
+.element-card:active{transform:scale(.94)}
+.element-card.selected{border-color:var(--gold);background:rgba(200,168,88,.06);box-shadow:0 0 15px rgba(200,168,88,.1)}
+.element-card .e-emoji{font-size:clamp(1.1rem,3vw,2rem);transition:transform .2s}
+.element-card:hover .e-emoji{transform:scale(1.1)}
+.element-card .e-name{font-size:.45rem;color:var(--text3);text-align:center;line-height:1.1;max-width:90%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* New element animation */
+.element-card.new-arrival{animation:cardAppear .5s cubic-bezier(.2,1.2,.5,1)}
+@keyframes cardAppear{0%{transform:scale(0);opacity:0}60%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+
+/* ═══════════════ CONTROLS ═══════════════ */
+.controls{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.controls button{
+  padding:8px 16px;font-size:.6rem;border:1px solid rgba(255,255,255,.06);
+  background:var(--surface);color:var(--text2);border-radius:20px;
+  cursor:pointer;letter-spacing:1px;transition:all .3s;font-family:inherit
+}
+.controls button:hover{background:var(--surface2);border-color:rgba(255,255,255,.12);color:var(--text)}
+.controls button.danger:hover{border-color:rgba(255,64,129,.3);color:var(--magenta)}
+
+/* ═══════════════ TOAST ═══════════════ */
+#toast{
+  position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(20px);z-index:70;
+  font-size:.65rem;padding:8px 18px;border-radius:20px;pointer-events:none;
+  opacity:0;transition:all .3s;
+  background:rgba(0,0,0,.9);border:1px solid rgba(255,255,255,.08);color:var(--text2);
+  letter-spacing:1px;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ═══════════════ RESPONSIVE ═══════════════ */
+@media(max-width:480px){
+  #app{padding:50px 10px 30px}
+  .elements-grid{max-height:40vh;grid-template-columns:repeat(auto-fill,minmax(55px,1fr))}
+  .slot{width:70px;height:70px}
+}
+</style>
+</head>
+<body>
+<div id="back"><a href="../index.html">← 返回合集</a></div>
+<canvas id="particles"></canvas>
+
+<div id="app">
+  <div class="header">
+    <h1>无限合成</h1>
+    <div class="stats">已发现 <span id="count">0</span> 种元素</div>
+  </div>
+
+  <div class="combine-area">
+    <div class="slot" id="slot1"><span class="placeholder">点击元素</span></div>
+    <div class="combine-btn" id="combineBtn">⚡</div>
+    <div class="slot" id="slot2"><span class="placeholder">点击元素</span></div>
+  </div>
+
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="search" placeholder="搜索元素..." autocomplete="off">
+  </div>
+
+  <div class="elements-grid" id="grid"></div>
+
+  <div class="controls">
+    <button id="btnSort">📋 按类别</button>
+    <button id="btnRecent">🕐 最近发现</button>
+    <button id="btnReset" class="danger">🔄 重置</button>
+  </div>
+</div>
+
+<div class="result-flash" id="resultFlash"><span class="r-emoji"></span><span class="r-name"></span><span class="r-tag"></span></div>
+<div id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════
+   无限合成 · Infinite Craft
+   ═══════════════════════════════════════ */
+
+// ── DOM refs ──
+const grid = document.getElementById('grid');
+const slot1 = document.getElementById('slot1');
+const slot2 = document.getElementById('slot2');
+const combineBtn = document.getElementById('combineBtn');
+const searchInput = document.getElementById('search');
+const countEl = document.getElementById('count');
+const resultFlash = document.getElementById('resultFlash');
+const toast = document.getElementById('toast');
+
+// ── State ──
+let discovered = new Set();       // Set of element ids
+let discoveryOrder = [];          // Order of discovery
+let selected = [null, null];      // [slot1Element, slot2Element]
+let allElements = new Map();      // id → {id, name, emoji, category}
+let sortMode = 'default';         // default | category | recent
+let toastTimer = null;
+
+// ── Combinations database ──
+const combos = new Map(); // "a|b" (sorted) → resultId
+
+function addCombo(a,b,result){combos.set([a,b].sort().join('|'),result)}
+
+// ═══════════════ ELEMENTS DATABASE ═══════════════
+// Category colors for visual grouping
+const CATEGORIES = {
+  basic:'#5ca8d8', nature:'#50c8a0', tech:'#00e5ff', life:'#ff6b8a',
+  abstract:'#9888d8', culture:'#ffd740', cosmic:'#ff4081', material:'#c8a858'
+};
+
+const ELEMENTS = [
+  // ── Basic (4 starting elements) ──
+  {id:'water', name:'水', emoji:'💧', cat:'basic'},
+  {id:'fire', name:'火', emoji:'🔥', cat:'basic'},
+  {id:'wind', name:'风', emoji:'🌬️', cat:'basic'},
+  {id:'earth', name:'土', emoji:'🌍', cat:'basic'},
+
+  // ── Level 2 ──
+  {id:'steam', name:'蒸汽', emoji:'♨️', cat:'basic'},
+  {id:'lava', name:'岩浆', emoji:'🌋', cat:'basic'},
+  {id:'dust', name:'灰尘', emoji:'💨', cat:'material'},
+  {id:'energy', name:'能量', emoji:'⚡', cat:'abstract'},
+  {id:'mud', name:'泥巴', emoji:'🟤', cat:'nature'},
+  {id:'rain', name:'雨', emoji:'🌧️', cat:'nature'},
+  {id:'smoke', name:'烟', emoji:'💭', cat:'material'},
+  {id:'sand', name:'沙子', emoji:'🏖️', cat:'nature'},
+  {id:'storm', name:'风暴', emoji:'⛈️', cat:'nature'},
+
+  // ── Level 3 ──
+  {id:'stone', name:'石头', emoji:'🪨', cat:'nature'},
+  {id:'glass', name:'玻璃', emoji:'🔍', cat:'material'},
+  {id:'brick', name:'砖块', emoji:'🧱', cat:'material'},
+  {id:'plant', name:'植物', emoji:'🌱', cat:'nature'},
+  {id:'cloud', name:'云', emoji:'☁️', cat:'nature'},
+  {id:'volcano', name:'火山', emoji:'🌋', cat:'nature'},
+  {id:'geyser', name:'间歇泉', emoji:'⛲', cat:'nature'},
+  {id:'beach', name:'沙滩', emoji:'🏝️', cat:'nature'},
+  {id:'clay', name:'黏土', emoji:'🏺', cat:'material'},
+  {id:'wave', name:'海浪', emoji:'🌊', cat:'nature'},
+  {id:'lightning', name:'闪电', emoji:'⚡', cat:'basic'},
+  {id:'tornado', name:'龙卷风', emoji:'🌪️', cat:'nature'},
+  {id:'sandstorm', name:'沙尘暴', emoji:'🏜️', cat:'nature'},
+  {id:'obsidian', name:'黑曜石', emoji:'🖤', cat:'material'},
+  {id:'hotspring', name:'温泉', emoji:'♨️', cat:'nature'},
+
+  // ── Level 4 ──
+  {id:'tree', name:'树', emoji:'🌳', cat:'nature'},
+  {id:'flower', name:'花', emoji:'🌸', cat:'nature'},
+  {id:'grass', name:'草', emoji:'🌿', cat:'nature'},
+  {id:'forest', name:'森林', emoji:'🏞️', cat:'nature'},
+  {id:'garden', name:'花园', emoji:'🌷', cat:'nature'},
+  {id:'mountain', name:'山', emoji:'⛰️', cat:'nature'},
+  {id:'river', name:'河流', emoji:'🏞️', cat:'nature'},
+  {id:'ocean', name:'海洋', emoji:'🌊', cat:'nature'},
+  {id:'lake', name:'湖泊', emoji:'🏔️', cat:'nature'},
+  {id:'island', name:'岛屿', emoji:'🏝️', cat:'nature'},
+  {id:'desert', name:'沙漠', emoji:'🏜️', cat:'nature'},
+  {id:'swamp', name:'沼泽', emoji:'🪸', cat:'nature'},
+  {id:'cave', name:'洞穴', emoji:'🕳️', cat:'nature'},
+  {id:'cliff', name:'悬崖', emoji:'🧗', cat:'nature'},
+  {id:'valley', name:'峡谷', emoji:'🏜️', cat:'nature'},
+  {id:'oasis', name:'绿洲', emoji:'🌴', cat:'nature'},
+  {id:'ice', name:'冰', emoji:'🧊', cat:'nature'},
+  {id:'snow', name:'雪', emoji:'❄️', cat:'nature'},
+  {id:'glacier', name:'冰川', emoji:'🏔️', cat:'nature'},
+  {id:'metal', name:'金属', emoji:'🔩', cat:'material'},
+  {id:'gold', name:'黄金', emoji:'🪙', cat:'material'},
+  {id:'iron', name:'铁', emoji:'⛏️', cat:'material'},
+  {id:'crystal', name:'水晶', emoji:'💎', cat:'material'},
+  {id:'diamond', name:'钻石', emoji:'💠', cat:'material'},
+  {id:'coal', name:'煤', emoji:'🪨', cat:'material'},
+  {id:'oil', name:'石油', emoji:'🛢️', cat:'material'},
+  {id:'ceramic', name:'陶瓷', emoji:'🏺', cat:'material'},
+  {id:'paper', name:'纸', emoji:'📄', cat:'material'},
+  {id:'cloth', name:'布', emoji:'🧵', cat:'material'},
+
+  // ── Level 5 ──
+  {id:'sun', name:'太阳', emoji:'☀️', cat:'cosmic'},
+  {id:'moon', name:'月亮', emoji:'🌙', cat:'cosmic'},
+  {id:'star', name:'星星', emoji:'⭐', cat:'cosmic'},
+  {id:'planet', name:'行星', emoji:'🪐', cat:'cosmic'},
+  {id:'universe', name:'宇宙', emoji:'🌌', cat:'cosmic'},
+  {id:'galaxy', name:'银河', emoji:'🌌', cat:'cosmic'},
+  {id:'blackhole', name:'黑洞', emoji:'🕳️', cat:'cosmic'},
+  {id:'comet', name:'彗星', emoji:'☄️', cat:'cosmic'},
+  {id:'aurora', name:'极光', emoji:'🌌', cat:'cosmic'},
+  {id:'rainbow', name:'彩虹', emoji:'🌈', cat:'nature'},
+  {id:'fish', name:'鱼', emoji:'🐟', cat:'life'},
+  {id:'bird', name:'鸟', emoji:'🐦', cat:'life'},
+  {id:'animal', name:'动物', emoji:'🐾', cat:'life'},
+  {id:'human', name:'人类', emoji:'🧑', cat:'life'},
+  {id:'egg', name:'蛋', emoji:'🥚', cat:'life'},
+  {id:'dinosaur', name:'恐龙', emoji:'🦕', cat:'life'},
+  {id:'dragon', name:'龙', emoji:'🐉', cat:'life'},
+  {id:'phoenix', name:'凤凰', emoji:'🦅', cat:'life'},
+  {id:'whale', name:'鲸鱼', emoji:'🐋', cat:'life'},
+  {id:'butterfly', name:'蝴蝶', emoji:'🦋', cat:'life'},
+  {id:'treeoflife', name:'生命之树', emoji:'🌳', cat:'life'},
+  {id:'food', name:'食物', emoji:'🍞', cat:'life'},
+  {id:'fruit', name:'水果', emoji:'🍎', cat:'life'},
+  {id:'wheat', name:'小麦', emoji:'🌾', cat:'nature'},
+  {id:'rice', name:'大米', emoji:'🍚', cat:'nature'},
+  {id:'bread', name:'面包', emoji:'🍞', cat:'life'},
+  {id:'wine', name:'酒', emoji:'🍷', cat:'culture'},
+  {id:'beer', name:'啤酒', emoji:'🍺', cat:'culture'},
+  {id:'coffee', name:'咖啡', emoji:'☕', cat:'culture'},
+  {id:'tea', name:'茶', emoji:'🍵', cat:'culture'},
+
+  // ── Level 6: Technology ──
+  {id:'tool', name:'工具', emoji:'🔧', cat:'tech'},
+  {id:'wheel', name:'轮子', emoji:'🛞', cat:'tech'},
+  {id:'machine', name:'机器', emoji:'⚙️', cat:'tech'},
+  {id:'engine', name:'引擎', emoji:'🔧', cat:'tech'},
+  {id:'electricity', name:'电', emoji:'⚡', cat:'tech'},
+  {id:'computer', name:'电脑', emoji:'💻', cat:'tech'},
+  {id:'internet', name:'互联网', emoji:'🌐', cat:'tech'},
+  {id:'phone', name:'手机', emoji:'📱', cat:'tech'},
+  {id:'robot', name:'机器人', emoji:'🤖', cat:'tech'},
+  {id:'ai', name:'人工智能', emoji:'🧠', cat:'tech'},
+  {id:'rocket', name:'火箭', emoji:'🚀', cat:'tech'},
+  {id:'satellite', name:'卫星', emoji:'🛰️', cat:'tech'},
+  {id:'car', name:'汽车', emoji:'🚗', cat:'tech'},
+  {id:'airplane', name:'飞机', emoji:'✈️', cat:'tech'},
+  {id:'ship', name:'船', emoji:'🚢', cat:'tech'},
+  {id:'train', name:'火车', emoji:'🚂', cat:'tech'},
+  {id:'bridge', name:'桥', emoji:'🌉', cat:'tech'},
+  {id:'city', name:'城市', emoji:'🏙️', cat:'tech'},
+  {id:'house', name:'房子', emoji:'🏠', cat:'tech'},
+  {id:'castle', name:'城堡', emoji:'🏰', cat:'tech'},
+  {id:'tower', name:'塔', emoji:'🗼', cat:'tech'},
+  {id:'wall', name:'墙', emoji:'🧱', cat:'tech'},
+  {id:'road', name:'路', emoji:'🛣️', cat:'tech'},
+  {id:'weapon', name:'武器', emoji:'⚔️', cat:'tech'},
+  {id:'sword', name:'剑', emoji:'🗡️', cat:'tech'},
+  {id:'shield', name:'盾', emoji:'🛡️', cat:'tech'},
+  {id:'gun', name:'枪', emoji:'🔫', cat:'tech'},
+  {id:'bomb', name:'炸弹', emoji:'💣', cat:'tech'},
+  {id:'nuke', name:'核弹', emoji:'☢️', cat:'tech'},
+  {id:'book', name:'书', emoji:'📖', cat:'culture'},
+  {id:'art', name:'艺术', emoji:'🎨', cat:'culture'},
+  {id:'music', name:'音乐', emoji:'🎵', cat:'culture'},
+  {id:'movie', name:'电影', emoji:'🎬', cat:'culture'},
+  {id:'game', name:'游戏', emoji:'🎮', cat:'culture'},
+
+  // ── Level 7: Abstract ──
+  {id:'life', name:'生命', emoji:'🧬', cat:'abstract'},
+  {id:'death', name:'死亡', emoji:'💀', cat:'abstract'},
+  {id:'love', name:'爱', emoji:'❤️', cat:'abstract'},
+  {id:'time', name:'时间', emoji:'⏳', cat:'abstract'},
+  {id:'space', name:'空间', emoji:'🌌', cat:'abstract'},
+  {id:'magic', name:'魔法', emoji:'✨', cat:'abstract'},
+  {id:'dream', name:'梦', emoji:'💤', cat:'abstract'},
+  {id:'soul', name:'灵魂', emoji:'👻', cat:'abstract'},
+  {id:'god', name:'神', emoji:'👼', cat:'abstract'},
+  {id:'devil', name:'恶魔', emoji:'😈', cat:'abstract'},
+  {id:'angel', name:'天使', emoji:'👼', cat:'abstract'},
+  {id:'ghost', name:'鬼', emoji:'👻', cat:'abstract'},
+  {id:'vampire', name:'吸血鬼', emoji:'🧛', cat:'abstract'},
+  {id:'zombie', name:'僵尸', emoji:'🧟', cat:'abstract'},
+  {id:'alien', name:'外星人', emoji:'👽', cat:'cosmic'},
+  {id:'ufo', name:'飞碟', emoji:'🛸', cat:'cosmic'},
+  {id:'heaven', name:'天堂', emoji:'☁️', cat:'abstract'},
+  {id:'hell', name:'地狱', emoji:'🔥', cat:'abstract'},
+  {id:'luck', name:'运气', emoji:'🍀', cat:'abstract'},
+  {id:'wisdom', name:'智慧', emoji:'🦉', cat:'abstract'},
+  {id:'power', name:'力量', emoji:'💪', cat:'abstract'},
+  {id:'peace', name:'和平', emoji:'☮️', cat:'abstract'},
+  {id:'war', name:'战争', emoji:'⚔️', cat:'abstract'},
+  {id:'money', name:'金钱', emoji:'💰', cat:'abstract'},
+  {id:'fame', name:'名声', emoji:'🌟', cat:'abstract'},
+
+  // ── Level 8: Culture & Fun ──
+  {id:'china', name:'中国', emoji:'🇨🇳', cat:'culture'},
+  {id:'japan', name:'日本', emoji:'🇯🇵', cat:'culture'},
+  {id:'egypt', name:'埃及', emoji:'🏛️', cat:'culture'},
+  {id:'rome', name:'罗马', emoji:'🏛️', cat:'culture'},
+  {id:'pirate', name:'海盗', emoji:'🏴‍☠️', cat:'culture'},
+  {id:'ninja', name:'忍者', emoji:'🥷', cat:'culture'},
+  {id:'samurai', name:'武士', emoji:'⚔️', cat:'culture'},
+  {id:'knight', name:'骑士', emoji:'🛡️', cat:'culture'},
+  {id:'king', name:'国王', emoji:'👑', cat:'culture'},
+  {id:'queen', name:'女王', emoji:'👸', cat:'culture'},
+  {id:'princess', name:'公主', emoji:'👸', cat:'culture'},
+  {id:'prince', name:'王子', emoji:'🤴', cat:'culture'},
+  {id:'wizard', name:'巫师', emoji:'🧙', cat:'abstract'},
+  {id:'witch', name:'女巫', emoji:'🧙‍♀️', cat:'abstract'},
+  {id:'fairy', name:'精灵', emoji:'🧚', cat:'abstract'},
+  {id:'mermaid', name:'美人鱼', emoji:'🧜‍♀️', cat:'abstract'},
+  {id:'unicorn', name:'独角兽', emoji:'🦄', cat:'abstract'},
+  {id:'pegasus', name:'天马', emoji:'🐴', cat:'abstract'},
+  {id:'pokemon', name:'宝可梦', emoji:'⚡', cat:'culture'},
+  {id:'mario', name:'马力欧', emoji:'🍄', cat:'culture'},
+  {id:'pizza', name:'披萨', emoji:'🍕', cat:'culture'},
+  {id:'cake', name:'蛋糕', emoji:'🎂', cat:'culture'},
+  {id:'chocolate', name:'巧克力', emoji:'🍫', cat:'culture'},
+  {id:'icecream', name:'冰淇淋', emoji:'🍦', cat:'culture'},
+  {id:'sushi', name:'寿司', emoji:'🍣', cat:'culture'},
+  {id:'ramen', name:'拉面', emoji:'🍜', cat:'culture'},
+  {id:'hamburger', name:'汉堡', emoji:'🍔', cat:'culture'},
+  {id:'sport', name:'运动', emoji:'⚽', cat:'culture'},
+  {id:'soccer', name:'足球', emoji:'⚽', cat:'culture'},
+  {id:'basketball', name:'篮球', emoji:'🏀', cat:'culture'},
+  {id:'meditation', name:'冥想', emoji:'🧘', cat:'abstract'},
+  {id:'yoga', name:'瑜伽', emoji:'🧘‍♀️', cat:'abstract'},
+  {id:'kungfu', name:'功夫', emoji:'🥋', cat:'culture'},
+  {id:'taichi', name:'太极', emoji:'☯️', cat:'abstract'},
+  {id:'yin_yang', name:'阴阳', emoji:'☯️', cat:'abstract'},
+  {id:'fairy_tale', name:'童话', emoji:'📚', cat:'culture'},
+];
+
+// ═══════════════ BUILD DATABASE ═══════════════
+function buildDB(){
+  // Register all elements
+  for(const e of ELEMENTS) allElements.set(e.id, e);
+
+  // Helper: get element by id
+  const E = id => allElements.get(id);
+
+  // ═══ LEVEL 2 Combinations ═══
+  addCombo('water','fire','steam');
+  addCombo('fire','earth','lava');
+  addCombo('wind','earth','dust');
+  addCombo('wind','fire','energy');
+  addCombo('water','earth','mud');
+  addCombo('water','wind','rain');
+  addCombo('fire','wind','smoke');
+  addCombo('wind','sand','sand');
+  addCombo('rain','wind','storm');
+  addCombo('water','water','lake');
+  addCombo('fire','fire','sun');
+
+  // ═══ LEVEL 3 ═══
+  addCombo('lava','water','stone');
+  addCombo('sand','fire','glass');
+  addCombo('mud','fire','brick');
+  addCombo('earth','rain','plant');
+  addCombo('steam','wind','cloud');
+  addCombo('lava','earth','volcano');
+  addCombo('water','lava','obsidian');
+  addCombo('steam','water','geyser');
+  addCombo('sand','water','beach');
+  addCombo('mud','water','clay');
+  addCombo('wind','water','wave');
+  addCombo('energy','cloud','lightning');
+  addCombo('storm','wind','tornado');
+  addCombo('storm','sand','sandstorm');
+  addCombo('steam','earth','hotspring');
+  addCombo('glass','fire','crystal');
+  addCombo('stone','fire','metal');
+  addCombo('lava','lava','volcano');
+
+  // ═══ LEVEL 4 ═══
+  addCombo('plant','earth','tree');
+  addCombo('plant','water','flower');
+  addCombo('plant','wind','grass');
+  addCombo('tree','tree','forest');
+  addCombo('flower','flower','garden');
+  addCombo('stone','earth','mountain');
+  addCombo('water','mountain','river');
+  addCombo('river','river','ocean');
+  addCombo('ocean','earth','island');
+  addCombo('sand','sand','desert');
+  addCombo('mud','plant','swamp');
+  addCombo('stone','mountain','cave');
+  addCombo('mountain','ocean','cliff');
+  addCombo('river','mountain','valley');
+  addCombo('desert','water','oasis');
+  addCombo('water','snow','ice');
+  addCombo('rain','ice','snow');
+  addCombo('ice','mountain','glacier');
+  addCombo('stone','metal','iron');
+  addCombo('metal','sun','gold');
+  addCombo('coal','fire','diamond');
+  addCombo('plant','earth','coal');
+  addCombo('plant','mud','swamp');
+  addCombo('clay','fire','ceramic');
+  addCombo('tree','water','paper');
+  addCombo('plant','wind','cotton');
+  addCombo('cotton','tool','cloth');
+
+  // ═══ LEVEL 5 ═══
+  addCombo('fire','sun','star');
+  addCombo('sun','moon','eclipse');
+  addCombo('star','star','galaxy');
+  addCombo('galaxy','galaxy','universe');
+  addCombo('star','ocean','moon');
+  addCombo('star','space','planet');
+  addCombo('universe','dark','blackhole');
+  addCombo('ice','star','comet');
+  addCombo('wind','star','aurora');
+  addCombo('rain','sun','rainbow');
+  addCombo('water','animal','fish');
+  addCombo('wind','animal','bird');
+  addCombo('earth','animal','dinosaur');
+  addCombo('fire','animal','dragon');
+  addCombo('fire','bird','phoenix');
+  addCombo('ocean','animal','whale');
+  addCombo('flower','wind','butterfly');
+  addCombo('life','tree','treeoflife');
+  addCombo('wheat','fire','bread');
+  addCombo('fruit','time','wine');
+  addCombo('wheat','water','beer');
+  addCombo('bean','water','coffee');
+  addCombo('leaf','water','tea');
+  addCombo('plant','food','fruit');
+  addCombo('grass','food','wheat');
+  addCombo('water','food','rice');
+  addCombo('egg','fire','food');
+  addCombo('life','earth','animal');
+  addCombo('animal','brain','human');
+  addCombo('bird','egg','egg');
+
+  // ═══ LEVEL 6 ═══
+  addCombo('stone','tool','wheel');
+  addCombo('metal','tool','machine');
+  addCombo('fire','machine','engine');
+  addCombo('energy','metal','electricity');
+  addCombo('electricity','machine','computer');
+  addCombo('computer','computer','internet');
+  addCombo('computer','electricity','phone');
+  addCombo('computer','ai','robot');
+  addCombo('computer','brain','ai');
+  addCombo('fire','machine','rocket');
+  addCombo('rocket','space','satellite');
+  addCombo('engine','wheel','car');
+  addCombo('engine','wind','airplane');
+  addCombo('engine','water','ship');
+  addCombo('engine','iron','train');
+  addCombo('iron','river','bridge');
+  addCombo('house','house','city');
+  addCombo('brick','house','house');
+  addCombo('stone','castle','castle');
+  addCombo('house','sky','tower');
+  addCombo('brick','wall','wall');
+  addCombo('stone','road','road');
+  addCombo('metal','tool','weapon');
+  addCombo('metal','weapon','sword');
+  addCombo('metal','shield','shield');
+  addCombo('metal','fire','gun');
+  addCombo('gun','fire','bomb');
+  addCombo('bomb','energy','nuke');
+  addCombo('paper','tree','book');
+  addCombo('paint','canvas','art');
+  addCombo('sound','instrument','music');
+  addCombo('art','story','movie');
+  addCombo('computer','art','game');
+
+  // ═══ LEVEL 7 ═══
+  addCombo('energy','life','love');
+  addCombo('sun','moon','time');
+  addCombo('dream','sleep','dream');
+  addCombo('soul','body','human');
+  addCombo('life','death','soul');
+  addCombo('magic','nature','magic');
+  addCombo('god','human','angel');
+  addCombo('devil','angel','devil');
+  addCombo('death','soul','ghost');
+  addCombo('ghost','blood','vampire');
+  addCombo('death','human','zombie');
+  addCombo('space','life','alien');
+  addCombo('alien','machine','ufo');
+  addCombo('angel','sky','heaven');
+  addCombo('devil','fire','hell');
+  addCombo('clover','star','luck');
+  addCombo('love','peace','peace');
+  addCombo('death','war','war');
+  addCombo('gold','trade','money');
+  addCombo('money','star','fame');
+
+  // ═══ LEVEL 8 ═══
+  addCombo('asia','dragon','china');
+  addCombo('asia','samurai','japan');
+  addCombo('desert','pyramid','egypt');
+  addCombo('eagle','castle','rome');
+  addCombo('ocean','thief','pirate');
+  addCombo('japan','warrior','samurai');
+  addCombo('japan','shadow','ninja');
+  addCombo('europe','sword','knight');
+  addCombo('castle','ruler','king');
+  addCombo('king','love','queen');
+  addCombo('king','daughter','princess');
+  addCombo('queen','son','prince');
+  addCombo('magic','human','wizard');
+  addCombo('nature','magic','fairy');
+  addCombo('fish','human','mermaid');
+  addCombo('horse','magic','unicorn');
+  addCombo('horse','wing','pegasus');
+  addCombo('monster','ball','pokemon');
+  addCombo('game','mushroom','mario');
+  addCombo('bread','cheese','pizza');
+  addCombo('flour','sugar','cake');
+  addCombo('sugar','cocoa','chocolate');
+  addCombo('milk','sugar','icecream');
+  addCombo('rice','fish','sushi');
+  addCombo('noodle','soup','ramen');
+  addCombo('bun','meat','hamburger');
+  addCombo('ball','game','sport');
+  addCombo('sport','ball','soccer');
+  addCombo('sport','basket','basketball');
+  addCombo('mind','peace','meditation');
+  addCombo('body','mind','yoga');
+  addCombo('china','fight','kungfu');
+  addCombo('china','philosophy','taichi');
+  addCombo('taichi','universe','yin_yang');
+  addCombo('story','magic','fairy_tale');
+
+  // ── Missing element definitions (used in combos but not in ELEMENTS array) ──
+  const extra = [
+    {id:'cotton',name:'棉花',emoji:'☁️',cat:'nature'},
+    {id:'eclipse',name:'日食',emoji:'🌑',cat:'cosmic'},
+    {id:'dark',name:'黑暗',emoji:'🌑',cat:'abstract'},
+    {id:'bean',name:'豆子',emoji:'🫘',cat:'nature'},
+    {id:'leaf',name:'叶子',emoji:'🍃',cat:'nature'},
+    {id:'brain',name:'大脑',emoji:'🧠',cat:'life'},
+    {id:'paint',name:'颜料',emoji:'🎨',cat:'culture'},
+    {id:'canvas',name:'画布',emoji:'🖼️',cat:'culture'},
+    {id:'sound',name:'声音',emoji:'🔊',cat:'abstract'},
+    {id:'instrument',name:'乐器',emoji:'🎸',cat:'culture'},
+    {id:'story',name:'故事',emoji:'📖',cat:'culture'},
+    {id:'sleep',name:'睡眠',emoji:'😴',cat:'life'},
+    {id:'soul',name:'灵魂',emoji:'✨',cat:'abstract'},
+    {id:'body',name:'身体',emoji:'🧍',cat:'life'},
+    {id:'blood',name:'血液',emoji:'🩸',cat:'life'},
+    {id:'clover',name:'三叶草',emoji:'🍀',cat:'nature'},
+    {id:'trade',name:'交易',emoji:'🤝',cat:'abstract'},
+    {id:'asia',name:'亚洲',emoji:'🗺️',cat:'culture'},
+    {id:'pyramid',name:'金字塔',emoji:'🔺',cat:'culture'},
+    {id:'eagle',name:'鹰',emoji:'🦅',cat:'life'},
+    {id:'thief',name:'小偷',emoji:'🦹',cat:'culture'},
+    {id:'warrior',name:'战士',emoji:'⚔️',cat:'culture'},
+    {id:'shadow',name:'影子',emoji:'👤',cat:'abstract'},
+    {id:'europe',name:'欧洲',emoji:'🏰',cat:'culture'},
+    {id:'ruler',name:'统治者',emoji:'👑',cat:'culture'},
+    {id:'daughter',name:'女儿',emoji:'👧',cat:'life'},
+    {id:'son',name:'儿子',emoji:'👦',cat:'life'},
+    {id:'horse',name:'马',emoji:'🐴',cat:'life'},
+    {id:'wing',name:'翅膀',emoji:'🪽',cat:'life'},
+    {id:'monster',name:'怪物',emoji:'👾',cat:'abstract'},
+    {id:'mushroom',name:'蘑菇',emoji:'🍄',cat:'nature'},
+    {id:'cheese',name:'奶酪',emoji:'🧀',cat:'life'},
+    {id:'flour',name:'面粉',emoji:'🌾',cat:'material'},
+    {id:'sugar',name:'糖',emoji:'🍬',cat:'material'},
+    {id:'cocoa',name:'可可',emoji:'🫘',cat:'nature'},
+    {id:'milk',name:'牛奶',emoji:'🥛',cat:'life'},
+    {id:'noodle',name:'面条',emoji:'🍝',cat:'culture'},
+    {id:'soup',name:'汤',emoji:'🍲',cat:'culture'},
+    {id:'bun',name:'面包胚',emoji:'🥖',cat:'life'},
+    {id:'meat',name:'肉',emoji:'🥩',cat:'life'},
+    {id:'ball',name:'球',emoji:'⚽',cat:'culture'},
+    {id:'basket',name:'篮筐',emoji:'🧺',cat:'material'},
+    {id:'mind',name:'思想',emoji:'💭',cat:'abstract'},
+    {id:'fight',name:'战斗',emoji:'🥊',cat:'abstract'},
+    {id:'philosophy',name:'哲学',emoji:'🤔',cat:'abstract'},
+    {id:'sky',name:'天空',emoji:'🌤️',cat:'nature'},
+    {id:'witch2',name:'女巫',emoji:'🧙‍♀️',cat:'abstract'},
+];
+
+  for(const e of extra){
+    if(!allElements.has(e.id)) allElements.set(e.id, e);
+  }
+}
+
+// ── Smart fallback: generate result name for unknown combinations ──
+function generateResult(a, b) {
+  // Rule: same elements = "Super X"
+  if (a.id === b.id) return { id: `super_${a.id}`, name: `超级${a.name}`, emoji: a.emoji, cat: a.cat };
+
+  // Rule: adjective patterns based on categories
+  const catOrder = ['basic','nature','material','life','tech','cosmic','abstract','culture'];
+  const aIdx = catOrder.indexOf(a.cat), bIdx = catOrder.indexOf(b.cat);
+
+  // Pick the "more advanced" category as base
+  if (bIdx > aIdx) [a, b] = [b, a];
+
+  // Generate name patterns
+  const patterns = [
+    {name: `${a.name}${b.name}`, emoji: a.emoji},
+    {name: `${b.name}之${a.name}`, emoji: b.emoji},
+    {name: `${a.name}的${b.name}`, emoji: a.emoji},
+  ];
+  const pick = patterns[Math.floor((a.name.length + b.name.length) % patterns.length)];
+
+  const newId = `${a.id}_${b.id}`.slice(0, 40);
+  return { id: newId, name: pick.name, emoji: pick.emoji, cat: a.cat };
+}
+
+// ── Get combination result ──
+function getComboResult(id1, id2) {
+  const key = [id1, id2].sort().join('|');
+  // Check database
+  if (combos.has(key)) {
+    const resultId = combos.get(key);
+    return allElements.get(resultId) || null;
+  }
+  // Fallback
+  if (!allElements.has(id1) || !allElements.has(id2)) return null;
+  return generateResult(allElements.get(id1), allElements.get(id2));
+}
+
+// ═══════════════ INIT ═══════════════
+function init(){
+  buildDB();
+  // Load save
+  let saved = null;
+  try{ saved = JSON.parse(localStorage.getItem('infinite_craft_save')); }catch{}
+  if(saved && saved.discovered && saved.discoveryOrder){
+    discovered = new Set(saved.discovered);
+    discoveryOrder = saved.discoveryOrder;
+  } else {
+    // Start with 4 basic elements
+    for(const id of ['water','fire','wind','earth']){
+      discovered.add(id);
+      discoveryOrder.push(id);
+    }
+  }
+  sortMode = 'default';
+  selected = [null, null];
+  renderAll();
+}
+
+// ═══════════════ RENDER ═══════════════
+function renderAll(){
+  updateSlots();
+  renderGrid();
+  countEl.textContent = discovered.size;
+}
+
+function updateSlots(){
+  [slot1, slot2].forEach((slot, i) => {
+    const el = selected[i];
+    slot.innerHTML = '';
+    slot.classList.toggle('filled', !!el);
+    if(el){
+      slot.innerHTML = `<span class="emoji">${el.emoji}</span><span class="name">${el.name}</span>`;
+    } else {
+      slot.innerHTML = `<span class="placeholder">点击元素</span>`;
+    }
+  });
+  const bothFilled = selected[0] && selected[1];
+  combineBtn.classList.toggle('ready', bothFilled);
+}
+
+function renderGrid(){
+  grid.innerHTML = '';
+  let items = [...discovered].map(id => allElements.get(id)).filter(Boolean);
+
+  // Sort
+  const searchText = searchInput.value.trim().toLowerCase();
+  if(searchText){
+    items = items.filter(e => e.name.includes(searchText) || e.id.includes(searchText));
+  }
+  if(sortMode === 'category'){
+    items.sort((a,b) => (a.cat||'z').localeCompare(b.cat||'z') || a.name.localeCompare(b.name));
+  } else if(sortMode === 'recent'){
+    const orderMap = new Map(discoveryOrder.map((id,i)=>[id,i]));
+    items.sort((a,b) => (orderMap.get(b.id)||0) - (orderMap.get(a.id)||0));
+  } else {
+    // Default: category then name
+    items.sort((a,b) => (a.cat||'z').localeCompare(b.cat||'z') || a.name.localeCompare(b.name));
+  }
+
+  for(const e of items){
+    const card = document.createElement('div');
+    card.className = 'element-card';
+    card.dataset.id = e.id;
+    card.innerHTML = `<span class="e-emoji">${e.emoji}</span><span class="e-name">${e.name}</span>`;
+    card.addEventListener('click', () => onElementClick(e));
+    // Highlight selected
+    if(selected[0] && selected[0].id===e.id) card.classList.add('selected');
+    if(selected[1] && selected[1].id===e.id) card.classList.add('selected');
+    grid.appendChild(card);
+  }
+}
+
+// ═══════════════ INTERACTIONS ═══════════════
+function onElementClick(el){
+  if(selected[0] && selected[0].id === el.id){
+    selected[0] = null;
+  } else if(selected[1] && selected[1].id === el.id){
+    selected[1] = null;
+  } else if(!selected[0]){
+    selected[0] = el;
+    slot1.classList.add('pulse'); setTimeout(()=>slot1.classList.remove('pulse'),400);
+  } else if(!selected[1]){
+    selected[1] = el;
+    slot2.classList.add('pulse'); setTimeout(()=>slot2.classList.remove('pulse'),400);
+  } else {
+    // Both filled, replace slot 1
+    selected[0] = el;
+    slot1.classList.add('pulse'); setTimeout(()=>slot1.classList.remove('pulse'),400);
+  }
+  renderAll();
+  // Auto combine if both filled
+  if(selected[0] && selected[1]) setTimeout(doCombine, 300);
+}
+
+function doCombine(){
+  if(!selected[0] || !selected[1]) return;
+  const a = selected[0], b = selected[1];
+  const result = getComboResult(a.id, b.id);
+  if(!result) { showToast('无法合成'); return; }
+
+  const isNew = !discovered.has(result.id);
+
+  // Register element if new
+  if(!allElements.has(result.id)){
+    allElements.set(result.id, result);
+  }
+
+  // Add to discovered
+  if(isNew){
+    discovered.add(result.id);
+    discoveryOrder.push(result.id);
+    // Find and mark the new card
+    setTimeout(() => {
+      const card = grid.querySelector(`[data-id="${result.id}"]`);
+      if(card) card.classList.add('new-arrival');
+    }, 100);
+  }
+
+  // Save
+  saveGame();
+
+  // Show result flash
+  resultFlash.className = 'result-flash show' + (isNew ? '' : ' known');
+  resultFlash.querySelector('.r-emoji').textContent = result.emoji;
+  resultFlash.querySelector('.r-name').textContent = result.name;
+  resultFlash.querySelector('.r-tag').textContent = isNew ? '🆕 新发现！' : '已拥有';
+  setTimeout(()=>resultFlash.classList.remove('show'), 1500);
+
+  // Particle burst for new elements
+  if(isNew) spawnParticles();
+
+  // Clear selection
+  selected = [null, null];
+  renderAll();
+}
+
+// ═══════════════ PARTICLES ═══════════════
+const pCanvas = document.getElementById('particles');
+const pCtx = pCanvas.getContext('2d');
+let particles = [];
+
+function spawnParticles(){
+  const cx = window.innerWidth/2, cy = window.innerHeight/2;
+  for(let i=0;i<40;i++){
+    const angle = Math.random()*Math.PI*2;
+    const speed = 2+Math.random()*6;
+    particles.push({
+      x:cx, y:cy, vx:Math.cos(angle)*speed, vy:Math.sin(angle)*speed,
+      life:1, decay:.01+Math.random()*.03, size:2+Math.random()*4,
+      color:['#c8a858','#00e5ff','#ff4081','#50c8a0','#ffd740'][Math.floor(Math.random()*5)]
+    });
+  }
+}
+
+function updateParticles(){
+  pCanvas.width = window.innerWidth;
+  pCanvas.height = window.innerHeight;
+  pCtx.clearRect(0,0,pCanvas.width,pCanvas.height);
+  for(let i=particles.length-1;i>=0;i--){
+    const p = particles[i];
+    p.x += p.vx; p.y += p.vy; p.life -= p.decay;
+    p.vy += .05; // gravity
+    if(p.life<=0){ particles.splice(i,1); continue; }
+    pCtx.beginPath();pCtx.arc(p.x,p.y,p.size,0,Math.PI*2);
+    pCtx.fillStyle = p.color.replace(')',`,${p.life})`).replace('rgb','rgba');
+    if(p.color.startsWith('#')){
+      const r=parseInt(p.color.slice(1,3),16),g=parseInt(p.color.slice(3,5),16),b=parseInt(p.color.slice(5,7),16);
+      pCtx.fillStyle=`rgba(${r},${g},${b},${p.life})`;
+    }
+    pCtx.fill();
+  }
+  requestAnimationFrame(updateParticles);
+}
+
+// ═══════════════ SLOT CLICK ═══════════════
+slot1.addEventListener('click', ()=>{ if(selected[0]){ selected[0]=null; renderAll(); } });
+slot2.addEventListener('click', ()=>{ if(selected[1]){ selected[1]=null; renderAll(); } });
+combineBtn.addEventListener('click', doCombine);
+
+// ═══════════════ SEARCH ═══════════════
+searchInput.addEventListener('input', renderGrid);
+
+// ═══════════════ CONTROLS ═══════════════
+document.getElementById('btnSort').addEventListener('click', ()=>{
+  sortMode = sortMode==='category'?'default':'category';
+  renderAll();
+});
+document.getElementById('btnRecent').addEventListener('click', ()=>{
+  sortMode = sortMode==='recent'?'default':'recent';
+  renderAll();
+});
+document.getElementById('btnReset').addEventListener('click', ()=>{
+  if(confirm('确定要重置所有进度吗？此操作不可恢复。')){
+    localStorage.removeItem('infinite_craft_save');
+    discovered = new Set(['water','fire','wind','earth']);
+    discoveryOrder = ['water','fire','wind','earth'];
+    selected = [null, null];
+    renderAll();
+    showToast('已重置');
+  }
+});
+
+// ═══════════════ HELPERS ═══════════════
+function showToast(msg){
+  toast.textContent = msg; toast.classList.add('show');
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>toast.classList.remove('show'), 2000);
+}
+
+function saveGame(){
+  try{
+    localStorage.setItem('infinite_craft_save', JSON.stringify({
+      discovered: [...discovered],
+      discoveryOrder: discoveryOrder
+    }));
+  }catch{}
+}
+
+// ═══════════════ START ═══════════════
+init();
+updateParticles();
+requestAnimationFrame(updateParticles);
+
+// Resize handler
+window.addEventListener('resize', ()=>{
+  pCanvas.width = window.innerWidth;
+  pCanvas.height = window.innerHeight;
+});
+</script>
+</body>
+</html>
