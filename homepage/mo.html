@@ -80,6 +80,10 @@ function buildPaper() {
   }
 }
 
+// ── Seal image ──
+const sealImg = new Image();
+sealImg.src = 'seal_real.png';
+
 // ── Game state ──
 const INK_COUNT = 600;
 let inkParticles = [];     // {x,y,size,alpha,vx,vy}
@@ -358,7 +362,13 @@ function drawRealSeal(x,y,w,h,text,opacity=1) {
 
 function drawSeals() {
   for(const s of seals){
-    drawRealSeal(s.x,s.y,s.w,s.h,'印',.75);
+    if(sealImg.complete && sealImg.naturalWidth>0){
+      ctx.drawImage(sealImg, s.x, s.y, s.w, s.h);
+    } else {
+      // Fallback: simple red square
+      ctx.fillStyle='rgba(180,40,30,.4)';
+      ctx.fillRect(s.x,s.y,s.w,s.h);
+    }
   }
 }
 
@@ -397,7 +407,9 @@ function drawRipples() {
 function drawSealStamp() {
   const ss = Math.min(W,H)*.07;
   const sx = W - ss*1.5, sy = H - ss*1.5;
-  drawRealSeal(sx,sy,ss,ss,'白秋',.65);
+  if(sealImg.complete && sealImg.naturalWidth>0){
+    ctx.drawImage(sealImg, sx, sy, ss, ss);
+  }
 }
 
 // ── Game loop ──
