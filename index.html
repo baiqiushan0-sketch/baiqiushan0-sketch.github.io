@@ -7,137 +7,110 @@
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#050510;--card:rgba(15,12,30,0.75);--card-hover:rgba(20,16,40,0.9);
-  --border:rgba(255,255,255,0.06);--border-hover:rgba(255,255,255,0.15);
-  --gold:#e2c070;--gold2:#f5e0a0;--text:#d0c8b8;--text2:#908878;--text3:#585040;
-  --c1:#e2c070;--c2:#60c0e0;--c3:#f06070;--c4:#50d890;--c5:#f080c0;--c6:#a080f0;
+  --bg:#050510;--card:rgba(15,12,30,0.7);--card-hover:rgba(20,16,40,0.85);
+  --border:rgba(255,255,255,.05);--border-hover:rgba(255,255,255,.12);
+  --gold:#d4b060;--gold2:#f0da90;--text:#d0c8b8;--text2:#908878;--text3:#585040;
+  --c1:#d4b060;--c2:#50b8d8;--c3:#e86070;--c4:#9080e0;
 }
-@font-face{font-family:'fx';src:local('PingFang SC'),local('Microsoft YaHei'),local('sans-serif')}
 html{font-size:16px;scroll-behavior:smooth}
 body{
-  background:var(--bg);color:var(--text);font-family:'fx';min-height:100vh;
-  overflow-x:hidden;line-height:1.6;-webkit-font-smoothing:antialiased;
+  background:var(--bg);color:var(--text);font-family:'PingFang SC','Microsoft YaHei',sans-serif;
+  min-height:100vh;overflow-x:hidden;line-height:1.6;-webkit-font-smoothing:antialiased;
 }
-
-/* Canvas */
 #bg-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
-
-/* Main layout */
 .main{position:relative;z-index:1;min-height:100vh}
 
 /* Hero */
-.hero{text-align:center;padding:clamp(3rem,10vw,7rem) 1rem clamp(1rem,4vw,2.5rem);position:relative}
+.hero{text-align:center;padding:clamp(3rem,10vw,7rem) 1rem clamp(1.5rem,4vw,3rem);position:relative}
 .hero .name{
   font-size:clamp(1.8rem,5vw,3.5rem);font-weight:200;letter-spacing:clamp(6px,1.5vw,14px);
   background:linear-gradient(180deg,#f5e0a0 0%,#c5a050 50%,#8b6914 100%);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  position:relative;display:inline-block;
+  display:inline-block;position:relative;
 }
 .hero .name::after{
   content:'';position:absolute;bottom:-8px;left:20%;width:60%;height:1px;
   background:linear-gradient(90deg,transparent,var(--gold),transparent);
 }
-.hero .sub{font-size:clamp(.75rem,1.5vw,.9rem);color:var(--text2);letter-spacing:3px;margin-top:1.2rem}
+.hero .sub{font-size:clamp(.7rem,1.5vw,.85rem);color:var(--text2);letter-spacing:4px;margin-top:1.2rem}
 
-/* Glow orb behind hero */
-.hero-glow{
-  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  width:300px;height:300px;background:radial-gradient(circle,rgba(200,160,70,.08),transparent 70%);
-  border-radius:50%;pointer-events:none;animation:heroPulse 4s ease-in-out infinite;
-}
-@keyframes heroPulse{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.3);opacity:.5}}
-
-/* Project Grid */
+/* Grid */
 .projects{
-  display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));
   gap:clamp(1rem,2.5vw,1.8rem);padding:0 clamp(1rem,3vw,3rem) clamp(2rem,5vw,4rem);
-  max-width:1300px;margin:0 auto;
+  max-width:1260px;margin:0 auto;
 }
 
 /* Card */
 .card{
   background:var(--card);border:1px solid var(--border);border-radius:18px;
-  overflow:hidden;cursor:pointer;transition:all .5s cubic-bezier(.23,1,.32,1);
-  position:relative;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  overflow:hidden;cursor:pointer;transition:all .6s cubic-bezier(.2,.9,.3,1);
+  position:relative;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   display:flex;flex-direction:column;text-decoration:none;color:inherit;
 }
 .card:hover{
-  transform:translateY(-8px);
+  transform:translateY(-10px);
   background:var(--card-hover);border-color:var(--border-hover);
-  box-shadow:0 25px 60px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.03);
+  box-shadow:0 30px 70px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.04);
 }
-.card:active{transform:scale(.97)}
+.card:active{transform:scale(.96)}
 
-/* Card glow line on hover */
 .card::before{
   content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
-  width:0;height:1px;transition:width .5s ease;
+  width:0;height:2px;border-radius:1px;transition:width .6s cubic-bezier(.2,.9,.3,1);z-index:2;
 }
 .card:hover::before{width:80%}
-.card:nth-child(1):hover::before{background:var(--c1)}
-.card:nth-child(2):hover::before{background:var(--c2)}
-.card:nth-child(3):hover::before{background:var(--c3)}
-.card:nth-child(4):hover::before{background:var(--c4)}
-.card:nth-child(5):hover::before{background:var(--c5)}
-.card:nth-child(6):hover::before{background:var(--c6)}
+.card:nth-child(1)::before{background:var(--c1)}
+.card:nth-child(2)::before{background:var(--c2)}
+.card:nth-child(3)::before{background:var(--c3)}
+.card:nth-child(4)::before{background:var(--c4)}
 
-/* Card visual */
+/* Visual */
 .card-visual{position:relative;height:220px;overflow:hidden;display:flex;align-items:center;justify-content:center}
 .card-visual canvas{width:100%;height:100%;display:block}
+.card:nth-child(1) .card-visual{background:linear-gradient(160deg,#1a1520,#221830,#2d1540)}
+.card:nth-child(2) .card-visual{background:linear-gradient(160deg,#0f1a20,#152530,#0d2d40)}
+.card:nth-child(3) .card-visual{background:linear-gradient(160deg,#1a1015,#251520,#350d20)}
+.card:nth-child(4) .card-visual{background:linear-gradient(160deg,#151520,#1a1830,#181a40)}
 
-.card:nth-child(1) .card-visual{background:linear-gradient(160deg,#1a1520 0%,#221830 40%,#2d1540 100%)}
-.card:nth-child(2) .card-visual{background:linear-gradient(160deg,#0f1a20 0%,#152530 40%,#0d2d40 100%)}
-.card:nth-child(3) .card-visual{background:linear-gradient(160deg,#1a1015 0%,#251520 40%,#350d20 100%)}
-.card:nth-child(4) .card-visual{background:linear-gradient(160deg,#0f1a15 0%,#152520 40%,#0d3520 100%)}
-.card:nth-child(5) .card-visual{background:linear-gradient(160deg,#1a1020 0%,#201530 40%,#2d1040 100%)}
-.card:nth-child(6) .card-visual{background:linear-gradient(160deg,#151520 0%,#1a1830 40%,#181a40 100%)}
-
-/* Icon orb */
+/* Icon */
 .card-icon{
   width:90px;height:90px;border-radius:50%;display:flex;align-items:center;justify-content:center;
   font-size:2.5rem;position:relative;z-index:1;
-  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);
   backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-  transition:all .5s cubic-bezier(.23,1,.32,1);
-  margin-top:-10px;
+  transition:all .6s cubic-bezier(.2,.9,.3,1);
 }
-.card:hover .card-icon{transform:scale(1.1);border-color:rgba(255,255,255,.15)}
-.card:nth-child(1) .card-icon{box-shadow:0 0 30px rgba(226,192,112,.1)}
-.card:nth-child(2) .card-icon{box-shadow:0 0 30px rgba(96,192,224,.1)}
-.card:nth-child(3) .card-icon{box-shadow:0 0 30px rgba(240,96,112,.1)}
-.card:nth-child(4) .card-icon{box-shadow:0 0 30px rgba(80,216,144,.1)}
-.card:nth-child(5) .card-icon{box-shadow:0 0 30px rgba(240,128,192,.1)}
-.card:nth-child(6) .card-icon{box-shadow:0 0 30px rgba(160,128,240,.1)}
+.card:hover .card-icon{transform:scale(1.12);border-color:rgba(255,255,255,.18)}
+.card:nth-child(1) .card-icon{box-shadow:0 0 40px rgba(212,176,96,.1)}
+.card:nth-child(2) .card-icon{box-shadow:0 0 40px rgba(80,184,216,.1)}
+.card:nth-child(3) .card-icon{box-shadow:0 0 40px rgba(232,96,112,.1)}
+.card:nth-child(4) .card-icon{box-shadow:0 0 40px rgba(144,128,224,.1)}
 
-/* Card info */
+/* Info */
 .card-info{padding:1.2rem 1.5rem 1.5rem;flex:1;display:flex;flex-direction:column}
 .card-info h3{font-size:1.05rem;font-weight:600;color:var(--text);margin-bottom:.3rem;letter-spacing:1px}
 .card-info .tag{
   display:inline-block;padding:3px 10px;border-radius:12px;font-size:.65rem;
   font-weight:500;letter-spacing:.5px;margin-bottom:.5rem;width:fit-content;
 }
-.card:nth-child(1) .tag{background:rgba(226,192,112,.1);color:var(--c1);border:1px solid rgba(226,192,112,.15)}
-.card:nth-child(2) .tag{background:rgba(96,192,224,.1);color:var(--c2);border:1px solid rgba(96,192,224,.15)}
-.card:nth-child(3) .tag{background:rgba(240,96,112,.1);color:var(--c3);border:1px solid rgba(240,96,112,.15)}
-.card:nth-child(4) .tag{background:rgba(80,216,144,.1);color:var(--c4);border:1px solid rgba(80,216,144,.15)}
-.card:nth-child(5) .tag{background:rgba(240,128,192,.1);color:var(--c5);border:1px solid rgba(240,128,192,.15)}
-.card:nth-child(6) .tag{background:rgba(160,128,240,.1);color:var(--c6);border:1px solid rgba(160,128,240,.15)}
-
+.card:nth-child(1) .tag{background:rgba(212,176,96,.1);color:var(--c1);border:1px solid rgba(212,176,96,.15)}
+.card:nth-child(2) .tag{background:rgba(80,184,216,.1);color:var(--c2);border:1px solid rgba(80,184,216,.15)}
+.card:nth-child(3) .tag{background:rgba(232,96,112,.1);color:var(--c3);border:1px solid rgba(232,96,112,.15)}
+.card:nth-child(4) .tag{background:rgba(144,128,224,.1);color:var(--c4);border:1px solid rgba(144,128,224,.15)}
 .card-info p{font-size:.78rem;color:var(--text2);line-height:1.6;flex:1}
 
-/* Arrow indicator */
 .card-arrow{
   position:absolute;bottom:1.2rem;right:1.5rem;width:28px;height:28px;
   border-radius:50%;border:1px solid rgba(255,255,255,.08);display:flex;
-  align-items:center;justify-content:center;font-size:.7rem;
-  transition:all .4s ease;opacity:0;transform:translateX(-8px);
+  align-items:center;justify-content:center;font-size:.7rem;color:var(--text2);
+  transition:all .5s ease;opacity:0;transform:translateX(-10px);
 }
 .card:hover .card-arrow{opacity:1;transform:translateX(0)}
 
 /* Footer */
 .footer{text-align:center;padding:2rem 1rem 3rem;color:var(--text3);font-size:.7rem;letter-spacing:1px}
 
-/* 响应式 */
 @media(max-width:700px){
   .card-visual{height:180px}
   .card-icon{width:70px;height:70px;font-size:2rem}
@@ -150,196 +123,245 @@ body{
 
 <div class="main">
   <div class="hero">
-    <div class="hero-glow"></div>
     <div class="name">白秋山的项目合集</div>
     <div class="sub">BAIQIUSHAN · PROJECT HUB</div>
   </div>
 
   <div class="projects">
-    <!-- 修仙游戏 -->
     <a class="card" href="homepage/xiutu.html">
       <div class="card-visual"><canvas id="cv1"></canvas><div class="card-icon">🧘</div></div>
       <div class="card-info"><span class="tag">文字游戏</span><h3>仙途 · 文字修仙</h3><p>50+随机事件，动态剧情引擎，六阶功法体系，在修仙世界中探索、突破、证道飞升</p></div>
       <div class="card-arrow">→</div>
     </a>
-
-    <!-- 地铁跑酷 -->
     <a class="card" href="homepage/subway-runner.html">
       <div class="card-visual"><canvas id="cv2"></canvas><div class="card-icon">🏃</div></div>
       <div class="card-info"><span class="tag">动作游戏</span><h3>地铁跑酷</h3><p>无尽跑酷，躲避障碍收集金币，挑战最高分</p></div>
       <div class="card-arrow">→</div>
     </a>
-
-    <!-- 3D手势 -->
     <a class="card" href="homepage/gesture-3d.html">
       <div class="card-visual"><canvas id="cv3"></canvas><div class="card-icon">✋</div></div>
       <div class="card-info"><span class="tag">AI交互</span><h3>3D手势识别</h3><p>基于MediaPipe的实时手势追踪，在浏览器中用双手操控3D空间</p></div>
       <div class="card-arrow">→</div>
     </a>
-
-    <!-- 更多 -->
     <a class="card" href="skill_g113593/skill_g113593.html">
-      <div class="card-visual"><canvas id="cv6"></canvas><div class="card-icon">📁</div></div>
+      <div class="card-visual"><canvas id="cv4"></canvas><div class="card-icon">📁</div></div>
       <div class="card-info"><span class="tag">工具</span><h3>更多项目</h3><p>持续更新中，更多有趣的项目即将上线</p></div>
       <div class="card-arrow">→</div>
     </a>
   </div>
-
   <div class="footer">© 2026 白秋山 · BAIQIUSHAN</div>
 </div>
 
-<script>
-// ===== 主背景：3D粒子流 =====
+<script type="importmap">
+{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js"}}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+
+// ===== 主背景：Three.js 3D旋转几何体 =====
 const bgCanvas = document.getElementById('bg-canvas');
-const bgCtx = bgCanvas.getContext('2d');
-let bgW, bgH, particles = [];
+const renderer = new THREE.WebGLRenderer({canvas:bgCanvas,antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.setSize(window.innerWidth,window.innerHeight);
+renderer.setClearColor(0x000000,0);
 
-function resizeBg() {
-  bgW = bgCanvas.width = window.innerWidth;
-  bgH = bgCanvas.height = window.innerHeight;
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(60,window.innerWidth/window.innerHeight,0.1,100);
+camera.position.z=15;
+
+// 创建多个旋转的发光环
+const rings=[];
+const ringColors=[0xd4b060,0x50b8d8,0xe86070,0x9080e0,0xd4b060,0x50b8d8];
+
+for(let i=0;i<6;i++){
+  const geo=new THREE.TorusGeometry(2.5+i*1.2,0.015,16,100);
+  const mat=new THREE.MeshBasicMaterial({color:ringColors[i],transparent:true,opacity:0.15});
+  const ring=new THREE.Mesh(geo,mat);
+  ring.rotation.x=Math.random()*Math.PI;
+  ring.rotation.y=Math.random()*Math.PI;
+  ring.userData={rx:(Math.random()-0.5)*0.003,ry:(Math.random()-0.5)*0.004,rz:(Math.random()-0.5)*0.002};
+  rings.push(ring);
+  scene.add(ring);
 }
-resizeBg();
-window.addEventListener('resize', () => { resizeBg(); initParticles(); });
 
-function initParticles() {
-  particles = [];
-  const count = Math.floor(bgW * bgH / 8000);
-  for (let i = 0; i < count; i++) {
-    particles.push({
-      x: Math.random() * bgW, y: Math.random() * bgH,
-      r: Math.random() * 1.5 + 0.3,
-      vx: (Math.random() - 0.5) * 0.3,
-      vy: (Math.random() - 0.5) * 0.3 - 0.15,
-      o: Math.random() * 0.5 + 0.2,
-      pulse: Math.random() * Math.PI * 2,
-    });
-  }
+// 漂浮的发光点
+const dotsGeo=new THREE.BufferGeometry();
+const dotsCount=200;
+const dotsPos=new Float32Array(dotsCount*3);
+const dotsData=[];
+for(let i=0;i<dotsCount;i++){
+  dotsPos[i*3]=(Math.random()-0.5)*25;
+  dotsPos[i*3+1]=(Math.random()-0.5)*18;
+  dotsPos[i*3+2]=(Math.random()-0.5)*8-2;
+  dotsData.push({
+    vx:(Math.random()-0.5)*0.008,
+    vy:(Math.random()-0.5)*0.008,
+    vz:(Math.random()-0.5)*0.004,
+    phase:Math.random()*Math.PI*2,
+  });
 }
-initParticles();
+dotsGeo.setAttribute('position',new THREE.BufferAttribute(dotsPos,3));
+const dotsMat=new THREE.PointsMaterial({color:0xd4b060,size:0.04,transparent:true,opacity:0.6,blending:THREE.AdditiveBlending});
+const dots=new THREE.Points(dotsGeo,dotsMat);
+scene.add(dots);
 
-function drawBg() {
-  bgCtx.clearRect(0, 0, bgW, bgH);
+// 中央大光晕
+const glowGeo=new THREE.SphereGeometry(3,32,32);
+const glowMat=new THREE.ShaderMaterial({
+  uniforms:{uTime:{value:0}},
+  vertexShader:`varying vec3 vPos;void main(){vPos=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
+  fragmentShader:`varying vec3 vPos;uniform float uTime;void main(){float d=length(vPos)/3.0;float a=smoothstep(1.0,0.0,d)*0.06*(1.0+0.5*sin(uTime*0.5));gl_FragColor=vec4(0.83,0.69,0.38,a);}`,
+  transparent:true,depthWrite:false,
+});
+const glowSphere=new THREE.Mesh(glowGeo,glowMat);
+scene.add(glowSphere);
 
-  // Draw connections
-  for (let i = 0; i < particles.length; i++) {
-    const p = particles[i];
-    for (let j = i + 1; j < particles.length; j++) {
-      const q = particles[j];
-      const dx = p.x - q.x, dy = p.y - q.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < 120) {
-        bgCtx.beginPath();
-        bgCtx.moveTo(p.x, p.y);
-        bgCtx.lineTo(q.x, q.y);
-        bgCtx.strokeStyle = `rgba(180,150,100,${0.03 * (1 - dist / 120)})`;
-        bgCtx.lineWidth = 0.4;
-        bgCtx.stroke();
-      }
-    }
-  }
-
-  // Draw particles
-  for (const p of particles) {
-    p.x += p.vx;
-    p.y += p.vy;
-    if (p.x < -50) p.x = bgW + 50;
-    if (p.x > bgW + 50) p.x = -50;
-    if (p.y < -50) p.y = bgH + 50;
-    if (p.y > bgH + 50) p.y = -50;
-
-    const glow = Math.sin(p.pulse + Date.now() * 0.001) * 0.3 + 0.7;
-    bgCtx.beginPath();
-    bgCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-    bgCtx.fillStyle = `rgba(200,170,120,${p.o * glow})`;
-    bgCtx.fill();
-  }
-  requestAnimationFrame(drawBg);
+// 粒子线连接
+const linesGeo=new THREE.BufferGeometry();
+const linesCount=80;
+const linesPositions=new Float32Array(linesCount*6);
+const linePairs=[];
+for(let i=0;i<linesCount;i++){
+  const a=Math.floor(Math.random()*dotsCount);
+  let b=Math.floor(Math.random()*dotsCount);
+  while(b===a)b=Math.floor(Math.random()*dotsCount);
+  linePairs.push([a,b]);
 }
-drawBg();
+linesGeo.setAttribute('position',new THREE.BufferAttribute(linesPositions,3));
+const linesMat=new THREE.LineBasicMaterial({color:0xd4b060,transparent:true,opacity:0.06,blending:THREE.AdditiveBlending});
+const lines=new THREE.LineSegments(linesGeo,linesMat);
+scene.add(lines);
 
-// ===== 卡片内3D粒子环 =====
-function cardCanvas(id, color, count) {
-  const cv = document.getElementById(id);
-  if (!cv) return;
-  const parent = cv.parentElement;
-  cv.width = parent.offsetWidth;
-  cv.height = parent.offsetHeight;
-  const ctx = cv.getContext('2d');
-  const cx = cv.width / 2, cy = cv.height / 2;
-  const particles = [];
+window.addEventListener('resize',()=>{
+  renderer.setSize(window.innerWidth,window.innerHeight);
+  camera.aspect=window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+});
 
-  for (let i = 0; i < count; i++) {
-    const angle = (Math.PI * 2 * i) / count;
-    const radius = Math.min(cx, cy) * (0.5 + Math.random() * 0.4);
-    particles.push({
-      angle, radius, speed: 0.002 + Math.random() * 0.006,
-      size: 0.8 + Math.random() * 1.5,
-      offsetY: (Math.random() - 0.5) * 30,
-      pulse: Math.random() * Math.PI * 2,
-    });
+// 鼠标交互
+let mouseX=0,mouseY=0;
+document.addEventListener('mousemove',e=>{
+  mouseX=(e.clientX/window.innerWidth-0.5)*2;
+  mouseY=(e.clientY/window.innerHeight-0.5)*2;
+});
+
+function animate(time){
+  requestAnimationFrame(animate);
+
+  // 环旋转
+  for(const ring of rings){
+    ring.rotation.x+=ring.userData.rx;
+    ring.rotation.y+=ring.userData.ry;
+    ring.rotation.z+=ring.userData.rz;
   }
 
-  function draw() {
-    if (cv.width !== parent.offsetWidth || cv.height !== parent.offsetHeight) {
-      cv.width = parent.offsetWidth;
-      cv.height = parent.offsetHeight;
-    }
-    ctx.clearRect(0, 0, cv.width, cv.height);
-    const now = Date.now() * 0.001;
-    const nx = cv.width / 2, ny = cv.height / 2;
+  // 点运动
+  const posArr=dots.geometry.attributes.position.array;
+  for(let i=0;i<dotsCount;i++){
+    const d=dotsData[i];
+    posArr[i*3]+=d.vx;
+    posArr[i*3+1]+=d.vy;
+    posArr[i*3+2]+=d.vz;
+    if(Math.abs(posArr[i*3])>14)d.vx*=-1;
+    if(Math.abs(posArr[i*3+1])>10)d.vy*=-1;
+    if(Math.abs(posArr[i*3+2])>6)d.vz*=-1;
+  }
+  dots.geometry.attributes.position.needsUpdate=true;
 
-    // Draw ring
-    for (const p of particles) {
-      p.angle += p.speed;
-      const x = nx + Math.cos(p.angle) * p.radius;
-      const y = ny + Math.sin(p.angle) * p.radius * 0.4 + p.offsetY;
-      const glow = Math.sin(p.pulse + now * 0.8) * 0.4 + 0.6;
+  // 连线更新
+  for(let i=0;i<linesCount;i++){
+    const [a,b]=linePairs[i];
+    linesPositions[i*6]=posArr[a*3];
+    linesPositions[i*6+1]=posArr[a*3+1];
+    linesPositions[i*6+2]=posArr[a*3+2];
+    linesPositions[i*6+3]=posArr[b*3];
+    linesPositions[i*6+4]=posArr[b*3+1];
+    linesPositions[i*6+5]=posArr[b*3+2];
+  }
+  lines.geometry.attributes.position.needsUpdate=true;
+
+  // 光晕
+  glowMat.uniforms.uTime.value=time*0.001;
+
+  // 鼠标视差
+  const t=time*0.001;
+  scene.rotation.y+=((mouseX*0.15)-scene.rotation.y)*0.02;
+  scene.rotation.x+=((-mouseY*0.08)-scene.rotation.x)*0.02;
+  scene.rotation.y+=0.0008;
+
+  renderer.render(scene,camera);
+}
+requestAnimationFrame(animate);
+
+// ===== 卡片内粒子 =====
+const cardCfgs=[
+  {id:'cv1',color:'rgba(212,176,96,COLOR)',count:45},
+  {id:'cv2',color:'rgba(80,184,216,COLOR)',count:38},
+  {id:'cv3',color:'rgba(232,96,112,COLOR)',count:32},
+  {id:'cv4',color:'rgba(144,128,224,COLOR)',count:38},
+];
+
+cardCfgs.forEach(cfg=>{
+  const cv=document.getElementById(cfg.id);
+  if(!cv)return;
+  const parent=cv.parentElement;
+  const ctx=cv.getContext('2d');
+  const pts=[];
+  for(let i=0;i<cfg.count;i++){
+    const a=(Math.PI*2*i)/cfg.count;
+    pts.push({a,r:0.4+Math.random()*0.5,s:0.003+Math.random()*0.008,size:0.6+Math.random()*1.2,oy:(Math.random()-0.5)*0.3,ph:Math.random()*Math.PI*2});
+  }
+
+  function resize(){
+    cv.width=parent.offsetWidth||400;
+    cv.height=parent.offsetHeight||220;
+  }
+  resize();
+
+  function draw(t){
+    if(cv.width!==(parent.offsetWidth||400)||cv.height!==(parent.offsetHeight||220))resize();
+    ctx.clearRect(0,0,cv.width,cv.height);
+    const cx=cv.width/2,cy=cv.height/2,maxR=Math.min(cx,cy)*0.7;
+
+    for(const p of pts){
+      p.a+=p.s;
+      const x=cx+Math.cos(p.a)*maxR*p.r;
+      const y=cy+Math.sin(p.a)*maxR*p.r*0.35+p.oy*maxR;
+      const g=Math.sin(p.ph+t*0.001*0.8)*0.4+0.6;
+
       ctx.beginPath();
-      ctx.arc(x, y, p.size, 0, Math.PI * 2);
-      ctx.fillStyle = color.replace('0.8', String(0.3 * glow));
+      ctx.arc(x,y,p.size,0,Math.PI*2);
+      ctx.fillStyle=cfg.color.replace('COLOR',String((0.55*g).toFixed(2)));
       ctx.fill();
 
-      // Connect nearby
-      for (const q of particles) {
-        const dx = x - (nx + Math.cos(q.angle) * q.radius);
-        const dy = y - (ny + Math.sin(q.angle) * q.radius * 0.4 + q.offsetY);
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 50 && dist > 0) {
-          ctx.beginPath();
-          ctx.moveTo(x, y);
-          ctx.lineTo(nx + Math.cos(q.angle) * q.radius, ny + Math.sin(q.angle) * q.radius * 0.4 + q.offsetY);
-          ctx.strokeStyle = color.replace('0.8', String(0.08 * (1 - dist / 50)));
-          ctx.lineWidth = 0.5;
-          ctx.stroke();
+      for(const q of pts){
+        if(q===p)continue;
+        const qx=cx+Math.cos(q.a)*maxR*q.r;
+        const qy=cy+Math.sin(q.a)*maxR*q.r*0.35+q.oy*maxR;
+        const dx=x-qx,dy=y-qy,dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist<maxR*0.35){
+          ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(qx,qy);
+          ctx.strokeStyle=cfg.color.replace('COLOR',String((0.1*(1-dist/(maxR*0.35))).toFixed(2)));
+          ctx.lineWidth=0.5;ctx.stroke();
         }
       }
     }
 
-    // Center glow
-    const grd = ctx.createRadialGradient(nx, ny, 0, nx, ny, Math.min(cv.width, cv.height) * 0.3);
-    grd.addColorStop(0, color.replace('0.8', '0.08'));
-    grd.addColorStop(1, 'transparent');
-    ctx.fillStyle = grd;
-    ctx.fillRect(0, 0, cv.width, cv.height);
-
+    // center glow
+    const grd=ctx.createRadialGradient(cx,cy,0,cx,cy,maxR*0.5);
+    grd.addColorStop(0,cfg.color.replace('COLOR','0.08'));
+    grd.addColorStop(1,'transparent');
+    ctx.fillStyle=grd;ctx.fillRect(0,0,cv.width,cv.height);
     requestAnimationFrame(draw);
   }
-  draw();
-}
+  requestAnimationFrame(draw);
+});
 
-// Initialize card canvases with different colors
-setTimeout(() => {
-  cardCanvas('cv1', 'rgba(226,192,112,0.8)', 40);
-  cardCanvas('cv2', 'rgba(96,192,224,0.8)', 35);
-  cardCanvas('cv3', 'rgba(240,96,112,0.8)', 30);
-  cardCanvas('cv6', 'rgba(160,128,240,0.8)', 35);
-}, 200);
-
-window.addEventListener('resize', () => {
-  document.querySelectorAll('.card-visual canvas').forEach(cv => {
-    const p = cv.parentElement;
-    cv.width = p.offsetWidth;
-    cv.height = p.offsetHeight;
+window.addEventListener('resize',()=>{
+  document.querySelectorAll('.card-visual canvas').forEach(cv=>{
+    cv.width=cv.parentElement.offsetWidth;
+    cv.height=cv.parentElement.offsetHeight;
   });
 });
 </script>
