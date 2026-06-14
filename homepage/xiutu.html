@@ -3,8 +3,41 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
-<title>仙途 · 文字修仙 v3.0</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<title>仙途 · 文字修仙 v4.0</title>
+<!-- 内嵌SVG图标库，无需外部CDN -->
+<svg style="display:none" aria-hidden="true">
+  <defs>
+    <!-- 武器图标 -->
+    <symbol id="ic-sword" viewBox="0 0 24 24"><path d="M6 2h12l-2 8l4 4l-8 8l-8-8l4-4z" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
+    <symbol id="ic-shield" viewBox="0 0 24 24"><path d="M12 2L4 5v6c0 5.5 3.8 10.7 8 12c4.2-1.3 8-6.5 8-12V5z" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
+    <symbol id="ic-heart" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5C2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3C19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54z" fill="currentColor"/></symbol>
+    <symbol id="ic-star" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87l1.18 6.88L12 17.77l-6.18 3.25L7 14.14L2 9.27l6.91-1.01z" fill="currentColor"/></symbol>
+    <symbol id="ic-gold" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="12" y="16" text-anchor="middle" font-size="10" fill="currentColor">$</text></symbol>
+    <symbol id="ic-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6 20v-2a4 4 0 014-4h4a4 4 0 014 4v2" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
+    <symbol id="ic-book" viewBox="0 0 24 24"><path d="M4 6h16v14H4zM4 6l8-4l8 4" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
+    <symbol id="ic-bag" viewBox="0 0 24 24"><path d="M8 8V6a4 4 0 018 0v2M4 8h16l-1.5 12h-13z" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
+    <symbol id="ic-paw" viewBox="0 0 24 24"><circle cx="8" cy="8" r="2.5" fill="currentColor"/><circle cx="16" cy="8" r="2.5" fill="currentColor"/><circle cx="8" cy="16" r="3" fill="currentColor"/><circle cx="16" cy="16" r="3" fill="currentColor"/><ellipse cx="12" cy="12" rx="2" ry="2.5" fill="currentColor"/></symbol>
+    <symbol id="ic-trophy" viewBox="0 0 24 24"><path d="M6 9H4V7a2 2 0 012-2h2M18 9h2V7a2 2 0 00-2-2h-2M8 21h8M12 17v4" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6 5h12v9a6 6 0 01-12 0z" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
+    <symbol id="ic-shop" viewBox="0 0 24 24"><path d="M3 9l1-6h16l1 6M3 9v11h18V9M9 21V9" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
+    <symbol id="ic-skull" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="9" cy="10" r="1.5" fill="currentColor"/><circle cx="15" cy="10" r="1.5" fill="currentColor"/><path d="M9 15h6l-1 3h-4z" fill="currentColor"/></symbol>
+    <symbol id="ic-train" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5A2.5 2.5 0 006.5 22h11a2.5 2.5 0 002.5-2.5M4 19.5V6a4 4 0 014-4h8a4 4 0 014 4v13.5M16 6h2M6 6h2" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
+    <symbol id="ic-map" viewBox="0 0 24 24"><path d="M3 6l6-3l6 3l6-3v15l-6 3l-6-3l-6 3zM9 3v15M15 6v15" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
+    <symbol id="ic-bolt" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8l10-12h-9z" fill="currentColor"/></symbol>
+    <symbol id="ic-flask" viewBox="0 0 24 24"><path d="M9 3h6M10 3v6.5L5 18a3 3 0 003 3h8a3 3 0 003-3l-5-8.5V3" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
+    <symbol id="ic-gem" viewBox="0 0 24 24"><path d="M12 2L3 9l9 13l9-13z" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M3 9h18M9 2l-1.5 7M15 2l1.5 7" fill="none" stroke="currentColor" stroke-width="1"/></symbol>
+    <symbol id="ic-scroll" viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 016.5 2H20v20H6.5a2.5 2.5 0 010-5H20" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
+    <symbol id="ic-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M16.24 7.76l-2.12 6.36l-6.36 2.12l2.12-6.36z" fill="currentColor"/></symbol>
+    <symbol id="ic-crown" viewBox="0 0 24 24"><path d="M2 6l4 8l6-6l6 6l4-8l-4 4l-6-4l-6 4z" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M2 18h20" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
+    <symbol id="ic-medal" viewBox="0 0 24 24"><circle cx="12" cy="9" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M9 3h6l1 4H8zM8 16l4 6l4-6" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
+    <symbol id="ic-leaf" viewBox="0 0 24 24"><path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66l.95-2.3c.48.17.98.3 1.34.3C19 20 22 3 22 3C21 3 10.2 2.7 4.8 10.3" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
+    <symbol id="ic-ghost" viewBox="0 0 24 24"><path d="M12 2a8 8 0 00-8 8v12l3-2l3 2l3-2l3 2l3-2l3 2V10a8 8 0 00-8-8z" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="9" cy="10" r="1" fill="currentColor"/><circle cx="15" cy="10" r="1" fill="currentColor"/></symbol>
+    <symbol id="ic-dragon" viewBox="0 0 24 24"><path d="M12 2c-1 4-3 8-3 12c0 4 1.5 6 3 8M12 2c1 4 3 8 3 12c0 4-1.5 6-3 8M6 8c4 1 8 3 12 3M6 16c4-1 8-3 12-3M4 12h16" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
+    <symbol id="ic-fire" viewBox="0 0 24 24"><path d="M12 2C8 6 6 10 6 14c0 3.3 2.7 6 6 6s6-2.7 6-6c0-4-2-8-6-12z" fill="currentColor"/></symbol>
+    <symbol id="ic-water" viewBox="0 0 24 24"><path d="M12 2C8 8 5 12 5 16a7 7 0 0014 0c0-4-3-8-7-14z" fill="currentColor"/></symbol>
+    <symbol id="ic-mountain" viewBox="0 0 24 24"><path d="M3 20l6-8l4 6l5-10l4 12z" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
+    <symbol id="ic-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3A7 7 0 0021 12.79z" fill="currentColor"/></symbol>
+  </defs>
+</svg>
 <style>
 /* ═══════════════════════════════════════
    仙途 v3.0 — 精美修仙UI主题
@@ -141,6 +174,44 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 
 /* Tooltip style info */
 .info-tag{font-size:.45rem;color:var(--text3);letter-spacing:.5px}
+/* SVG Icons */
+.ic{width:1.2rem;height:1.2rem;display:inline-block;vertical-align:middle}
+.ic-sm{width:.8rem;height:.8rem}
+.ic-lg{width:1.6rem;height:1.6rem}
+.ic-xl{width:2.2rem;height:2.2rem}
+.ic-gold{color:var(--gold2)}
+.ic-red{color:var(--red)}
+.ic-blue{color:var(--blue)}
+.ic-green{color:var(--green)}
+.ic-purple{color:var(--purple)}
+.ic-white{color:var(--text)}
+
+/* Premium Item Card */
+.premium-card{background:linear-gradient(145deg,rgba(25,18,45,.95),rgba(15,10,30,.9));border:1px solid rgba(180,150,80,.1);border-radius:12px;padding:10px 8px;text-align:center;cursor:pointer;transition:all .3s;position:relative;overflow:hidden}
+.premium-card:hover{transform:translateY(-3px);box-shadow:0 8px 25px rgba(0,0,0,.4)}
+.premium-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent)}
+.premium-card .pc-icon{font-size:2rem;display:block;margin:4px 0;transition:transform .3s}
+.premium-card:hover .pc-icon{transform:scale(1.1)}
+.premium-card .pc-name{font-size:.6rem;color:var(--text);font-weight:bold;margin:2px 0}
+.premium-card .pc-tier{font-size:.45rem;margin:1px 0}
+.premium-card .pc-stat{font-size:.45rem;color:var(--gold);margin:2px 0}
+.premium-card .pc-btn{font-size:.42rem;padding:3px 8px;margin-top:4px;border-radius:4px}
+.premium-card.tier-fan{border-color:rgba(150,150,150,.2)}
+.premium-card.tier-ling{border-color:rgba(100,180,100,.25);box-shadow:0 0 8px rgba(100,180,100,.05)}
+.premium-card.tier-bao{border-color:rgba(100,140,220,.3);box-shadow:0 0 12px rgba(100,140,220,.08)}
+.premium-card.tier-xian{border-color:rgba(220,150,50,.35);box-shadow:0 0 18px rgba(220,150,50,.1)}
+.premium-card.tier-sheng{border-color:rgba(255,80,80,.4);box-shadow:0 0 22px rgba(255,80,80,.12);animation:glow-sheng 2s infinite}
+@keyframes glow-sheng{0%,100%{box-shadow:0 0 15px rgba(255,80,80,.1)}50%{box-shadow:0 0 30px rgba(255,200,80,.2)}}
+.premium-card.equipped{border:2px solid rgba(100,200,100,.6)!important;box-shadow:0 0 15px rgba(100,200,100,.2)!important}
+.premium-card.equipped::after{content:'已装备';position:absolute;top:6px;right:6px;font-size:.35rem;background:rgba(100,200,100,.2);color:var(--green);padding:1px 6px;border-radius:8px}
+
+/* 灵兽卡 */
+.beast-card{background:linear-gradient(135deg,rgba(20,12,35,.95),rgba(25,18,40,.9));border-radius:12px;padding:12px;text-align:center;border:1px solid rgba(180,150,80,.15)}
+.beast-card .bc-sprite{font-size:3.5rem;display:block;margin:4px 0;animation:float 3s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.beast-card .bc-name{font-size:.8rem;color:var(--gold2);font-weight:bold}
+.beast-card .bc-type{font-size:.5rem;color:var(--text2);margin:2px 0}
+.beast-card .bc-ability{font-size:.5rem;color:var(--blue);margin:4px 0;padding:4px 8px;background:rgba(0,0,0,.2);border-radius:6px;display:inline-block}
 </style>
 </head>
 <body>
@@ -149,22 +220,22 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 <div id="topbar">
   <div class="realm" id="hdr-realm">凡人</div>
   <div class="bars">
-    <span><i class="fa-solid fa-sword" style="color:#e05555"></i><span id="hdr-atk">3</span></span>
-    <span><i class="fa-solid fa-shield" style="color:#5ba0d9"></i><span id="hdr-def">1</span></span>
-    <span><i class="fa-solid fa-heart" style="color:#e88a8a"></i><span id="hdr-hp">40</span></span>
-    <span><i class="fa-solid fa-star" style="color:#f0d68a"></i><span id="hdr-talent">0</span></span>
-    <span><i class="fa-solid fa-coins" style="color:#f0d68a"></i><span id="hdr-gold">0</span></span>
+    <span><svg class="ic ic-sm" style="color:#e05555"><use href="#ic-sword"/></svg><span id="hdr-atk">3</span></span>
+    <span><svg class="ic ic-sm" style="color:#5ba0d9"><use href="#ic-shield"/></svg><span id="hdr-def">1</span></span>
+    <span><svg class="ic ic-sm" style="color:#e88a8a"><use href="#ic-heart"/></svg><span id="hdr-hp">40</span></span>
+    <span><svg class="ic ic-sm" style="color:#f0d68a"><use href="#ic-star"/></svg><span id="hdr-talent">0</span></span>
+    <span><svg class="ic ic-sm" style="color:#f0d68a"><use href="#ic-gold"/></svg><span id="hdr-gold">0</span></span>
   </div>
-  <div class="layer"><i class="fa-solid fa-map"></i> 第<span id="hdr-layer">1</span>层 · <i class="fa-solid fa-skull"></i><span id="hdr-kills">0</span> · <i class="fa-solid fa-trophy"></i><span id="hdr-ach">0</span></div>
+  <div class="layer"><svg class="ic ic-sm"><use href="#ic-map"/></svg> 第<span id="hdr-layer">1</span>层 · <svg class="ic ic-sm" style="color:#e05555"><use href="#ic-skull"/></svg><span id="hdr-kills">0</span> · <svg class="ic ic-sm" style="color:#f0d68a"><use href="#ic-trophy"/></svg><span id="hdr-ach">0</span></div>
 </div>
 <div id="map-wrap"><div id="map"></div></div>
 <div id="bpanel">
-  <button onclick="openChar()"><span class="bi"><i class="fa-solid fa-user"></i></span>人物</button>
-  <button onclick="openSkills()"><span class="bi"><i class="fa-solid fa-book"></i></span>功法</button>
-  <button onclick="openBag()"><span class="bi"><i class="fa-solid fa-backpack"></i></span>背包</button>
-  <button onclick="openBeast()"><span class="bi"><i class="fa-solid fa-paw"></i></span>灵兽</button>
-  <button onclick="openAchieve()"><span class="bi"><i class="fa-solid fa-medal"></i></span>成就</button>
-  <button onclick="openShop()"><span class="bi"><i class="fa-solid fa-shop"></i></span>坊市</button>
+  <button onclick="openChar()"><span class="bi"><svg class="ic ic-lg"><use href="#ic-user"/></svg></span>人物</button>
+  <button onclick="openSkills()"><span class="bi"><svg class="ic ic-lg"><use href="#ic-book"/></svg></span>功法</button>
+  <button onclick="openBag()"><span class="bi"><svg class="ic ic-lg"><use href="#ic-bag"/></svg></span>背包</button>
+  <button onclick="openBeast()"><span class="bi"><svg class="ic ic-lg"><use href="#ic-paw"/></svg></span>灵兽</button>
+  <button onclick="openAchieve()"><span class="bi"><svg class="ic ic-lg"><use href="#ic-medal"/></svg></span>成就</button>
+  <button onclick="openShop()"><span class="bi"><svg class="ic ic-lg"><use href="#ic-shop"/></svg></span>坊市</button>
 </div>
 </div>
 
@@ -890,56 +961,56 @@ const MATERIALS=[
 ];
 
 const CELL_TYPES={
-  train:{fa:'fa-solid fa-book-open',color:'#c8a850',n:'修炼点',desc:'灵气充沛之地'},
-  enemy:{fa:'fa-solid fa-skull',color:'#e05555',n:'妖兽',desc:'前方有妖兽出没'},
-  treasure:{fa:'fa-solid fa-box-open',color:'#f0d68a',n:'宝箱',desc:'遗留的宝箱'},
-  shop:{fa:'fa-solid fa-cart-shopping',color:'#5ba0d9',n:'行脚商',desc:'游历四方的商人'},
-  secret:{fa:'fa-solid fa-dungeon',color:'#9b7ed9',n:'秘境',desc:'上古修士遗留的洞府'},
-  boss:{fa:'fa-solid fa-dragon',color:'#e05555',n:'守护者',desc:'此层的镇守BOSS'},
-  beast:{fa:'fa-solid fa-paw',color:'#e8a840',n:'灵兽',desc:'一只灵兽在此徘徊'},
-  equip:{fa:'fa-solid fa-hammer',color:'#aaa',n:'遗物',desc:'前人留下的兵器'},
-  skill:{fa:'fa-solid fa-scroll',color:'#5bd9a0',n:'功法碑',desc:'刻有功法口诀的石碑'},
-  adventure:{fa:'fa-solid fa-dice-d6',color:'#e8a840',n:'奇遇',desc:'意想不到的事'},
-  legacy:{fa:'fa-solid fa-crown',color:'#f0d68a',n:'传承',desc:'远古大能的传承'},
-  partner:{fa:'fa-solid fa-heart',color:'#e88aaa',n:'道侣',desc:'一位修士在此等候'},
-  furnace:{fa:'fa-solid fa-flask',color:'#e8a840',n:'炼丹炉',desc:'古老的炼丹炉'},
-  mine:{fa:'fa-solid fa-gem',color:'#5bd9d0',n:'灵矿脉',desc:'裸露的灵石矿脉'},
-  spring:{fa:'fa-solid fa-droplet',color:'#5ba0d9',n:'灵泉',desc:'涌动着灵气的泉水'},
-  ruin:{fa:'fa-solid fa-landmark',color:'#aaa',n:'遗迹',desc:'远古宗门的废墟'},
-  tribulation:{fa:'fa-solid fa-bolt',color:'#f0d68a',n:'渡劫台',desc:'古人渡劫留下的法台'},
-  stele:{fa:'fa-solid fa-monument',color:'#c8a850',n:'悟道碑',desc:'刻满大道符文的古碑'},
-  garden:{fa:'fa-solid fa-leaf',color:'#5bd96a',n:'药园',desc:'野生灵药生长的园圃'},
-  demon:{fa:'fa-solid fa-ghost',color:'#9b7ed9',n:'心魔',desc:'内心深处的执念所化'},
-  auction:{fa:'fa-solid fa-gavel',color:'#e8a840',n:'拍卖会',desc:'修仙界拍卖大会'},
-  formation:{fa:'fa-solid fa-shapes',color:'#5ba0d9',n:'古阵法',desc:'上古遗留的法阵'},
-  battlefield:{fa:'fa-solid fa-crosshairs',color:'#e05555',n:'古战场',desc:'仙魔大战的遗迹'},
-  miasma:{fa:'fa-solid fa-biohazard',color:'#5bd96a',n:'毒瘴',desc:'地底涌出的毒瘴'},
-  tower:{fa:'fa-solid fa-chess-rook',color:'#9b7ed9',n:'试炼塔',desc:'层层守卫的试炼之塔'},
-  evil:{fa:'fa-solid fa-mask',color:'#e05555',n:'邪修',desc:'邪修的巢穴'},
-  sage:{fa:'fa-solid fa-hand-sparkles',color:'#f0d68a',n:'仙人指路',desc:'仙人的踪迹'},
-  deepSecret:{fa:'fa-solid fa-archway',color:'#9b7ed9',n:'远古秘境',desc:'时间扭曲的秘境'},
-  talisman:{fa:'fa-solid fa-pen-fancy',color:'#5ba0d9',n:'符箓',desc:'符箓大师的洞府'},
-  fruit:{fa:'fa-solid fa-apple-whole',color:'#e88a5b',n:'灵果树',desc:'结满灵果的古树'},
-  immortalCave:{fa:'fa-solid fa-building-columns',color:'#f0d68a',n:'仙府',desc:'真仙遗留的完整洞府'},
-  pillShop:{fa:'fa-solid fa-mortar-pestle',color:'#5bd96a',n:'丹药铺',desc:'炼丹师的丹药铺子'},
-  beastDen:{fa:'fa-solid fa-mound',color:'#e8a840',n:'兽巢',desc:'灵兽的巢穴'},
-  spiritVein:{fa:'fa-solid fa-water',color:'#5ba0d9',n:'灵脉',desc:'地下灵脉的节点'},
-  tradeRoute:{fa:'fa-solid fa-road',color:'#e8a840',n:'商路',desc:'修仙商队的必经之路'},
-  starPlatform:{fa:'fa-solid fa-star',color:'#f0d68a',n:'观星台',desc:'上古观星悟道之处'},
-  soulPool:{fa:'fa-solid fa-moon',color:'#9b7ed9',n:'魂池',desc:'灵魂之力汇聚的池子'},
-  cave:{fa:'fa-solid fa-mountain',color:'#aaa',n:'神秘洞穴',desc:'不知通向何处的洞穴'},
-  celestialGate:{fa:'fa-solid fa-cloud-sun',color:'#f0d68a',n:'天门',desc:'传说中通往仙界的大门'},
-  swordGrave:{fa:'fa-solid fa-wand-magic-sparkles',color:'#e05555',n:'万剑冢',desc:'万千神剑埋葬之地'},
-  pillRiver:{fa:'fa-solid fa-glass-water',color:'#5bd96a',n:'丹河',desc:'流淌着丹液的灵河'},
-  beastWave:{fa:'fa-solid fa-paw',color:'#e8a840',n:'兽潮',desc:'妖兽群聚的浪潮'},
-  meditation:{fa:'fa-solid fa-brain',color:'#9b7ed9',n:'顿悟',desc:'灵光一现的顿悟之机'},
-  timeRift:{fa:'fa-solid fa-clock-rotate-left',color:'#5ba0d9',n:'时空裂隙',desc:'时间扭曲的裂缝'},
-  thunderPool:{fa:'fa-solid fa-cloud-bolt',color:'#f0d68a',n:'雷池',desc:'天雷汇聚的雷池'},
-  divineTree:{fa:'fa-solid fa-tree',color:'#5bd96a',n:'神树',desc:'通天神树的枝桠'},
-  tradeFair:{fa:'fa-solid fa-tents',color:'#e8a840',n:'仙集',desc:'修士云集的交易集市'},
-  dreamLand:{fa:'fa-solid fa-cloud-moon',color:'#9b7ed9',n:'梦境',desc:'幻境中的修炼之地'},
-  arena:{fa:'fa-solid fa-gun',color:'#e05555',n:'擂台',desc:'修士比武的擂台'},
-  empty:{fa:'fa-solid fa-circle',color:'#3a3548',n:'空地',desc:''}};
+  train:{icon:'🧘',n:'修炼点',desc:'灵气充沛之地'},
+  enemy:{icon:'👹',n:'妖兽',desc:'前方有妖兽出没'},
+  treasure:{icon:'📦',n:'宝箱',desc:'遗留的宝箱'},
+  shop:{icon:'🧑‍🌾',n:'行脚商',desc:'游历四方的商人'},
+  secret:{icon:'🏛️',n:'秘境',desc:'上古修士遗留的洞府'},
+  boss:{icon:'🐉',n:'守护者',desc:'此层的镇守BOSS'},
+  beast:{icon:'🐾',n:'灵兽',desc:'一只灵兽在此徘徊'},
+  equip:{icon:'⚒️',n:'遗物',desc:'前人留下的兵器'},
+  skill:{icon:'📜',n:'功法碑',desc:'刻有功法口诀的石碑'},
+  adventure:{icon:'🎲',n:'奇遇',desc:'意想不到的事'},
+  legacy:{icon:'👑',n:'传承',desc:'远古大能的传承'},
+  partner:{icon:'💕',n:'道侣',desc:'一位修士在此等候'},
+  furnace:{icon:'🧪',n:'炼丹炉',desc:'古老的炼丹炉'},
+  mine:{icon:'💎',n:'灵矿脉',desc:'裸露的灵石矿脉'},
+  spring:{icon:'💧',n:'灵泉',desc:'涌动着灵气的泉水'},
+  ruin:{icon:'🏚️',n:'遗迹',desc:'远古宗门的废墟'},
+  tribulation:{icon:'⚡',n:'渡劫台',desc:'古人渡劫留下的法台'},
+  stele:{icon:'📖',n:'悟道碑',desc:'刻满大道符文的古碑'},
+  garden:{icon:'🌿',n:'药园',desc:'野生灵药生长的园圃'},
+  demon:{icon:'👺',n:'心魔',desc:'内心深处的执念所化'},
+  auction:{icon:'🔨',n:'拍卖会',desc:'修仙界拍卖大会'},
+  formation:{icon:'🔯',n:'古阵法',desc:'上古遗留的法阵'},
+  battlefield:{icon:'⚔️',n:'古战场',desc:'仙魔大战的遗迹'},
+  miasma:{icon:'☠️',n:'毒瘴',desc:'地底涌出的毒瘴'},
+  tower:{icon:'🗼',n:'试炼塔',desc:'层层守卫的试炼之塔'},
+  evil:{icon:'👿',n:'邪修',desc:'邪修的巢穴'},
+  sage:{icon:'🧙',n:'仙人指路',desc:'仙人的踪迹'},
+  deepSecret:{icon:'🌀',n:'远古秘境',desc:'时间扭曲的秘境'},
+  talisman:{icon:'📝',n:'符箓',desc:'符箓大师的洞府'},
+  fruit:{icon:'🍑',n:'灵果树',desc:'结满灵果的古树'},
+  immortalCave:{icon:'🏯',n:'仙府',desc:'真仙遗留的完整洞府'},
+  pillShop:{icon:'💊',n:'丹药铺',desc:'炼丹师的丹药铺子'},
+  beastDen:{icon:'🕳️',n:'兽巢',desc:'灵兽的巢穴'},
+  spiritVein:{icon:'💠',n:'灵脉',desc:'地下灵脉的节点'},
+  tradeRoute:{icon:'🐪',n:'商路',desc:'修仙商队的必经之路'},
+  starPlatform:{icon:'🌟',n:'观星台',desc:'上古观星悟道之处'},
+  soulPool:{icon:'🪷',n:'魂池',desc:'灵魂之力汇聚的池子'},
+  cave:{icon:'⛰️',n:'神秘洞穴',desc:'不知通向何处的洞穴'},
+  celestialGate:{icon:'☁️',n:'天门',desc:'传说中通往仙界的大门'},
+  swordGrave:{icon:'🗡️',n:'万剑冢',desc:'万千神剑埋葬之地'},
+  pillRiver:{icon:'🌊',n:'丹河',desc:'流淌着丹液的灵河'},
+  beastWave:{icon:'🐗',n:'兽潮',desc:'妖兽群聚的浪潮'},
+  meditation:{icon:'🧠',n:'顿悟',desc:'灵光一现的顿悟之机'},
+  timeRift:{icon:'⏳',n:'时空裂隙',desc:'时间扭曲的裂缝'},
+  thunderPool:{icon:'🌩️',n:'雷池',desc:'天雷汇聚的雷池'},
+  divineTree:{icon:'🌳',n:'神树',desc:'通天神树的枝桠'},
+  tradeFair:{icon:'⛺',n:'仙集',desc:'修士云集的交易集市'},
+  dreamLand:{icon:'🌙',n:'梦境',desc:'幻境中的修炼之地'},
+  arena:{icon:'⚔️',n:'擂台',desc:'修士比武的擂台'},
+  empty:{icon:'·',n:'空地',desc:''}};
 
 // ═══════════════════════════════════════
 // 成就系统
@@ -1123,17 +1194,13 @@ function renderMap(){
     const div=document.createElement('div');
     const isCurrent=i===P.playerPos;
     div.className='cell'+(c.done?' done':'')+(isCurrent?' current':'');
-    // 使用FA图标
-    const iconColor=ct.color||'#aaa';
-    const iconEl=`<i class="${ct.fa}" style="color:${iconColor};font-size:1.2rem"></i>`;
-    div.innerHTML=`${iconEl}<span class="label">${ct.n}</span>`;
+    div.innerHTML=`<span style="font-size:1.3rem">${ct.icon}</span><span class="label">${ct.n}</span>`;
     if(isCurrent){
       div.id='player-marker';
-      div.innerHTML=`<i class="fa-solid fa-person-hiking" style="font-size:1.5rem;color:#64b5f6"></i><span class="label" style="color:#64b5f6">你在这里</span>`;
+      div.innerHTML=`<span style="font-size:1.5rem">🧘</span><span class="label" style="color:#64b5f6">你在这里</span>`;
     }
-    if(c.done)div.innerHTML+=`<span class="mark" style="color:${iconColor}">✓</span>`;
-    // 允许左右移动：done的格子移动但不触发事件，未完成的格子触发事件
-    if(isCurrent){/* 当前位置不触发任何事 */}
+    if(c.done)div.innerHTML+=`<span class="mark">✓</span>`;
+    if(isCurrent){}
     else if(c.done){div.onclick=()=>moveTo(i,true);}
     else{div.onclick=()=>moveTo(i,false);}
     mapEl.appendChild(div);
@@ -1360,42 +1427,42 @@ function doSkillEnc(idx){
 function openChar(){
   const expPct=isMax()?100:Math.min(100,Math.floor(P.exp/nrd().exp*100));
   let h=`
-    <div style="text-align:center;margin-bottom:8px">
+    <div style="text-align:center;margin-bottom:6px">
       <div style="font-size:1.3rem;color:var(--gold2);font-weight:bold;letter-spacing:3px">${P.name}</div>
       <div style="font-size:.7rem;color:var(--gold);margin:2px 0">${rd().n}${P.path?` · ${PATHS[P.path].n}`:''}</div>
     </div>
     <div class="stat-bar"><div class="s-exp" style="width:${expPct}%"></div></div>
     <div style="font-size:.5rem;color:var(--text3);text-align:center;margin:2px 0">修为 ${nval(P.exp)} / ${isMax()?'∞':nval(nrd().exp)} (${expPct}%)</div>
     <div class="deco-line"></div>
-    <div class="row"><span class="label"><i class="fa-solid fa-sword" style="color:#e05555"></i> 攻击力</span><span class="val">${nval(effAtk())}</span></div>
-    <div class="row"><span class="label"><i class="fa-solid fa-shield" style="color:#5ba0d9"></i> 防御力</span><span class="val">${nval(effDef())}</span></div>
-    <div class="row"><span class="label"><i class="fa-solid fa-heart" style="color:#e88a8a"></i> 气血值</span><span class="val">${nval(P.hp)} / ${nval(effMaxHp())}</span></div>
+    <div class="row"><span class="label"><svg class="ic ic-sm ic-red"><use href="#ic-sword"/></svg> 攻击力</span><span class="val">${nval(effAtk())}</span></div>
+    <div class="row"><span class="label"><svg class="ic ic-sm ic-blue"><use href="#ic-shield"/></svg> 防御力</span><span class="val">${nval(effDef())}</span></div>
+    <div class="row"><span class="label"><span style="color:#e88a8a">❤️</span> 气血值</span><span class="val">${nval(P.hp)} / ${nval(effMaxHp())}</span></div>
     <div class="stat-bar"><div class="s-hp" style="width:${Math.floor(P.hp/effMaxHp()*100)}%"></div></div>
     <div class="deco-line"></div>
-    <div class="row"><span class="label"><i class="fa-solid fa-paw" style="color:#e8a840"></i> 灵兽</span><span class="val">${P.beast?P.beast.icon+' '+P.beast.n+(P.beastDeployed?' ✅':' ⚠️'):'无'}</span></div>
-    <div class="row"><span class="label"><i class="fa-solid fa-star" style="color:#f0d68a"></i> 天赋点</span><span class="val" style="color:var(--gold)">${P.talentPts||0}</span></div>
-    <div class="row"><span class="label"><i class="fa-solid fa-arrow-trend-up"></i> 永属加成</span><span class="val" style="font-size:.5rem">攻+${P.permAtk+(P.achvBonus?.atk||0)} 防+${P.permDef+(P.achvBonus?.def||0)} 血+${P.permHp+(P.achvBonus?.hpBonus||0)}</span></div>`;
+    <div class="row"><span class="label"><svg class="ic ic-sm"><use href="#ic-paw"/></svg> 灵兽</span><span class="val">${P.beast?P.beast.icon+' '+P.beast.n+(P.beastDeployed?' ✅':' ⚠️'):'无'}</span></div>
+    <div class="row"><span class="label"><svg class="ic ic-sm ic-gold"><use href="#ic-star"/></svg> 天赋点</span><span class="val" style="color:var(--gold)">${P.talentPts||0}</span></div>
+    <div class="row"><span class="label">📊 永属加成</span><span class="val" style="font-size:.5rem">攻+${P.permAtk+(P.achvBonus?.atk||0)} 防+${P.permDef+(P.achvBonus?.def||0)} 血+${P.permHp+(P.achvBonus?.hpBonus||0)}</span></div>`;
 
   if(!P.path){
-    h+=`<div class="deco-line"></div><p style="color:var(--gold)"><i class="fa-solid fa-compass"></i> 选择修炼方向：</p>`;
+    h+=`<div class="deco-line"></div><p style="color:var(--gold)"><svg class="ic ic-sm ic-gold"><use href="#ic-compass"/></svg> 选择修炼方向：</p>`;
     for(const[k,v]of Object.entries(PATHS))h+=`<button class="btn pri" onclick="choosePath('${k}')">${v.icon} ${v.n} — ${v.desc}</button>`;
   }
 
-  h+=`<div class="deco-line"></div><div style="font-size:.55rem;color:var(--gold);text-align:left;margin-bottom:4px"><i class="fa-solid fa-hammer"></i> 装备栏</div>`;
-  h+=`<div class="row"><span class="label"><i class="fa-solid fa-sword"></i> 武器</span><span class="val">${P.equippedWeapon?P.equippedWeapon.icon+' '+P.equippedWeapon.n+' ['+P.equippedWeapon.tier+'] ⚔+'+P.equippedWeapon.atk:'空手'}${P.equippedWeapon?` <button class="btn dan sm" onclick="unequipSlot('weapon')">卸</button>`:''}</span></div>`;
-  h+=`<div class="row"><span class="label"><i class="fa-solid fa-shield-halved"></i> 防具</span><span class="val">${P.equippedArmor?P.equippedArmor.icon+' '+P.equippedArmor.n+' ['+P.equippedArmor.tier+']':'无'}${P.equippedArmor?` <button class="btn dan sm" onclick="unequipSlot('armor')">卸</button>`:''}</span></div>`;
-  h+=`<div class="row"><span class="label"><i class="fa-solid fa-ring"></i> 饰品</span><span class="val">${P.equippedAcc?P.equippedAcc.icon+' '+P.equippedAcc.n+' ['+P.equippedAcc.tier+']': '无'}${P.equippedAcc?` <button class="btn dan sm" onclick="unequipSlot('acc')">卸</button>`:''}</span></div>`;
+  h+=`<div class="deco-line"></div><div style="font-size:.55rem;color:var(--gold);text-align:left;margin-bottom:4px">⚒️ 装备栏</div>`;
+  h+=`<div class="row"><span class="label"><svg class="ic ic-sm ic-red"><use href="#ic-sword"/></svg> 武器</span><span class="val">${P.equippedWeapon?P.equippedWeapon.icon+' '+P.equippedWeapon.n+' ['+P.equippedWeapon.tier+'] ⚔+'+P.equippedWeapon.atk:'空手'}${P.equippedWeapon?` <button class="btn dan sm" onclick="unequipSlot('weapon')">卸</button>`:''}</span></div>`;
+  h+=`<div class="row"><span class="label"><svg class="ic ic-sm ic-blue"><use href="#ic-shield"/></svg> 防具</span><span class="val">${P.equippedArmor?P.equippedArmor.icon+' '+P.equippedArmor.n+' ['+P.equippedArmor.tier+']':'无'}${P.equippedArmor?` <button class="btn dan sm" onclick="unequipSlot('armor')">卸</button>`:''}</span></div>`;
+  h+=`<div class="row"><span class="label">💍 饰品</span><span class="val">${P.equippedAcc?P.equippedAcc.icon+' '+P.equippedAcc.n+' ['+P.equippedAcc.tier+']': '无'}${P.equippedAcc?` <button class="btn dan sm" onclick="unequipSlot('acc')">卸</button>`:''}</span></div>`;
 
   if(P.talentPts>0){
-    h+=`<div class="deco-line"></div><p style="color:var(--gold2);font-size:.55rem"><i class="fa-solid fa-star"></i> 可用天赋: ${P.talentPts}</p>`;
-    h+=`<div style="display:flex;gap:4px"><button class="btn ok sm" onclick="spendTalent('atk')"><i class="fa-solid fa-sword"></i> 永攻+5</button><button class="btn cy sm" onclick="spendTalent('def')"><i class="fa-solid fa-shield"></i> 永防+3</button><button class="btn pri sm" onclick="spendTalent('hp')"><i class="fa-solid fa-heart"></i> 永血+30</button></div>`;
+    h+=`<div class="deco-line"></div><p style="color:var(--gold2);font-size:.55rem"><svg class="ic ic-sm ic-gold"><use href="#ic-star"/></svg> 可用天赋: ${P.talentPts}</p>`;
+    h+=`<div style="display:flex;gap:4px"><button class="btn ok sm" onclick="spendTalent('atk')"><svg class="ic ic-sm ic-red"><use href="#ic-sword"/></svg> 永攻+5</button><button class="btn cy sm" onclick="spendTalent('def')"><svg class="ic ic-sm ic-blue"><use href="#ic-shield"/></svg> 永防+3</button><button class="btn pri sm" onclick="spendTalent('hp')">❤️ 永血+30</button></div>`;
   }
 
   if(P.pillsUsed?.lasts>0){
-    h+=`<div class="deco-line"></div><span class="badge blue"><i class="fa-solid fa-capsules"></i> 丹药BUFF 剩${P.pillsUsed.lasts}战 攻+${P.pillsUsed.atkTemp} 防+${P.pillsUsed.defTemp}</span>`;
+    h+=`<div class="deco-line"></div><span class="badge blue">💊 丹药BUFF 剩${P.pillsUsed.lasts}战 攻+${P.pillsUsed.atkTemp} 防+${P.pillsUsed.defTemp}</span>`;
   }
 
-  showModal('<i class="fa-solid fa-user"></i> 人物详情',h,[{text:'关闭',cls:''}]);
+  showModal(`<svg class="ic ic-sm"><use href="#ic-user"/></svg> 人物详情`,h,[{text:'关闭',cls:''}]);
 }
 
 function unequipSlot(slot){
@@ -1447,21 +1514,17 @@ function openBag(tab){
   bagTab=tab||bagTab;
   let h=`<div class="tabs">`;
   const tabs=['all','weapon','armor','acc','consum','mat'];
-  const tabNames={all:'📦全部',weapon:'🗡️武器',armor:'🛡️防具',acc:'💍饰品',consum:'💊丹药',mat:'🌿材料'};
+  const tabNames={all:'📦全部',weapon:'⚔️武器',armor:'🛡️防具',acc:'💍饰品',consum:'💊丹药',mat:'🌿材料'};
   for(const t of tabs)h+=`<span class="tab${bagTab===t?' active':''}" onclick="openBag('${t}')">${tabNames[t]}</span>`;
   h+=`</div><div class="item-grid">`;
   let count=0;
-
-  // 消耗品
   const allCons=P.consumables||[];
   if(bagTab==='all'||bagTab==='consum'){
     allCons.forEach((c,i)=>{
-      h+=`<div class="item-card" onclick="useCons(${i})"><span class="it">${c.icon}</span><span class="in">${c.n}</span><span class="itier">${c.desc||''}</span><span class="istat" style="color:var(--green)">点击使用</span></div>`;
+      h+=`<div class="premium-card" onclick="useCons(${i})"><span class="pc-icon">${c.icon}</span><span class="pc-name">${c.n}</span><span class="pc-tier" style="color:var(--green)">${c.desc||''}</span><span class="pc-stat" style="color:var(--green)">✨使用</span></div>`;
       count++;
     });
   }
-
-  // 背包物品
   const items=P.bag||[];
   items.forEach((item,i)=>{
     if(bagTab!=='all'){
@@ -1469,23 +1532,20 @@ function openBag(tab){
       if(bagTab==='armor'&&item.type!=='armor')return;
       if(bagTab==='acc'&&item.type!=='acc')return;
       if(bagTab==='mat'&&item.type!=='mat')return;
-      if(bagTab==='consum')return; // consums already handled above
+      if(bagTab==='consum')return;
     }
     count++;
     if(item.type==='weapon'||item.type==='armor'||item.type==='acc'){
-      h+=`<div class="item-card" onclick="equipItem(${i})">
-        <span class="it">${item.icon}</span><span class="in">${item.n}</span>
-        <span class="itier">${item.tier||''}</span>
-        <span class="istat">${item.atk?'⚔+'+item.atk:''}${item.def?' 🛡+'+item.def:''}${item.hp?' ❤+'+item.hp:''}</span>
-        <span style="font-size:.4rem;color:var(--green)">点击装备</span></div>`;
+      const tierMap={凡品:'tier-fan',灵品:'tier-ling',宝品:'tier-bao',仙品:'tier-xian',圣品:'tier-sheng'};
+      const tierCls=tierMap[item.tier]||'';
+      h+=`<div class="premium-card ${tierCls}" onclick="equipItem(${i})"><span class="pc-icon">${item.icon}</span><span class="pc-name">${item.n}</span><span class="pc-tier">${item.tier||''}</span><span class="pc-stat">${item.atk?'⚔+'+item.atk:''}${item.def?' 🛡+'+item.def:''}${item.hp?' ❤+'+item.hp:''}</span><span style="font-size:.42rem;color:var(--green)">✨装备</span></div>`;
     }else{
-      h+=`<div class="item-card" onclick="useItem(${i})"><span class="it">${item.icon}</span><span class="in">${item.n}</span><span class="itier">${item.desc||''}</span><span class="istat" style="color:var(--blue)">点击使用</span></div>`;
+      h+=`<div class="premium-card" onclick="useItem(${i})"><span class="pc-icon">${item.icon}</span><span class="pc-name">${item.n}</span><span class="pc-tier" style="color:var(--text2)">${item.desc||''}</span><span class="pc-stat" style="color:var(--blue)">✨使用</span></div>`;
     }
   });
-
-  if(count===0)h+=`<div style="grid-column:1/-1;text-align:center;color:var(--text3);padding:20px">背包空空如也<br>探索地图获取物品吧</div>`;
+  if(count===0)h+=`<div style="grid-column:1/-1;text-align:center;color:var(--text3);padding:20px;font-size:.7rem">🎒 空空如也<br><span style="font-size:.5rem">探索地图获取物品</span></div>`;
   h+=`</div>`;
-  showModal(`🎒 乾坤袋 (${count})`,h,[{text:'关闭',cls:''}]);
+  showModal(`🎒 乾坤袋 (${count}件)`,h,[{text:'关闭',cls:''}]);
 }
 
 function equipItem(i){const item=(P.bag||[])[i];if(!item)return;
