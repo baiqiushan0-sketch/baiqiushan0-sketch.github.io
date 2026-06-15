@@ -138,7 +138,8 @@ body::before{
 .project-card:nth-child(4) .card-accent{background:var(--emerald)}
 .project-card:nth-child(5) .card-accent{background:var(--amber)}
 .project-card:nth-child(6) .card-accent{background:var(--aqua)}
-.project-card:nth-child(7) .card-accent{background:var(--slate)}
+.project-card:nth-child(7) .card-accent{background:var(--purple)}
+.project-card:nth-child(8) .card-accent{background:var(--slate)}
 .project-card:hover .card-accent{width:70%}
 
 /* Visual area */
@@ -159,7 +160,8 @@ body::before{
 .project-card:nth-child(4) .card-visual{background:linear-gradient(160deg,#0c1a16 0%,#0e201c 30%,#0c2818 60%,#0a1e16 100%)}
 .project-card:nth-child(5) .card-visual{background:linear-gradient(160deg,#1a1410 0%,#201810 30%,#281808 60%,#1e1408 100%)}
 .project-card:nth-child(6) .card-visual{background:linear-gradient(160deg,#0a1a18 0%,#0c201e 30%,#0a2822 60%,#081e1a 100%)}
-.project-card:nth-child(7) .card-visual{background:linear-gradient(160deg,#14181e 0%,#181e26 30%,#1a222c 60%,#141a20 100%)}
+.project-card:nth-child(7) .card-visual{background:linear-gradient(160deg,#121220 0%,#161830 30%,#181a40 60%,#121830 100%)}
+.project-card:nth-child(8) .card-visual{background:linear-gradient(160deg,#14181e 0%,#181e26 30%,#1a222c 60%,#141a20 100%)}
 
 /* Card icon SVG */
 .card-icon-svg{width:80px;height:80px;filter:drop-shadow(0 0 20px rgba(200,168,88,.15));transition:all var(--transition)}
@@ -169,7 +171,8 @@ body::before{
 .project-card:nth-child(4) .card-icon-svg{color:var(--emerald)}
 .project-card:nth-child(5) .card-icon-svg{color:var(--amber)}
 .project-card:nth-child(6) .card-icon-svg{color:var(--aqua)}
-.project-card:nth-child(7) .card-icon-svg{color:var(--slate)}
+.project-card:nth-child(7) .card-icon-svg{color:var(--purple)}
+.project-card:nth-child(8) .card-icon-svg{color:var(--slate)}
 .project-card:hover .card-icon-svg{filter:drop-shadow(0 0 30px currentColor)}
 
 /* Card info */
@@ -183,7 +186,8 @@ body::before{
 .project-card:nth-child(4) .card-tag{background:rgba(80,200,160,.07);color:var(--emerald);border:1px solid rgba(80,200,160,.1)}
 .project-card:nth-child(5) .card-tag{background:rgba(212,152,74,.07);color:var(--amber);border:1px solid rgba(212,152,74,.1)}
 .project-card:nth-child(6) .card-tag{background:rgba(58,216,208,.07);color:var(--aqua);border:1px solid rgba(58,216,208,.1)}
-.project-card:nth-child(7) .card-tag{background:rgba(136,153,170,.07);color:var(--slate);border:1px solid rgba(136,153,170,.1)}
+.project-card:nth-child(7) .card-tag{background:rgba(152,136,216,.07);color:var(--purple);border:1px solid rgba(152,136,216,.1)}
+.project-card:nth-child(8) .card-tag{background:rgba(136,153,170,.07);color:var(--slate);border:1px solid rgba(136,153,170,.1)}
 .card-desc{font-size:.78rem;color:var(--text2);line-height:1.65;flex:1;margin-bottom:.5rem}
 
 /* Arrow hint */
@@ -214,6 +218,7 @@ body::before{
 .reveal-delay-5{transition-delay:.5s}
 .reveal-delay-6{transition-delay:.6s}
 .reveal-delay-7{transition-delay:.7s}
+.reveal-delay-8{transition-delay:.8s}
 
 /* ═══════════════════ RESPONSIVE ═══════════════════ */
 @media(max-width:768px){
@@ -434,8 +439,41 @@ body::before{
     </a>
 
 
+    <!-- 迷幻森林 -->
+    <a class="project-card reveal reveal-delay-7" href="homepage/mystic-forest.html" aria-label="迷幻森林 · 像素冒险探索">
+      <div class="card-accent"></div>
+      <div class="card-visual">
+        <canvas class="cv-particle" data-color="rgba(152,136,216,CLR)" data-count="38"></canvas>
+        <div class="visual-content">
+          <svg class="card-icon-svg" viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="40" cy="40" r="36" stroke-opacity=".1"/>
+            <path d="M40 8 L44 28 L48 32 L32 32 L36 28 Z" stroke-opacity=".3" fill="currentColor" fill-opacity=".06"/>
+            <path d="M18 25 L24 24 L22 30 Z" stroke-opacity=".25" fill="currentColor" fill-opacity=".05"/>
+            <path d="M62 22 L60 28 L66 26 Z" stroke-opacity=".25" fill="currentColor" fill-opacity=".05"/>
+            <path d="M22 55 L28 58 L24 62 Z" stroke-opacity=".2" fill="currentColor" fill-opacity=".04"/>
+            <path d="M58 56 L62 60 L56 62 Z" stroke-opacity=".2" fill="currentColor" fill-opacity=".04"/>
+            <circle cx="32" cy="34" r="2" fill="currentColor" fill-opacity=".4"/>
+            <circle cx="48" cy="28" r="1.5" fill="currentColor" fill-opacity=".35"/>
+            <circle cx="24" cy="26" r="1.5" fill="currentColor" fill-opacity=".3"/>
+            <circle cx="60" cy="24" r="1" fill="currentColor" fill-opacity=".25"/>
+            <circle cx="26" cy="58" r="1" fill="currentColor" fill-opacity=".25"/>
+            <circle cx="60" cy="58" r="1.5" fill="currentColor" fill-opacity=".3"/>
+            <circle cx="38" cy="36" r="4" fill="currentColor" fill-opacity=".12" stroke-opacity=".4"/>
+            <circle cx="42" cy="34" r="2" fill="currentColor" fill-opacity=".2"/>
+          </svg>
+          <span class="visual-label">像素冒险 · 迷幻森林</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="card-tags"><span class="card-tag">像素冒险</span><span class="card-tag">迷幻森林</span><span class="card-tag">探索收集</span></div>
+        <h3>迷幻森林 · Mystic Forest</h3>
+        <p class="card-desc">像素风俯视角森林探索，收集花朵蘑菇水晶，萤火虫+迷幻色彩变幻，WASD八方向移动</p>
+      </div>
+      <div class="card-arrow-hint">→</div>
+    </a>
+
     <!-- 更多 -->
-    <a class="project-card reveal reveal-delay-7" href="skill_g113593/skill_g113593.html" aria-label="更多项目 · 工具集合">
+    <a class="project-card reveal reveal-delay-8" href="skill_g113593/skill_g113593.html" aria-label="更多项目 · 工具集合">
       <div class="card-accent"></div>
       <div class="card-visual">
         <canvas class="cv-particle" data-color="rgba(152,136,216,CLR)" data-count="35"></canvas>
