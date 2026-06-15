@@ -298,7 +298,7 @@ function makeRail(x,z,w,h,isLong){
 
   /* inner cushion rubber */
   const cushW=isLong?w-.08:w*.22;
-  const cushH=h-((isLong?.12:.1));
+  const cushH=isLong?0.04:h-0.1;
   const cush=new THREE.Mesh(new THREE.BoxGeometry(cushW,RH*.65,cushH),M.rubber);
   cush.position.y=RH*.38;
   /* position on inner edge */
@@ -932,7 +932,6 @@ function resetGame(){
 
 document.getElementById('b-rst').addEventListener('click',resetGame);
 document.getElementById('b-cam').addEventListener('click',cycleCam);
-document.getElementById('b-top').addEventListener('click',()=>setCam(1));
 
 /* resize */
 window.addEventListener('resize',()=>{
