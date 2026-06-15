@@ -160,31 +160,30 @@ function initMap(){
 }
 
 /* ═══════════════════ RENDER TILES ═══════════════════ */
-function drawTile(x,y,t,f){
-  const cx=x*TS,cy=y*TS;
-  ctx.fillStyle=(x+y)%2?C.g2:C.g1;ctx.fillRect(cx,cy,TS,TS);
+function drawTile(sx,sy,tx,ty,t,f){
+  ctx.fillStyle=(tx+ty)%2?C.g2:C.g1;ctx.fillRect(sx,sy,TS,TS);
 
   switch(t){
     case T.WATER:
-      ctx.fillStyle=(x+y+((f*3.5)|0))%2?C.wtr1:C.wtr2;ctx.fillRect(cx,cy,TS,TS);
-      ctx.fillStyle=hexToRGBA('#4088b0',.12+.08*Math.sin(f*5+x*.7+y*.9));
-      ctx.fillRect(cx+4+(x%5),cy+5+(y%4),5,2);
+      ctx.fillStyle=(tx+ty+((f*3.5)|0))%2?C.wtr1:C.wtr2;ctx.fillRect(sx,sy,TS,TS);
+      ctx.fillStyle=hexToRGBA('#4088b0',.12+.08*Math.sin(f*5+tx*.7+ty*.9));
+      ctx.fillRect(sx+4+(tx%5),sy+5+(ty%4),5,2);
       break;
     case T.PATH:
-      ctx.fillStyle=(x+y)%2?C.pth1:C.pth2;ctx.fillRect(cx,cy,TS,TS);
+      ctx.fillStyle=(tx+ty)%2?C.pth1:C.pth2;ctx.fillRect(sx,sy,TS,TS);
       break;
     case T.ROCK:
-      ctx.fillStyle=C.rk1;ctx.fillRect(cx+3,cy+9,7,5);ctx.fillRect(cx+2,cy+10,10,3);
-      ctx.fillStyle=C.rk2;ctx.fillRect(cx+4,cy+10,4,2);
+      ctx.fillStyle=C.rk1;ctx.fillRect(sx+3,sy+9,7,5);ctx.fillRect(sx+2,sy+10,10,3);
+      ctx.fillStyle=C.rk2;ctx.fillRect(sx+4,sy+10,4,2);
       break;
-    case T.TREE: drawTree(cx,cy,1,f); break;
-    case T.TREE_BIG: drawTree(cx,cy,1.4,f); break;
-    case T.MUSH: drawMushroom(cx,cy,false,f); break;
-    case T.GLOW_MUSH: drawMushroom(cx,cy,true,f); break;
-    case T.FLOWER: drawFlower(cx,cy,f); break;
-    case T.CRYSTAL: drawCrystal(cx,cy,f); break;
-    case T.ALTAR: drawAltar(cx,cy,f); break;
-    case T.STUMP: drawStump(cx,cy); break;
+    case T.TREE: drawTree(sx,sy,1,f); break;
+    case T.TREE_BIG: drawTree(sx,sy,1.4,f); break;
+    case T.MUSH: drawMushroom(sx,sy,false,f); break;
+    case T.GLOW_MUSH: drawMushroom(sx,sy,true,f); break;
+    case T.FLOWER: drawFlower(sx,sy,tx,ty); break;
+    case T.CRYSTAL: drawCrystal(sx,sy,f); break;
+    case T.ALTAR: drawAltar(sx,sy,f); break;
+    case T.STUMP: drawStump(sx,sy); break;
   }
 }
 
@@ -212,8 +211,8 @@ function drawMushroom(cx,cy,glow,f){
   }
 }
 
-function drawFlower(cx,cy,f){
-  const col=[C.flw1,C.flw2,C.flw3,C.flw4][Math.abs(cx+cy*3)%4];
+function drawFlower(cx,cy,tx,ty){
+  const col=[C.flw1,C.flw2,C.flw3,C.flw4][Math.abs(tx+ty*3)%4];
   ctx.fillStyle='#3a5a28';ctx.fillRect(cx+7,cy+10,2,6);
   ctx.fillStyle=col;ctx.fillRect(cx+5,cy+9,6,2);ctx.fillRect(cx+4,cy+10,8,2);
   ctx.fillRect(cx+7,cy+8,2,2);ctx.fillRect(cx+6,cy+7,1,1);ctx.fillRect(cx+9,cy+7,1,1);
@@ -339,7 +338,7 @@ function render(t){
   // tiles
   for(let y=tsy;y<tey;y++)for(let x=tsx;x<tex;x++){
     const sx=(x*TS-camX)|0,sy=(y*TS-camY)|0;
-    if(sx>-TS&&sx<W+TS&&sy>-TS&&sy<H+TS) drawTile(x,y,tiles[y][x],t*.00008);
+    if(sx>-TS&&sx<W+TS&&sy>-TS&&sy<H+TS) drawTile(sx,sy,x,y,tiles[y][x],t*.00008);
   }
 
   // fireflies
