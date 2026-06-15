@@ -4,7 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>白秋山的项目合集</title>
-<meta name="description" content="白秋山的个人项目合集 - 创意技术作品展示">
+<meta name="description" content="白秋山的个人项目合集 - 创意技术作品展示：文字修仙、地铁跑酷、3D手势识别、2048、水墨涟漪、无限合成、3D台球">
+<meta name="theme-color" content="#050510">
+<link rel="canonical" href="https://baiqiushan.github.io/">
+<link rel="preconnect" href="https://unpkg.com" crossorigin>
+<!-- Open Graph / 社交分享 -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="白秋山的项目合集">
+<meta property="og:description" content="创意 · 技术 · 探索 —— 构建有温度的数字作品">
+<meta property="og:image" content="homepage/seal.png">
+<meta property="og:url" content="https://baiqiushan.github.io/">
+<meta name="twitter:card" content="summary_large_image">
 <style>
 /* ═══════════════════ DESIGN TOKENS ═══════════════════ */
 :root{
@@ -106,6 +116,7 @@ body::before{
   gap:clamp(1.2rem,2.5vw,1.8rem);
 }
 .project-card{
+  content-visibility:auto;contain-intrinsic-size:420px;
   background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
   overflow:hidden;position:relative;text-decoration:none;color:inherit;display:flex;
   flex-direction:column;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
@@ -116,7 +127,9 @@ body::before{
   transform:translateY(-8px);
   background:var(--surface-hover);border-color:var(--border-hover);
   box-shadow:var(--shadow),0 0 0 1px rgba(255,255,255,.02);
+  will-change:transform;
 }
+.project-card:not(:hover){will-change:auto}
 /* Card accent line */
 .card-accent{position:absolute;top:0;left:50%;transform:translateX(-50%);width:0;height:2px;border-radius:1px;transition:width var(--transition);z-index:3}
 .project-card:nth-child(1) .card-accent{background:var(--gold)}
@@ -125,8 +138,7 @@ body::before{
 .project-card:nth-child(4) .card-accent{background:var(--emerald)}
 .project-card:nth-child(5) .card-accent{background:var(--amber)}
 .project-card:nth-child(6) .card-accent{background:var(--aqua)}
-.project-card:nth-child(7) .card-accent{background:var(--purple)}
-.project-card:nth-child(8) .card-accent{background:var(--slate)}
+.project-card:nth-child(7) .card-accent{background:var(--slate)}
 .project-card:hover .card-accent{width:70%}
 
 /* Visual area */
@@ -147,8 +159,7 @@ body::before{
 .project-card:nth-child(4) .card-visual{background:linear-gradient(160deg,#0c1a16 0%,#0e201c 30%,#0c2818 60%,#0a1e16 100%)}
 .project-card:nth-child(5) .card-visual{background:linear-gradient(160deg,#1a1410 0%,#201810 30%,#281808 60%,#1e1408 100%)}
 .project-card:nth-child(6) .card-visual{background:linear-gradient(160deg,#0a1a18 0%,#0c201e 30%,#0a2822 60%,#081e1a 100%)}
-.project-card:nth-child(7) .card-visual{background:linear-gradient(160deg,#121220 0%,#161830 30%,#181a40 60%,#121830 100%)}
-.project-card:nth-child(8) .card-visual{background:linear-gradient(160deg,#14181e 0%,#181e26 30%,#1a222c 60%,#141a20 100%)}
+.project-card:nth-child(7) .card-visual{background:linear-gradient(160deg,#14181e 0%,#181e26 30%,#1a222c 60%,#141a20 100%)}
 
 /* Card icon SVG */
 .card-icon-svg{width:80px;height:80px;filter:drop-shadow(0 0 20px rgba(200,168,88,.15));transition:all var(--transition)}
@@ -158,8 +169,7 @@ body::before{
 .project-card:nth-child(4) .card-icon-svg{color:var(--emerald)}
 .project-card:nth-child(5) .card-icon-svg{color:var(--amber)}
 .project-card:nth-child(6) .card-icon-svg{color:var(--aqua)}
-.project-card:nth-child(7) .card-icon-svg{color:var(--purple)}
-.project-card:nth-child(8) .card-icon-svg{color:var(--slate)}
+.project-card:nth-child(7) .card-icon-svg{color:var(--slate)}
 .project-card:hover .card-icon-svg{filter:drop-shadow(0 0 30px currentColor)}
 
 /* Card info */
@@ -173,8 +183,7 @@ body::before{
 .project-card:nth-child(4) .card-tag{background:rgba(80,200,160,.07);color:var(--emerald);border:1px solid rgba(80,200,160,.1)}
 .project-card:nth-child(5) .card-tag{background:rgba(212,152,74,.07);color:var(--amber);border:1px solid rgba(212,152,74,.1)}
 .project-card:nth-child(6) .card-tag{background:rgba(58,216,208,.07);color:var(--aqua);border:1px solid rgba(58,216,208,.1)}
-.project-card:nth-child(7) .card-tag{background:rgba(152,136,216,.07);color:var(--purple);border:1px solid rgba(152,136,216,.1)}
-.project-card:nth-child(8) .card-tag{background:rgba(136,153,170,.07);color:var(--slate);border:1px solid rgba(136,153,170,.1)}
+.project-card:nth-child(7) .card-tag{background:rgba(136,153,170,.07);color:var(--slate);border:1px solid rgba(136,153,170,.1)}
 .card-desc{font-size:.78rem;color:var(--text2);line-height:1.65;flex:1;margin-bottom:.5rem}
 
 /* Arrow hint */
@@ -205,7 +214,6 @@ body::before{
 .reveal-delay-5{transition-delay:.5s}
 .reveal-delay-6{transition-delay:.6s}
 .reveal-delay-7{transition-delay:.7s}
-.reveal-delay-8{transition-delay:.8s}
 
 /* ═══════════════════ RESPONSIVE ═══════════════════ */
 @media(max-width:768px){
@@ -221,6 +229,12 @@ body::before{
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
 }
+/* Keyboard focus */
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+.project-card:focus-visible{outline-offset:-2px;border-color:var(--gold);box-shadow:0 0 0 1px var(--gold-dim),var(--shadow)}
+.nav-links a:focus-visible{outline-offset:6px}
+/* Print */
+@media print{.nav,.hero-scroll,.card-arrow-hint{display:none}.project-card{break-inside:avoid;box-shadow:none}}
 </style>
 </head>
 <body>
@@ -229,8 +243,8 @@ body::before{
 <nav class="nav" id="nav">
   <a href="#" class="nav-logo">白秋山</a>
   <ul class="nav-links">
-    <li><a href="#projects">项目</a></li>
-    <li><a href="https://github.com/baiqiushan0-sketch" target="_blank" rel="noopener">GitHub</a></li>
+    <li><a href="#projects" aria-label="查看项目作品">项目</a></li>
+    <li><a href="https://github.com/baiqiushan0-sketch" target="_blank" rel="noopener" aria-label="访问 GitHub 主页">GitHub</a></li>
   </ul>
 </nav>
 
@@ -256,7 +270,7 @@ body::before{
   <div class="projects-grid">
 
     <!-- 仙途 -->
-    <a class="project-card reveal reveal-delay-1" href="homepage/xiutu.html">
+    <a class="project-card reveal reveal-delay-1" href="homepage/xiutu.html" aria-label="仙途 · 文字修仙游戏">
       <div class="card-accent"></div>
       <div class="card-visual">
         <canvas class="cv-particle" data-color="rgba(200,168,88,CLR)" data-count="45"></canvas>
@@ -281,7 +295,7 @@ body::before{
     </a>
 
     <!-- 地铁跑酷 -->
-    <a class="project-card reveal reveal-delay-2" href="homepage/subway-runner.html">
+    <a class="project-card reveal reveal-delay-2" href="homepage/subway-runner.html" aria-label="地铁跑酷 · 无尽跑酷游戏">
       <div class="card-accent"></div>
       <div class="card-visual">
         <canvas class="cv-particle" data-color="rgba(92,168,216,CLR)" data-count="38"></canvas>
@@ -309,7 +323,7 @@ body::before{
     </a>
 
     <!-- 3D手势 -->
-    <a class="project-card reveal reveal-delay-3" href="homepage/gesture-3d.html">
+    <a class="project-card reveal reveal-delay-3" href="homepage/gesture-3d.html" aria-label="3D手势识别 · AI交互">
       <div class="card-accent"></div>
       <div class="card-visual">
         <canvas class="cv-particle" data-color="rgba(224,104,120,CLR)" data-count="32"></canvas>
@@ -336,7 +350,7 @@ body::before{
     </a>
 
     <!-- 2048 -->
-    <a class="project-card reveal reveal-delay-4" href="homepage/2048.html">
+    <a class="project-card reveal reveal-delay-4" href="homepage/2048.html" aria-label="2048 · 霓虹融合数字游戏">
       <div class="card-accent"></div>
       <div class="card-visual">
         <canvas class="cv-particle" data-color="rgba(80,200,160,CLR)" data-count="40"></canvas>
@@ -364,7 +378,7 @@ body::before{
     </a>
 
     <!-- 墨韵 -->
-    <a class="project-card reveal reveal-delay-5" href="homepage/mo.html">
+    <a class="project-card reveal reveal-delay-5" href="homepage/mo.html" aria-label="墨韵 · 水墨涟漪创意游戏">
       <div class="card-accent"></div>
       <div class="card-visual">
         <canvas class="cv-particle" data-color="rgba(212,152,74,CLR)" data-count="38"></canvas>
@@ -393,7 +407,7 @@ body::before{
     </a>
 
     <!-- 无限合成 -->
-    <a class="project-card reveal reveal-delay-6" href="homepage/craft.html">
+    <a class="project-card reveal reveal-delay-6" href="homepage/craft.html" aria-label="无限合成 · 元素合成创意游戏">
       <div class="card-accent"></div>
       <div class="card-visual">
         <canvas class="cv-particle" data-color="rgba(58,216,208,CLR)" data-count="40"></canvas>
@@ -420,38 +434,8 @@ body::before{
     </a>
 
 
-    <!-- 3D台球 -->
-    <a class="project-card reveal reveal-delay-7" href="homepage/pool3d.html">
-      <div class="card-accent"></div>
-      <div class="card-visual">
-        <canvas class="cv-particle" data-color="rgba(200,168,88,CLR)" data-count="35"></canvas>
-        <div class="visual-content">
-          <svg class="card-icon-svg" viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="1.5">
-            <rect x="10" y="10" width="60" height="40" rx="4" stroke-opacity=".15"/>
-            <rect x="14" y="14" width="52" height="32" rx="2" stroke-opacity=".2" fill="currentColor" fill-opacity=".03"/>
-            <circle cx="40" cy="30" r="8" fill="currentColor" fill-opacity=".25" stroke-opacity=".4"/>
-            <circle cx="24" cy="22" r="3.5" fill="currentColor" fill-opacity=".15"/>
-            <circle cx="56" cy="38" r="3.5" fill="currentColor" fill-opacity=".12"/>
-            <line x1="40" y1="30" x2="52" y2="22" stroke-opacity=".35" stroke-width="1.2"/>
-            <circle cx="52" cy="22" r="2.5" fill="currentColor" fill-opacity=".2"/>
-            <rect x="16" y="56" width="48" height="6" rx="3" stroke-opacity=".25" fill="currentColor" fill-opacity=".05"/>
-            <line x1="24" y1="56" x2="24" y2="62" stroke-opacity=".3"/>
-            <line x1="40" y1="56" x2="40" y2="62" stroke-opacity=".3"/>
-            <line x1="56" y1="56" x2="56" y2="62" stroke-opacity=".3"/>
-          </svg>
-          <span class="visual-label">3D体育 · 台球</span>
-        </div>
-      </div>
-      <div class="card-info">
-        <div class="card-tags"><span class="card-tag">3D游戏</span><span class="card-tag">体育模拟</span><span class="card-tag">Three.js</span></div>
-        <h3>3D台球 · Pool</h3>
-        <p class="card-desc">写实3D台球，真实物理碰撞+库边反弹，拖拽瞄准松手击球，8球规则，手机电脑双端</p>
-      </div>
-      <div class="card-arrow-hint">→</div>
-    </a>
-
     <!-- 更多 -->
-    <a class="project-card reveal reveal-delay-8" href="skill_g113593/skill_g113593.html">
+    <a class="project-card reveal reveal-delay-7" href="skill_g113593/skill_g113593.html" aria-label="更多项目 · 工具集合">
       <div class="card-accent"></div>
       <div class="card-visual">
         <canvas class="cv-particle" data-color="rgba(152,136,216,CLR)" data-count="35"></canvas>
@@ -540,13 +524,16 @@ let mx=0,my=0,mtx=0,mty=0;
 document.addEventListener('mousemove',e=>{mtx=(e.clientX/window.innerWidth-.5)*2;mty=(e.clientY/window.innerHeight-.5)*2});
 document.addEventListener('touchmove',e=>{const t=e.touches[0];mtx=(t.clientX/window.innerWidth-.5)*2;mty=(t.clientY/window.innerHeight-.5)*2},{passive:true});
 
+let resizeTimer3d;
 window.addEventListener('resize',()=>{
-  renderer.setSize(window.innerWidth,window.innerHeight);
-  camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();
+  clearTimeout(resizeTimer3d);
+  resizeTimer3d=setTimeout(()=>{
+    renderer.setSize(window.innerWidth,window.innerHeight);
+    camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();
+  },150);
 });
 
 function animate3D(t){
-  requestAnimationFrame(animate3D);
   mx+=(mtx-mx)*.03;my+=(mty-my)*.03;
   scene.rotation.y+=.0006;scene.rotation.x+=my*.001;scene.rotation.y+=mx*.002;
   for(const r of rings){r.rotation.x+=r.userData.rx;r.rotation.y+=r.userData.ry;r.rotation.z+=r.userData.rz;}
@@ -557,11 +544,12 @@ function animate3D(t){
   glow.material.uniforms.t.value=t*.001;
   renderer.render(scene,camera);
 }
-animate3D(0);
+renderer.setAnimationLoop(animate3D);
 </script>
 
 <script>
-/* ═══════ CARD PARTICLES ═══════ */
+/* ═══════ CARD PARTICLES (with visibility pause) ═══════ */
+const particleCanvases=[];
 document.querySelectorAll('.cv-particle').forEach(cv=>{
   const color=cv.dataset.color;
   const count=parseInt(cv.dataset.count)||35;
@@ -574,7 +562,9 @@ document.querySelectorAll('.cv-particle').forEach(cv=>{
   }
   function resize(){cv.width=parent.offsetWidth||360;cv.height=parent.offsetHeight||260;}
   resize();
+  let running=true,rafId;
   function draw(t){
+    if(!running){rafId=requestAnimationFrame(draw);return;}
     if(Math.abs(cv.width-(parent.offsetWidth||360))>5||Math.abs(cv.height-(parent.offsetHeight||260))>5)resize();
     ctx.clearRect(0,0,cv.width,cv.height);
     const cx=cv.width/2,cy=cv.height/2,mr=Math.min(cx,cy)*.6;
@@ -593,14 +583,28 @@ document.querySelectorAll('.cv-particle').forEach(cv=>{
     const grd=ctx.createRadialGradient(cx,cy,0,cx,cy,mr*.4);
     grd.addColorStop(0,color.replace('CLR','.05'));grd.addColorStop(1,'transparent');
     ctx.fillStyle=grd;ctx.fillRect(0,0,cv.width,cv.height);
-    requestAnimationFrame(draw);
+    rafId=requestAnimationFrame(draw);
   }
-  requestAnimationFrame(draw);
+  rafId=requestAnimationFrame(draw);
+  particleCanvases.push({cv,running:()=>running,pause(){running=false},resume(){running=true}});
 });
+
+/* ═══════ Pause off-screen particles ═══════ */
+const particleObserver=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    const item=particleCanvases.find(p=>p.cv===e.target);
+    if(!item)return;
+    if(e.isIntersecting)item.resume();else item.pause();
+  });
+},{threshold:0});
+particleCanvases.forEach(p=>particleObserver.observe(p.cv));
 
 /* ═══════ NAV SCROLL ═══════ */
 const nav=document.getElementById('nav');
-window.addEventListener('scroll',()=>{nav.classList.toggle('scrolled',window.scrollY>50);},{passive:true});
+let scrollTicking=false;
+window.addEventListener('scroll',()=>{
+  if(!scrollTicking){requestAnimationFrame(()=>{nav.classList.toggle('scrolled',window.scrollY>50);scrollTicking=false;});scrollTicking=true;}
+},{passive:true});
 
 /* ═══════ SCROLL REVEAL ═══════ */
 const observer=new IntersectionObserver(entries=>{
@@ -608,26 +612,45 @@ const observer=new IntersectionObserver(entries=>{
 },{threshold:.12,rootMargin:'0px 0px -20px 0px'});
 document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
 
-/* ═══════ 3D TILT ON HOVER ═══════ */
+/* ═══════ 3D TILT ON HOVER (throttled) ═══════ */
 document.querySelectorAll('.project-card').forEach(card=>{
+  let tiltX=0,tiltY=0,tiltActive=false,tiltRaf;
   card.addEventListener('mousemove',e=>{
     const rect=card.getBoundingClientRect();
-    const x=(e.clientX-rect.left)/rect.width-.5;
-    const y=(e.clientY-rect.top)/rect.height-.5;
-    card.style.transform=`perspective(1200px) rotateY(${x*6}deg) rotateX(${-y*6}deg) translateY(-8px)`;
-    card.style.boxShadow=`${25+Math.abs(x)*20}px ${30+Math.abs(y)*30}px ${60+Math.abs(x)*20}px rgba(0,0,0,.55),0 0 ${15+Math.abs(x)*10}px rgba(255,255,255,.02)`;
+    tiltX=(e.clientX-rect.left)/rect.width-.5;
+    tiltY=(e.clientY-rect.top)/rect.height-.5;
+    if(!tiltActive){tiltActive=true;
+      tiltRaf=requestAnimationFrame(function update(){
+        card.style.transform=`perspective(1200px) rotateY(${tiltX*6}deg) rotateX(${-tiltY*6}deg) translateY(-8px)`;
+        card.style.boxShadow=`${25+Math.abs(tiltX)*20}px ${30+Math.abs(tiltY)*30}px ${60+Math.abs(tiltX)*20}px rgba(0,0,0,.55),0 0 ${15+Math.abs(tiltX)*10}px rgba(255,255,255,.02)`;
+        tiltRaf=requestAnimationFrame(update);
+      });
+    }
   });
   card.addEventListener('mouseleave',()=>{
-    card.style.transform='';
-    card.style.boxShadow='';
+    tiltActive=false;cancelAnimationFrame(tiltRaf);
+    card.style.transform='';card.style.boxShadow='';
   });
 });
 
-/* ═══════ RESIZE ═══════ */
+/* ═══════ DEBOUNCED RESIZE ═══════ */
+let resizeTimer;
 window.addEventListener('resize',()=>{
-  document.querySelectorAll('.cv-particle').forEach(cv=>{
-    cv.width=cv.parentElement.offsetWidth;cv.height=cv.parentElement.offsetHeight;
-  });
+  clearTimeout(resizeTimer);
+  resizeTimer=setTimeout(()=>{
+    document.querySelectorAll('.cv-particle').forEach(cv=>{
+      cv.width=cv.parentElement.offsetWidth;cv.height=cv.parentElement.offsetHeight;
+    });
+  },150);
+});
+
+/* ═══════ PAGE VISIBILITY — pause hero when tab hidden ═══════ */
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){
+    renderer&&renderer.setAnimationLoop(null);
+  }else{
+    renderer&&renderer.setAnimationLoop(animate3D);
+  }
 });
 </script>
 </body>
