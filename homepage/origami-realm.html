@@ -6,555 +6,351 @@
 <title>折纸之境 | Origami Realm</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{overflow:hidden;background:#1a1410;font-family:'PingFang SC','Microsoft YaHei',sans-serif}
+body{overflow:hidden;background:#1a1410;font-family:'PingFang SC','Microsoft YaHei',sans-serif;user-select:none}
 canvas{display:block}
-#ui{
-  position:absolute;top:20px;left:50%;transform:translateX(-50%);
-  display:flex;gap:12px;align-items:center;pointer-events:none;
-}
-.star-slot{
-  width:36px;height:36px;border:2px dashed rgba(255,215,0,.3);border-radius:8px;
-  display:flex;align-items:center;justify-content:center;font-size:20px;
-  transition:all .5s;background:rgba(0,0,0,.3);
-}
+#ui{position:absolute;top:20px;left:50%;transform:translateX(-50%);display:flex;gap:12px;align-items:center;pointer-events:none}
+.star-slot{width:36px;height:36px;border:2px dashed rgba(255,215,0,.3);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;transition:all .5s;background:rgba(0,0,0,.3)}
 .star-slot.collected{border-color:#ffd700;background:rgba(255,215,0,.15);box-shadow:0 0 20px rgba(255,215,0,.4)}
-#hint{
-  position:absolute;bottom:60px;left:50%;transform:translateX(-50%);
-  color:rgba(255,255,255,.7);font-size:13px;letter-spacing:2px;text-align:center;
-  pointer-events:none;transition:all .3s;
-}
-#hint.pulse{animation:pulse .8s ease-in-out infinite}
-@keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}
-#title-overlay{
-  position:absolute;top:30px;right:30px;pointer-events:none;
-  color:rgba(255,255,255,.15);font-size:40px;letter-spacing:8px;
-  writing-mode:vertical-rl;text-orientation:upright;
-}
-#fold-indicator{
-  position:absolute;bottom:50%;left:50%;transform:translate(-50%,50%);
-  width:60px;height:60px;border:2px solid rgba(255,200,100,.5);border-radius:50%;
-  display:none;align-items:center;justify-content:center;
-  color:rgba(255,200,100,.8);font-size:12px;letter-spacing:1px;
-  pointer-events:none;
-}
+#hint{position:absolute;bottom:50px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.75);font-size:14px;letter-spacing:2px;text-align:center;pointer-events:none;transition:all .3s;text-shadow:0 0 8px rgba(0,0,0,.8)}
+#fold-hint{position:absolute;bottom:50%;left:50%;transform:translate(-50%,50%);padding:8px 20px;border:2px solid rgba(255,200,100,.8);border-radius:20px;color:#ffc864;font-size:14px;letter-spacing:2px;pointer-events:none;display:none;background:rgba(0,0,0,.5);animation:pulse2 1.2s ease-in-out infinite}
+@keyframes pulse2{0%,100%{opacity:.5}50%{opacity:1}}
+#title-overlay{position:absolute;top:30px;right:25px;pointer-events:none;color:rgba(255,255,255,.12);font-size:36px;letter-spacing:8px;writing-mode:vertical-rl;text-orientation:upright}
 </style>
 </head>
 <body>
 <div id="ui"></div>
-<div id="hint">W A S D 移动 · E 折叠 · 鼠标旋转视角 · 收集 5 颗纸星星</div>
+<div id="hint">WASD 移动 · 靠近机关按 <b>E</b> 折叠 · 鼠标拖拽旋转视角 · 收集 5 颗纸星星</div>
 <div id="title-overlay">折紙之境</div>
-<div id="fold-indicator">FOLD</div>
+<div id="fold-hint">按 E 折叠</div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script>
 // ═══════════════════ SCENE ═══════════════════
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('#2a2420');
-scene.fog = new THREE.Fog('#2a2420', 15, 60);
+scene.fog = new THREE.Fog('#2a2420', 18, 55);
 
-const camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.5, 100);
-camera.position.set(8, 12, 14);
-camera.lookAt(0, 2, 0);
+const camera = new THREE.PerspectiveCamera(50, innerWidth/innerHeight, 0.5, 100);
+camera.position.set(6, 10, 10);
+camera.lookAt(0, 1, 0);
 
 const renderer = new THREE.WebGLRenderer({antialias:true});
-renderer.setSize(innerWidth, innerHeight);
+renderer.setSize(innerWidth,innerHeight);
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.1;
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.05;
 document.body.appendChild(renderer.domElement);
 
-// ═══════════════════ LIGHTING ═══════════════════
-const ambient = new THREE.AmbientLight('#fff5e8', 0.6);
-scene.add(ambient);
-const sun = new THREE.DirectionalLight('#fff8f0', 3);
-sun.position.set(15, 25, 10);
-sun.castShadow = true;
-sun.shadow.mapSize.set(2048, 2048);
-sun.shadow.camera.near = 0.5; sun.shadow.camera.far = 80;
-sun.shadow.camera.left = -20; sun.shadow.camera.right = 20;
-sun.shadow.camera.top = 20; sun.shadow.camera.bottom = -20;
-sun.shadow.bias = -0.0001;
+// Lighting
+scene.add(new THREE.AmbientLight('#fff5e8',0.5));
+const sun=new THREE.DirectionalLight('#fff8f0',3.5);
+sun.position.set(15,20,10);sun.castShadow=true;
+sun.shadow.mapSize.set(2048,2048);
+sun.shadow.camera.near=0.5;sun.shadow.camera.far=80;
+sun.shadow.camera.left=-25;sun.shadow.camera.right=25;
+sun.shadow.camera.top=25;sun.shadow.camera.bottom=-25;
+sun.shadow.bias=-0.0003;
 scene.add(sun);
-const fill = new THREE.DirectionalLight('#ffe0c0', 0.8);
-fill.position.set(-5, 3, -5);
-scene.add(fill);
+scene.add(new THREE.DirectionalLight('#ffe0c0',0.6).position.set(-5,3,-5));
 
-// ═══════════════════ PAPER TEXTURE (canvas) ═══════════════════
-const texCanvas = document.createElement('canvas');
-texCanvas.width = 512; texCanvas.height = 512;
-const tctx = texCanvas.getContext('2d');
-tctx.fillStyle = '#faf6f0';
-tctx.fillRect(0,0,512,512);
-// Subtle fiber texture
-for(let i=0;i<8000;i++){
-  const x=Math.random()*512,y=Math.random()*512;
-  tctx.fillStyle=`rgba(200,180,160,${Math.random()*0.08})`;
-  tctx.fillRect(x,y,Math.random()*3+1,Math.random()*2+1);
-}
-const paperTex = new THREE.CanvasTexture(texCanvas);
-paperTex.wrapS = paperTex.wrapT = THREE.RepeatWrapping;
+// Paper Texture
+const tc=document.createElement('canvas');tc.width=tc.height=512;
+const tx=tc.getContext('2d');tx.fillStyle='#faf6f0';tx.fillRect(0,0,512,512);
+for(let i=0;i<6000;i++){tx.fillStyle=`rgba(200,180,160,${Math.random()*0.06})`;tx.fillRect(Math.random()*512,Math.random()*512,Math.random()*3+1,Math.random()*2+1)}
+const paperTex=new THREE.CanvasTexture(tc);paperTex.wrapS=paperTex.wrapT=THREE.RepeatWrapping;
 
-// ═══════════════════ MATERIALS ═══════════════════
-function paperMat(color='#f5efe5'){
-  return new THREE.MeshStandardMaterial({
-    color, roughness:0.75, metalness:0,
-    map:paperTex, bumpMap:paperTex, bumpScale:0.02,
-  });
-}
-function accentMat(color='#e8c8a0'){
-  return new THREE.MeshStandardMaterial({color,roughness:0.6,metalness:0.05});
-}
-function edgeMat(color='#8b7355'){
-  return new THREE.LineBasicMaterial({color,transparent:true,opacity:0.35});
-}
-const starMat = new THREE.MeshStandardMaterial({
-  color:'#ffd700',emissive:'#ffa000',emissiveIntensity:0.8,roughness:0.3,metalness:0.3
-});
+function pMat(c='#f5efe5'){return new THREE.MeshStandardMaterial({color:c,roughness:0.75,metalness:0,map:paperTex,bumpMap:paperTex,bumpScale:0.02})}
+function aMat(c='#e8c8a0'){return new THREE.MeshStandardMaterial({color:c,roughness:0.6,metalness:0.05})}
+function eMat(c='#8b7355'){return new THREE.LineBasicMaterial({color:c,transparent:true,opacity:0.35})}
+const sMat=new THREE.MeshStandardMaterial({color:'#ffd700',emissive:'#ffa000',emissiveIntensity:0.8,roughness:0.3,metalness:0.3});
 
-// ═══════════════════ GROUND (large paper sheet) ═══════════════════
-const groundGeo = new THREE.PlaneGeometry(30, 30);
-const ground = new THREE.Mesh(groundGeo, paperMat('#f8f3ec'));
-ground.rotation.x = -Math.PI/2;
-ground.receiveShadow = true;
+function addEdge(mesh,color='#8b7355'){
+  const eg=new THREE.EdgesGeometry(mesh.geometry);
+  const el=new THREE.LineSegments(eg,eMat(color));
+  el.position.copy(mesh.position);el.rotation.copy(mesh.rotation);
+  scene.add(el);return el;
+}
+
+// ═══════════════════ GROUND PLANE ═══════════════════
+const groundGeo=new THREE.PlaneGeometry(32,32);
+const ground=new THREE.Mesh(groundGeo,pMat('#f8f3ec'));
+ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;
 scene.add(ground);
 
-// Crease grid on ground
-const creaseGroup = new THREE.Group();
-for(let i=-14;i<=14;i+=2){
-  const g=new THREE.BoxGeometry(30,0.01,0.02);
-  const m=new THREE.Mesh(g,accentMat('#e0d5c5'));
-  m.position.set(0,0.005,i);creaseGroup.add(m);
-  const g2=new THREE.BoxGeometry(0.02,0.01,30);
-  const m2=new THREE.Mesh(g2,accentMat('#e0d5c5'));
-  m2.position.set(i,0.005,0);creaseGroup.add(m2);
-}
-creaseGroup.position.y=0.003;
-scene.add(creaseGroup);
+// Ground crease grid
+const cg=new THREE.Group();
+for(let i=-15;i<=15;i+=2){
+  const g=new THREE.BoxGeometry(32,0.015,0.025);cg.add(new THREE.Mesh(g,aMat('#e0d5c5')).position.set(0,0.008,i));
+  const g2=new THREE.BoxGeometry(0.025,0.015,32);cg.add(new THREE.Mesh(g2,aMat('#e0d5c5')).position.set(i,0.008,0));
+}cg.position.y=0.003;scene.add(cg);
 
 // Desk border
-const borderGeo = new THREE.BoxGeometry(31,0.3,31);
-const border = new THREE.Mesh(borderGeo, accentMat('#c4a882'));
-border.position.y=-0.16;
-border.receiveShadow=true;
-border.castShadow=true;
-scene.add(border);
+const bGeo=new THREE.BoxGeometry(33,0.35,33);const bM=new THREE.Mesh(bGeo,aMat('#c4a882'));bM.position.y=-0.18;bM.receiveShadow=bM.castShadow=true;scene.add(bM);
 
-// ═══════════════════ FOLDABLE STRUCTURES ═══════════════════
-const foldStructures = [];
+// ═══════════════════ PLATFORMS (islands separated by gaps) ═══════════════════
+// platforms: {x,z,w,d,h,name}
+const platforms=[
+  {x:0,z:0,w:5,d:5,h:0.5,name:'起始岛'},
+  {x:0,z:-7,w:5,d:4,h:0.5,name:'北岛'},
+  {x:9,z:0,w:5,d:5,h:0.5,name:'东岛'},
+  {x:-7,z:-7,w:4,d:4,h:2.0,name:'高台岛'},
+  {x:-7,z:5,w:4,d:4,h:0.5,name:'西岛'},
+];
+const platformMeshes=[];
+platforms.forEach(p=>{
+  const geo=new THREE.BoxGeometry(p.w,p.h,p.d);
+  const mesh=new THREE.Mesh(geo,pMat('#faf6f2'));
+  mesh.position.set(p.x,p.h/2,p.z);
+  mesh.castShadow=mesh.receiveShadow=true;
+  scene.add(mesh);addEdge(mesh,'#a09080');
+  platformMeshes.push({mesh,x:p.x,z:p.z,hw:p.w/2,hd:p.d/2,ht:p.h});
+});
 
-function createHingePanel(w, h, color, x, y, z, hingeAxis='x', hingeOffset=0){
-  const group = new THREE.Group();
-  group.position.set(x, y, z);
+// ═══════════════════ GAP ZONES (fall detection) ═══════════════════
+const gaps=[
+  {x:0,z:-3.5,w:3,d:2.5},        // Between start island and north island
+  {x:4.5,z:0,w:3,d:3},           // Between start island and east island
+  {x:-3.5,z:-3.5,w:2.5,d:2.5},   // Between start island and high platform
+  {x:-3.5,z:2.5,w:2.5,d:2},      // Between start island and west island
+];
 
-  const hinge = new THREE.Group();
-  const panelGeo = new THREE.PlaneGeometry(w, h);
-  const panel = new THREE.Mesh(panelGeo, paperMat(color));
-  panel.position.y = h/2;
-  if(hingeAxis==='x') panel.position.z = hingeOffset;
-  else panel.position.x = hingeOffset;
-  panel.castShadow = true;
-  panel.receiveShadow = true;
+// ═══════════════════ FOLDABLE BRIDGES ═══════════════════
+const foldables=[];
+
+function makeFoldBridge(x,y,z,w,h,axis='x',initialAngle=-Math.PI/2,label='bridge'){
+  const group=new THREE.Group();group.position.set(x,y,z);
+  const hinge=new THREE.Group();
+  const pGeo=new THREE.PlaneGeometry(w,h);
+  const panel=new THREE.Mesh(pGeo,pMat('#f2e8d8'));
+  panel.position.y=h/2;panel.castShadow=panel.receiveShadow=true;
   hinge.add(panel);
-
-  // Edge outline
-  const edgeGeo = new THREE.EdgesGeometry(panelGeo);
-  const edge = new THREE.LineSegments(edgeGeo, edgeMat('#8b7355'));
-  edge.position.copy(panel.position);
-  hinge.add(edge);
-
+  const edg=new THREE.LineSegments(new THREE.EdgesGeometry(pGeo),eMat('#8b7355'));
+  edg.position.copy(panel.position);hinge.add(edg);
+  hinge.rotation[axis]=initialAngle;
   group.add(hinge);
-  group.userData = { hinge, panel, edge, hingeAxis, w, h, targetAngle:0, currentAngle:0, foldable:true };
-  foldStructures.push(group);
+  group.userData={hinge,panel,edg,hingeAxis:axis,currentAngle:initialAngle,targetAngle:initialAngle,folded:true,ready:true,label,h,w,y};
+  foldables.push(group);
   scene.add(group);
   return group;
 }
 
-// Center paper platform
-const platGeo = new THREE.BoxGeometry(4, 0.4, 4);
-const platform = new THREE.Mesh(platGeo, paperMat('#faf5ee'));
-platform.position.set(0, 0.2, 0);
-platform.castShadow = true; platform.receiveShadow = true;
-platform.name = 'centerPlatform';
-// Edge on platform
-const platEdge = new THREE.LineSegments(new THREE.EdgesGeometry(platGeo), edgeMat('#a09080'));
-platEdge.position.copy(platform.position);
-scene.add(platform); scene.add(platEdge);
-
-// ── Structure 1: Folding Bridge (North) ──
-const bridge = createHingePanel(3, 6, '#f2e8d8', 0, 0.4, -2.5, 'x', 0);
-bridge.userData.hinge.rotation.x = -Math.PI/2; // starts vertical (wall)
-bridge.userData.currentAngle = -Math.PI/2;
-bridge.userData.targetAngle = -Math.PI/2;
-bridge.userData.folded = true;
-bridge.userData.label = 'bridge';
-bridge.userData.activateMsg = '桥面正在折叠...';
-
-// ── Structure 2: Folding Wall (East) ──
-const wall = createHingePanel(5, 4, '#ede0cc', 4.5, 0.4, 0, 'x', 0);
-wall.userData.hinge.rotation.x = Math.PI/2;
-wall.userData.currentAngle = Math.PI/2;
-wall.userData.targetAngle = Math.PI/2;
-wall.userData.folded = true;
-wall.userData.label = 'wall';
-wall.userData.activateMsg = '墙壁正在折叠...';
-
-// ── Structure 3: Folding Stairs (South-West) ──
-const stairs = [];
-for(let i=0;i<4;i++){
-  const step = createHingePanel(2, 1.2, `hsl(35,${30+i*10}%,${85+i*3}%)`, -3+i*0.4, 0.4+i*0.5, 4, 'x', 0);
-  step.userData.hinge.rotation.x = 0;
-  step.userData.currentAngle = 0;
-  step.userData.targetAngle = 0;
-  step.userData.folded = false;
-  step.userData.label = 'step';
-  stairs.push(step);
-}
-
-// ── Structure 4: Rotating Wall (North-West platform) ──
-const highPlatGeo = new THREE.BoxGeometry(3, 1.5, 3);
-const highPlat = new THREE.Mesh(highPlatGeo, paperMat('#faf6f2'));
-highPlat.position.set(-5, 0.75, -5);
-highPlat.castShadow = true; highPlat.receiveShadow = true;
-const highPlatEdge = new THREE.LineSegments(new THREE.EdgesGeometry(highPlatGeo), edgeMat('#a09080'));
-highPlatEdge.position.copy(highPlat.position);
-scene.add(highPlat); scene.add(highPlatEdge);
-
-const rotWall = createHingePanel(4, 3, '#f0e5d5', -5, 1.8, -3.5, 'y', -1.5);
-rotWall.userData.hinge.rotation.y = Math.PI/2;
-rotWall.userData.currentAngle = Math.PI/2;
-rotWall.userData.targetAngle = Math.PI/2;
-rotWall.userData.folded = true;
-rotWall.userData.label = 'rotateWall';
-rotWall.userData.rotateAxis = 'y';
-
-// ── Structure 5: Final bridge to East Island ──
-const eastPlatGeo = new THREE.BoxGeometry(3, 0.3, 3);
-const eastPlat = new THREE.Mesh(eastPlatGeo, paperMat('#faf6f2'));
-eastPlat.position.set(10, 0.15, 0);
-eastPlat.castShadow = true; eastPlat.receiveShadow = true;
-const eastPlatEdge = new THREE.LineSegments(new THREE.EdgesGeometry(eastPlatGeo), edgeMat('#a09080'));
-eastPlatEdge.position.copy(eastPlat.position);
-scene.add(eastPlat); scene.add(eastPlatEdge);
-
-const eastBridge = createHingePanel(3, 7, '#f3e9db', 7, 0.3, 0, 'x', 0);
-eastBridge.userData.hinge.rotation.x = -Math.PI/2;
-eastBridge.userData.currentAngle = -Math.PI/2;
-eastBridge.userData.targetAngle = -Math.PI/2;
-eastBridge.userData.folded = true;
-eastBridge.userData.label = 'eastBridge';
+// Bridge 1: Start → North (spans gap at z=-3.5)
+const brN=makeFoldBridge(0,0.5,-4.8,4,3,'x',-Math.PI/2,'bridgeN');
+// Bridge 2: Start → East (spans gap at x=4.5)
+const brE=makeFoldBridge(6.8,0.5,0,4,3.5,'x',-Math.PI/2,'bridgeE');
+// Bridge 3: Start → West
+const brW=makeFoldBridge(-5,0.5,3.5,3.5,2.8,'x',-Math.PI/2,'bridgeW');
+// Wall: Blocks path to high platform
+const wallH=makeFoldBridge(-5.5,1.2,-5.5,2.5,3,'x',Math.PI/2,'wallH');
 
 // ═══════════════════ COLLECTIBLE STARS ═══════════════════
-const stars = [];
-function createStar(x, y, z){
-  const group = new THREE.Group();
-  // Star shape from 2 crossed triangles
-  const triGeo = new THREE.ConeGeometry(0.3, 0.6, 4);
-  const tri1 = new THREE.Mesh(triGeo, starMat);
-  const tri2 = new THREE.Mesh(triGeo, starMat);
-  tri2.rotation.y = Math.PI/4;
-  tri2.rotation.z = Math.PI/4;
-  group.add(tri1); group.add(tri2);
-  group.position.set(x, y, z);
-  group.userData = { collected:false, baseY:y };
-  scene.add(group);
-  stars.push(group);
-  return group;
+const stars=[];
+function mkStar(x,y,z){
+  const g=new THREE.Group();
+  [0,Math.PI/4].forEach(r=>{const c=new THREE.Mesh(new THREE.ConeGeometry(0.25,0.55,4),sMat);c.rotation.y=r;c.rotation.z=Math.PI/4;g.add(c)});
+  g.position.set(x,y,z);g.userData={baseY:y,collected:false};
+  scene.add(g);stars.push(g);return g;
 }
+// Stars placed such that each requires a foldable to reach
+mkStar(0,1.5,-7.5);  // North island - needs bridgeN
+mkStar(9.5,1.5,0);   // East island - needs bridgeE
+mkStar(-7,1.5,5.5);  // West island - needs bridgeW
+mkStar(-7,3.5,-7);   // High platform - needs wallH unfolded + bridge somewhere
+mkStar(-7,3.5,-8.5); // High platform far edge
 
-createStar(0, 1.2, -5.5);   // Behind bridge (need to unfold bridge)
-createStar(7.5, 1.2, 0);    // Behind east wall
-createStar(-5, 2.5, -5);    // On high platform
-createStar(12, 1.2, 0);     // On east island (need east bridge)
-createStar(-6.5, 1.2, 3.5); // Behind rotating wall
+// ═══════════════════ PLAYER ═══════════════════
+const player=new THREE.Group();
+const bGeo=new THREE.ConeGeometry(0.22,0.8,4);const bM2=new THREE.Mesh(bGeo,aMat('#fafafa'));bM2.rotation.z=Math.PI/4;bM2.position.y=0.55;player.add(bM2);
+const wGeo=new THREE.ConeGeometry(0.35,0.6,3);
+const wL=new THREE.Mesh(wGeo,pMat('#fefefe'));wL.rotation.z=Math.PI/2.5;wL.position.set(0.18,0.65,0);player.add(wL);
+const wR=new THREE.Mesh(wGeo,pMat('#fefefe'));wR.rotation.z=-Math.PI/2.5;wR.position.set(-0.18,0.65,0);player.add(wR);
+const hGeo=new THREE.ConeGeometry(0.1,0.25,4);const hM=new THREE.Mesh(hGeo,aMat('#fff'));hM.position.y=1.0;hM.rotation.z=Math.PI/4;player.add(hM);
+const shGeo=new THREE.CircleGeometry(0.22,16);const shM=new THREE.Mesh(shGeo,new THREE.MeshBasicMaterial({color:'#000',transparent:true,opacity:0.22,depthWrite:false}));shM.rotation.x=-Math.PI/2;shM.position.y=-0.01;player.add(shM);
+player.position.set(0,0.6,0);player.castShadow=true;scene.add(player);
 
-// ═══════════════════ PLAYER (Paper Crane) ═══════════════════
-const player = new THREE.Group();
+// ═══════════════════ STATE ═══════════════════
+const keys={};let collected=0,lastSafePos=new THREE.Vector3(0,0.6,0),falling=false,fallTimer=0;
+let camAngle=Math.PI/4,camDist=11,camH=7,targetAngle=camAngle,targetDist=camDist,targetH=camH;
 
-// Body - diamond shape
-const bodyGeo = new THREE.ConeGeometry(0.25, 0.9, 4);
-const body = new THREE.Mesh(bodyGeo, accentMat('#fafafa'));
-body.rotation.z = Math.PI/4;
-body.position.y = 0.6;
-player.add(body);
+// UI
+const uiEl=document.getElementById('ui'),hintEl=document.getElementById('hint'),foldHint=document.getElementById('fold-hint');
+for(let i=0;i<5;i++){const s=document.createElement('div');s.className='star-slot';s.textContent='★';uiEl.appendChild(s)}
 
-// Wings
-const wingGeo = new THREE.ConeGeometry(0.4, 0.7, 3);
-const wingL = new THREE.Mesh(wingGeo, paperMat('#fefefe'));
-wingL.rotation.z = Math.PI/2.5;
-wingL.position.set(0.2, 0.7, 0);
-player.add(wingL);
-const wingR = new THREE.Mesh(wingGeo, paperMat('#fefefe'));
-wingR.rotation.z = -Math.PI/2.5;
-wingR.position.set(-0.2, 0.7, 0);
-player.add(wingR);
+// Input
+window.addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true});
+window.addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false});
+let dragging=false,lmx=0,lmx2=0;
+window.addEventListener('mousedown',e=>{dragging=true;lmx=e.clientX});
+window.addEventListener('mouseup',()=>dragging=false);
+window.addEventListener('mousemove',e=>{if(dragging){targetAngle-=(e.clientX-lmx)*0.005;lmx=e.clientX}});
+window.addEventListener('wheel',e=>{targetDist=Math.max(6,Math.min(22,targetDist+e.deltaY*0.02));targetH=Math.max(3,Math.min(16,targetH+e.deltaY*0.015))});
 
-// Head
-const headGeo = new THREE.ConeGeometry(0.12, 0.3, 4);
-const head = new THREE.Mesh(headGeo, accentMat('#fff'));
-head.position.y = 1.1;
-head.rotation.z = Math.PI/4;
-player.add(head);
-
-// Shadow disc
-const shadowGeo = new THREE.CircleGeometry(0.25, 16);
-const shadow = new THREE.Mesh(shadowGeo, new THREE.MeshBasicMaterial({color:'#000',transparent:true,opacity:0.25,depthWrite:false}));
-shadow.rotation.x = -Math.PI/2;
-shadow.position.y = -0.01;
-player.add(shadow);
-
-player.position.set(0, 0.5, 0);
-player.castShadow = true;
-scene.add(player);
-
-// ═══════════════════ GAME STATE ═══════════════════
-const keys = {};
-let collectedCount = 0;
-let nearFoldTarget = null;
-let cameraAngle = Math.PI/4;
-let cameraDistance = 12;
-let cameraHeight = 8;
-let targetAngle = cameraAngle;
-let targetDist = cameraDistance;
-let targetHeight = cameraHeight;
-
-// ═══════════════════ UI ═══════════════════
-const uiEl = document.getElementById('ui');
-for(let i=0;i<5;i++){
-  const slot = document.createElement('div');
-  slot.className='star-slot';
-  slot.textContent='★';
-  uiEl.appendChild(slot);
-}
-const hintEl = document.getElementById('hint');
-const foldIndicator = document.getElementById('fold-indicator');
-
-// ═══════════════════ INPUT ═══════════════════
-window.addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;e.preventDefault()});
-window.addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;e.preventDefault()});
-
-// Mouse rotate
-let isDragging=false, lastMouseX=0;
-window.addEventListener('mousedown',e=>{isDragging=true;lastMouseX=e.clientX});
-window.addEventListener('mouseup',()=>isDragging=false);
-window.addEventListener('mousemove',e=>{
-  if(isDragging){
-    targetAngle-=(e.clientX-lastMouseX)*0.005;
-    lastMouseX=e.clientX;
-  }
-});
-window.addEventListener('wheel',e=>{
-  targetDist=Math.max(6,Math.min(20,targetDist+e.deltaY*0.02));
-  targetHeight=Math.max(4,Math.min(18,targetHeight+e.deltaY*0.015));
-});
-
-// Touch
-window.addEventListener('touchstart',e=>{
-  if(e.touches.length===1){isDragging=true;lastMouseX=e.touches[0].clientX}
-});
-window.addEventListener('touchend',()=>isDragging=false);
-window.addEventListener('touchmove',e=>{
-  if(isDragging&&e.touches.length===1){
-    targetAngle-=(e.touches[0].clientX-lastMouseX)*0.005;
-    lastMouseX=e.touches[0].clientX;
-  }
-  if(e.touches.length===2){
-    const dy=e.touches[0].clientY-e.touches[1].clientY;
-    targetHeight=Math.max(4,Math.min(18,targetHeight+dy*0.02));
-  }
-});
-
-// ═══════════════════ FOLD TRIGGER DETECTION ═══════════════════
-const TRIGGER_DIST = 3.5;
-
-function findNearestFold(){
-  let nearest=null, minDist=TRIGGER_DIST;
-  foldStructures.forEach(s=>{
-    const dist = player.position.distanceTo(new THREE.Vector3(s.position.x, player.position.y, s.position.z));
-    if(dist<minDist&&s.userData.foldable){
-      minDist=dist; nearest=s;
+// ═══════════════════ HELPER: get platform height ═══════════════════
+function getGroundY(px,pz){
+  // Check each platform
+  for(const p of platformMeshes){
+    if(Math.abs(px-p.x)<p.hw+0.3&&Math.abs(pz-p.z)<p.hd+0.3){
+      return p.ht+0.05; // top surface
     }
-  });
-  return nearest;
+  }
+  // Check unfolded bridges
+  for(const f of foldables){
+    const ud=f.userData;
+    if(!ud.ready||Math.abs(ud.currentAngle-ud.targetAngle)>0.1)continue;
+    if(ud.label==='wallH')continue; // wall is vertical block, not walkable
+    const fx=f.position.x,fz=f.position.z,fw=ud.w/2,fh=ud.h;
+    // Bridge lies flat (angle≈0): spans from fx-fh to fx along z
+    if(ud.label==='bridgeN'&&Math.abs(px-fx)<fw+0.4&&pz<fz+0.3&&pz>fz-fh-0.3){
+      return f.position.y+0.05;
+    }
+    if(ud.label==='bridgeE'&&Math.abs(pz-fz)<fw+0.4&&px>fx-fh-0.3&&px<fx+0.3){
+      return f.position.y+0.05;
+    }
+    if(ud.label==='bridgeW'&&Math.abs(pz-fz)<fw+0.4&&px<fx+0.3&&px>fx-fh-0.3){
+      return f.position.y+0.05;
+    }
+  }
+  // Check if in gap
+  for(const g of gaps){
+    if(Math.abs(px-g.x)<g.w/2&&Math.abs(pz-g.z)<g.d/2){
+      // Check if any unfolded bridge covers this gap
+      for(const f of foldables){
+        const ud=f.userData;
+        if(!ud.ready||Math.abs(ud.currentAngle-ud.targetAngle)>0.3)continue;
+        const fx=f.position.x,fz=f.position.z,fw=ud.w/2,fh=ud.h;
+        if(ud.label==='bridgeN'&&Math.abs(px-fx)<fw+0.4&&pz<fz+0.3&&pz>fz-fh-0.3)return f.position.y+0.05;
+        if(ud.label==='bridgeE'&&Math.abs(pz-fz)<fw+0.4&&px>fx-fh-0.3&&px<fx+0.3)return f.position.y+0.05;
+        if(ud.label==='bridgeW'&&Math.abs(pz-fz)<fw+0.4&&px<fx+0.3&&px>fx-fh-0.3)return f.position.y+0.05;
+      }
+      // Gap not bridged → fall!
+      return -5;
+    }
+  }
+  return 0.5; // ground level
 }
 
-function toggleFold(structure){
-  if(!structure) return;
-  const ud = structure.userData;
-  if(ud.rotateAxis==='y'){
-    // Rotating wall
-    ud.folded = !ud.folded;
-    ud.targetAngle = ud.folded ? Math.PI/2 : 0;
-  } else {
-    // Hinge fold
-    ud.folded = !ud.folded;
-    ud.targetAngle = ud.folded ? -Math.PI/2 : 0;
-  }
-  hintEl.textContent = ud.folded ? '已折叠 · 再次按 E 展开' : '已展开 · 再次按 E 折叠';
-  hintEl.classList.add('pulse');
-  setTimeout(()=>hintEl.classList.remove('pulse'),1500);
+// ═══════════════════ FOLD TOGGLE ═══════════════════
+function toggleFold(f){
+  if(!f||!f.userData.ready)return;
+  const ud=f.userData;
+  ud.folded=!ud.folded;
+  ud.targetAngle=ud.folded?-Math.PI/2:0;
+  ud.ready=false;
+  const names={bridgeN:'北桥',bridgeE:'东桥',bridgeW:'西桥',wallH:'高台壁'};
+  hintEl.textContent=(ud.folded?'[折叠] ':'[展开] ')+(names[ud.label]||ud.label);
+  hintEl.style.color=ud.folded?'#d4a060':'#60d4a0';
 }
 
 // ═══════════════════ UPDATE ═══════════════════
 function update(){
-  const speed = 0.08;
-  const px=player.position.x, pz=player.position.z, py=player.position.y;
+  const spd=0.1;
+  const fwd=new THREE.Vector3(-Math.sin(camAngle),0,-Math.cos(camAngle));
+  const rgt=new THREE.Vector3(Math.cos(camAngle),0,-Math.sin(camAngle));
+  const prevX=player.position.x,prevZ=player.position.z;
 
-  // Movement
-  const forward = new THREE.Vector3(-Math.sin(cameraAngle), 0, -Math.cos(cameraAngle));
-  const right = new THREE.Vector3(Math.cos(cameraAngle), 0, -Math.sin(cameraAngle));
+  if(keys['w']){player.position.x+=fwd.x*spd;player.position.z+=fwd.z*spd}
+  if(keys['s']){player.position.x-=fwd.x*spd;player.position.z-=fwd.z*spd}
+  if(keys['a']){player.position.x-=rgt.x*spd;player.position.z-=rgt.z*spd}
+  if(keys['d']){player.position.x+=rgt.x*spd;player.position.z+=rgt.z*spd}
 
-  if(keys['w']){player.position.x+=forward.x*speed;player.position.z+=forward.z*speed}
-  if(keys['s']){player.position.x-=forward.x*speed;player.position.z-=forward.z*speed}
-  if(keys['a']){player.position.x-=right.x*speed;player.position.z-=right.z*speed}
-  if(keys['d']){player.position.x+=right.x*speed;player.position.z+=right.z*speed}
+  // Clamp world bounds
+  player.position.x=Math.max(-15,Math.min(15,player.position.x));
+  player.position.z=Math.max(-15,Math.min(15,player.position.z));
 
-  // Clamp to ground area
-  player.position.x = Math.max(-14,Math.min(14,player.position.x));
-  player.position.z = Math.max(-14,Math.min(14,player.position.z));
+  // Ground height
+  const groundY=getGroundY(player.position.x,player.position.z);
 
-  // Height detection - simple platform logic
-  let groundY = 0.5;
-  // Check if on center platform
-  if(Math.abs(player.position.x)<2.2&&Math.abs(player.position.z)<2.2) groundY=0.7;
-  // Check if on east platform
-  if(Math.abs(player.position.x-10)<1.7&&Math.abs(player.position.z)<1.7) groundY=0.6;
-  // Check high platform
-  if(Math.abs(player.position.x+5)<1.7&&Math.abs(player.position.z+5)<1.7) groundY=1.8;
-  // Bridge surface (when unfolded)
-  if(bridge.userData.currentAngle>-0.3&&Math.abs(player.position.x)<1.7&&player.position.z<-2&&player.position.z>-5.5){
-    const t=(Math.abs(player.position.z)-2)/3.5;
-    groundY=0.7+t*2.5;
-  }
-  // East bridge surface
-  if(eastBridge.userData.currentAngle>-0.3&&player.position.x>5.5&&player.position.x<8.5&&Math.abs(player.position.z)<1.7){
-    groundY=0.6;
-  }
-
-  player.position.y += (groundY - player.position.y) * 0.3;
-
-  // Player rotation faces movement direction
-  if(Math.abs(player.position.x-px)>0.001||Math.abs(player.position.z-pz)>0.001){
-    const moveAngle = Math.atan2(player.position.x-px, player.position.z-pz);
-    player.rotation.y += (moveAngle - player.rotation.y) * 0.3;
-  }
-
-  // Wing flap animation
-  const flapSpeed = keys['w']||keys['a']||keys['s']||keys['d']?15:5;
-  wingL.rotation.z = Math.PI/2.5 + Math.sin(Date.now()*0.01*flapSpeed)*0.3;
-  wingR.rotation.z = -Math.PI/2.5 - Math.sin(Date.now()*0.01*flapSpeed)*0.3;
-
-  // ═══════ FOLD ANIMATIONS ═══════
-  foldStructures.forEach(s=>{
-    const ud = s.userData;
-    if(Math.abs(ud.currentAngle-ud.targetAngle)>0.005){
-      ud.currentAngle += (ud.targetAngle-ud.currentAngle)*0.12;
-      if(ud.rotateAxis==='y') ud.hinge.rotation.y = ud.currentAngle;
-      else ud.hinge.rotation.x = ud.currentAngle;
-      // Update foldable status
-      ud.foldable = Math.abs(ud.currentAngle-ud.targetAngle)<0.05;
-    }
-  });
-
-  // ═══════ CHECK FOLD PROXIMITY ═══════
-  nearFoldTarget = findNearestFold();
-  if(nearFoldTarget){
-    foldIndicator.style.display='flex';
-    foldIndicator.style.borderColor='rgba(255,200,100,.8)';
-  } else {
-    foldIndicator.style.display='none';
-  }
-
-  // E key to fold
-  if(keys['e'] && nearFoldTarget && nearFoldTarget.userData.foldable){
-    toggleFold(nearFoldTarget);
-    keys['e']=false;
-  }
-
-  // ═══════ COLLECT STARS ═══════
-  stars.forEach((star,i)=>{
-    if(star.userData.collected) return;
-    const dist = player.position.distanceTo(star.position);
-    if(dist<2.0){
-      star.userData.collected=true;
-      star.visible=false;
-      collectedCount++;
-      // Update UI
-      const slots = uiEl.querySelectorAll('.star-slot');
-      if(slots[collectedCount-1]) slots[collectedCount-1].classList.add('collected');
-      hintEl.textContent = `收集到纸星星！(${collectedCount}/5)`;
-      hintEl.classList.add('pulse');
-      setTimeout(()=>hintEl.classList.remove('pulse'),2000);
-      if(collectedCount>=5){
-        setTimeout(()=>{
-          hintEl.textContent='✨ 全部收集完毕！折纸之境，已然解谜 ✨';
-          hintEl.classList.add('pulse');
-        },1500);
+  if(groundY<-3){
+    // Falling into gap!
+    if(!falling){falling=true;fallTimer=0}
+    player.position.y-=(player.position.y-groundY)*0.1;
+    fallTimer++;
+    if(fallTimer>40){player.position.copy(lastSafePos);falling=false;hintEl.textContent='掉下去了！回到安全位置';hintEl.style.color='#e08060';setTimeout(()=>hintEl.style.color='',1500)}
+  }else{
+    if(falling){falling=false;fallTimer=0}
+    player.position.y+=(groundY-player.position.y)*0.25;
+    if(Math.abs(player.position.y-groundY)<0.15)lastSafePos.copy(player.position);
+    // WallH collision (vertical wall blocking path)
+    const wh=foldables.find(f=>f.userData.label==='wallH');
+    if(wh&&Math.abs(wh.userData.currentAngle-Math.PI/2)<0.3){
+      // Wall is up (vertical) - check collision
+      const wp=wh.position;const hw=wh.userData.w/2,hh=wh.userData.h;
+      if(Math.abs(player.position.z-wp.z)<0.4&&Math.abs(player.position.x-wp.x)<hw+0.5){
+        player.position.x=prevX;player.position.z=prevZ;
       }
     }
-    // Bob animation
-    star.rotation.y += 0.03;
-    star.position.y = star.userData.baseY + Math.sin(Date.now()*0.003+i)*0.4;
+  }
+
+  // Movement animation
+  const moved=Math.abs(player.position.x-prevX)>0.001||Math.abs(player.position.z-prevZ)>0.001;
+  if(moved){const ma=Math.atan2(player.position.x-prevX,player.position.z-prevZ);player.rotation.y+=(ma-player.rotation.y)*0.25}
+  const flSpd=moved?14:4;
+  wL.rotation.z=Math.PI/2.5+Math.sin(Date.now()*0.012*flSpd)*0.3;
+  wR.rotation.z=-Math.PI/2.5-Math.sin(Date.now()*0.012*flSpd)*0.3;
+
+  // Fold animations
+  foldables.forEach(f=>{
+    const ud=f.userData;
+    if(Math.abs(ud.currentAngle-ud.targetAngle)>0.003){
+      ud.currentAngle+=(ud.targetAngle-ud.currentAngle)*0.15;
+      ud.hinge.rotation[ud.hingeAxis]=ud.currentAngle;
+    }else if(!ud.ready){
+      ud.currentAngle=ud.targetAngle;ud.hinge.rotation[ud.hingeAxis]=ud.targetAngle;ud.ready=true;
+    }
   });
 
-  // ═══════ CAMERA ═══════
-  cameraAngle += (targetAngle-cameraAngle)*0.05;
-  cameraDistance += (targetDist-cameraDistance)*0.05;
-  cameraHeight += (targetHeight-cameraHeight)*0.05;
-  const cx = player.position.x + Math.sin(cameraAngle)*cameraDistance;
-  const cz = player.position.z + Math.cos(cameraAngle)*cameraDistance;
-  const cy = player.position.y + cameraHeight;
-  camera.position.set(cx, cy, cz);
-  camera.lookAt(player.position.x, player.position.y+1, player.position.z);
+  // Near foldable?
+  let nearest=null,minDist=4;
+  foldables.forEach(f=>{
+    if(!f.userData.ready)return;
+    const d=player.position.distanceTo(new THREE.Vector3(f.position.x,player.position.y,f.position.z));
+    if(d<minDist){minDist=d;nearest=f}
+  });
+  if(nearest){foldHint.style.display='block'}else{foldHint.style.display='none'}
+
+  // E key
+  if(keys['e']&&nearest){toggleFold(nearest);keys['e']=false}
+
+  // Collect stars
+  stars.forEach((s,i)=>{
+    if(s.userData.collected)return;
+    const d=player.position.distanceTo(s.position);
+    if(d<2.2){s.userData.collected=true;s.visible=false;collected++;
+      const slots=uiEl.querySelectorAll('.star-slot');
+      if(slots[collected-1])slots[collected-1].classList.add('collected');
+      hintEl.textContent=`收集到纸星星！(${collected}/5)`;hintEl.style.color='#ffd700';
+      setTimeout(()=>hintEl.style.color='',2000);
+      if(collected>=5)setTimeout(()=>{hintEl.textContent='✨ 全部收集！折纸之境谜题已解开 ✨';hintEl.style.color='#ffd700'},1500);
+    }
+    s.rotation.y+=0.025;s.position.y=s.userData.baseY+Math.sin(Date.now()*0.0035+i)*0.35;
+  });
+
+  // Camera
+  camAngle+=(targetAngle-camAngle)*0.06;camDist+=(targetDist-camDist)*0.06;camH+=(targetH-camH)*0.06;
+  camera.position.set(player.position.x+Math.sin(camAngle)*camDist,player.position.y+camH,player.position.z+Math.cos(camAngle)*camDist);
+  camera.lookAt(player.position.x,player.position.y+1,player.position.z);
 }
 
-// ═══════════════════ DECORATIONS ═══════════════════
-// Scattered paper sheets
-for(let i=0;i<20;i++){
-  const g = new THREE.PlaneGeometry(0.3+Math.random()*0.8, 0.3+Math.random()*0.8);
-  const m = new THREE.Mesh(g, paperMat(`hsl(35,${30+Math.random()*20}%,${80+Math.random()*15}%)`));
-  m.rotation.x = -Math.PI/2 + (Math.random()-0.5)*0.3;
-  m.rotation.z = Math.random()*Math.PI;
-  m.position.set((Math.random()-0.5)*28, 0.02, (Math.random()-0.5)*28);
-  m.receiveShadow = true;
-  scene.add(m);
+// ═══════════════════ DECOR ═══════════════════
+for(let i=0;i<15;i++){
+  const g2=new THREE.PlaneGeometry(0.3+Math.random()*0.7,0.3+Math.random()*0.7);
+  const m2=new THREE.Mesh(g2,pMat(`hsl(35,${25+Math.random()*20}%,${78+Math.random()*15}%)`));
+  m2.rotation.x=-Math.PI/2+(Math.random()-0.5)*0.25;m2.rotation.z=Math.random()*Math.PI;
+  m2.position.set((Math.random()-0.5)*30,0.015,(Math.random()-0.5)*30);m2.receiveShadow=true;scene.add(m2);
 }
-
-// Origami animals as decorations
-function makeOrigamiAnimal(x, z, color){
-  const g = new THREE.Group();
-  const b = new THREE.Mesh(new THREE.ConeGeometry(0.15,0.5,4), paperMat(color));
-  b.position.y=0.25;g.add(b);
-  const w1 = new THREE.Mesh(new THREE.ConeGeometry(0.2,0.4,3), paperMat(color));
-  w1.rotation.z=0.6;w1.position.set(0.1,0.3,0);g.add(w1);
-  const w2 = new THREE.Mesh(new THREE.ConeGeometry(0.2,0.4,3), paperMat(color));
-  w2.rotation.z=-0.6;w2.position.set(-0.1,0.3,0);g.add(w2);
-  g.position.set(x,0.05,z);
-  g.rotation.y=Math.random()*Math.PI*2;
-  scene.add(g);
-  return g;
-}
-makeOrigamiAnimal(5,5,'#f5e6d0');
-makeOrigamiAnimal(-7,2,'#f0e0cc');
-makeOrigamiAnimal(3,-6,'#f8efe0');
-makeOrigamiAnimal(-8,-3,'#ede0d0');
-makeOrigamiAnimal(7,-7,'#f2e5d5');
-
-// ═══════════════════ GAME LOOP ═══════════════════
-function loop(){
-  requestAnimationFrame(loop);
-  update();
-  renderer.render(scene, camera);
-}
-
-// ═══════════════════ RESIZE ═══════════════════
-window.addEventListener('resize',()=>{
-  camera.aspect = innerWidth/innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth,innerHeight);
+[[5,5,'#f5e6d0'],[-9,2,'#f0e0cc'],[3,-6,'#f8efe0'],[-10,-3,'#ede0d0'],[8,-8,'#f2e5d5']].forEach(([x,z,c])=>{
+  const g3=new THREE.Group();
+  g3.add(new THREE.Mesh(new THREE.ConeGeometry(0.12,0.4,4),pMat(c)).position.set(0,0.2,0));
+  const w1=new THREE.Mesh(new THREE.ConeGeometry(0.16,0.3,3),pMat(c));w1.rotation.z=0.5;w1.position.set(0.08,0.25,0);g3.add(w1);
+  const w2=new THREE.Mesh(new THREE.ConeGeometry(0.16,0.3,3),pMat(c));w2.rotation.z=-0.5;w2.position.set(-0.08,0.25,0);g3.add(w2);
+  g3.position.set(x,0.03,z);g3.rotation.y=Math.random()*Math.PI*2;scene.add(g3);
 });
 
+// ═══════════════════ LOOP ═══════════════════
+function loop(){requestAnimationFrame(loop);update();renderer.render(scene,camera)}
+window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 loop();
 </script>
 </body>
