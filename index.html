@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>白秋山的项目合集</title>
-<meta name="description" content="白秋山的个人项目合集 - 创意技术作品展示：文字修仙、地铁跑酷、3D手势识别、2048、水墨涟漪、无限合成、3D台球">
+<meta name="description" content="白秋山的个人项目合集 - 创意技术作品展示：文字修仙、地铁跑酷、3D手势识别、2048、水墨涟漪、无限合成、3D台球、声波冲浪">
 <meta name="theme-color" content="#050510">
 <link rel="canonical" href="https://baiqiushan.github.io/">
 <link rel="preconnect" href="https://unpkg.com" crossorigin>
@@ -139,7 +139,8 @@ body::before{
 .project-card:nth-child(5) .card-accent{background:var(--amber)}
 .project-card:nth-child(6) .card-accent{background:var(--aqua)}
 .project-card:nth-child(7) .card-accent{background:var(--purple)}
-.project-card:nth-child(8) .card-accent{background:var(--slate)}
+.project-card:nth-child(8) .card-accent{background:linear-gradient(90deg,#ff44aa,#ff88cc)}
+.project-card:nth-child(9) .card-accent{background:var(--slate)}
 .project-card:hover .card-accent{width:70%}
 
 /* Visual area */
@@ -161,7 +162,8 @@ body::before{
 .project-card:nth-child(5) .card-visual{background:linear-gradient(160deg,#1a1410 0%,#201810 30%,#281808 60%,#1e1408 100%)}
 .project-card:nth-child(6) .card-visual{background:linear-gradient(160deg,#0a1a18 0%,#0c201e 30%,#0a2822 60%,#081e1a 100%)}
 .project-card:nth-child(7) .card-visual{background:linear-gradient(160deg,#121220 0%,#161830 30%,#181a40 60%,#121830 100%)}
-.project-card:nth-child(8) .card-visual{background:linear-gradient(160deg,#14181e 0%,#181e26 30%,#1a222c 60%,#141a20 100%)}
+.project-card:nth-child(8) .card-visual{background:linear-gradient(160deg,#1a0a20 0%,#1f0e28 30%,#1a0830 60%,#180a22 100%)}
+.project-card:nth-child(9) .card-visual{background:linear-gradient(160deg,#14181e 0%,#181e26 30%,#1a222c 60%,#141a20 100%)}
 
 /* Card icon SVG */
 .card-icon-svg{width:80px;height:80px;filter:drop-shadow(0 0 20px rgba(200,168,88,.15));transition:all var(--transition)}
@@ -172,7 +174,8 @@ body::before{
 .project-card:nth-child(5) .card-icon-svg{color:var(--amber)}
 .project-card:nth-child(6) .card-icon-svg{color:var(--aqua)}
 .project-card:nth-child(7) .card-icon-svg{color:var(--purple)}
-.project-card:nth-child(8) .card-icon-svg{color:var(--slate)}
+.project-card:nth-child(8) .card-icon-svg{color:#ff44aa}
+.project-card:nth-child(9) .card-icon-svg{color:var(--slate)}
 .project-card:hover .card-icon-svg{filter:drop-shadow(0 0 30px currentColor)}
 
 /* Card info */
@@ -187,7 +190,8 @@ body::before{
 .project-card:nth-child(5) .card-tag{background:rgba(212,152,74,.07);color:var(--amber);border:1px solid rgba(212,152,74,.1)}
 .project-card:nth-child(6) .card-tag{background:rgba(58,216,208,.07);color:var(--aqua);border:1px solid rgba(58,216,208,.1)}
 .project-card:nth-child(7) .card-tag{background:rgba(152,136,216,.07);color:var(--purple);border:1px solid rgba(152,136,216,.1)}
-.project-card:nth-child(8) .card-tag{background:rgba(136,153,170,.07);color:var(--slate);border:1px solid rgba(136,153,170,.1)}
+.project-card:nth-child(8) .card-tag{background:rgba(255,68,170,.07);color:#ff44aa;border:1px solid rgba(255,68,170,.1)}
+.project-card:nth-child(9) .card-tag{background:rgba(136,153,170,.07);color:var(--slate);border:1px solid rgba(136,153,170,.1)}
 .card-desc{font-size:.78rem;color:var(--text2);line-height:1.65;flex:1;margin-bottom:.5rem}
 
 /* Arrow hint */
@@ -473,7 +477,30 @@ body::before{
     </a>
 
     <!-- 更多 -->
-    <a class="project-card reveal reveal-delay-8" href="skill_g113593/skill_g113593.html" aria-label="更多项目 · 工具集合">
+    <a class="project-card reveal reveal-delay-8" href="homepage/soundwave-surfer.html" aria-label="声波冲浪 · 3D音乐游戏">
+      <div class="card-accent"></div>
+      <div class="card-visual">
+        <canvas class="cv-particle" data-color="rgba(255,68,170,CLR)" data-count="40"></canvas>
+        <div class="visual-content">
+          <svg class="card-icon-svg" viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M10 50 Q30 20 40 35 Q50 50 70 25" stroke-opacity=".4" stroke-width="2"/>
+            <path d="M10 55 Q30 30 40 42 Q50 55 70 35" stroke-opacity=".7" stroke-width="2.5"/>
+            <path d="M10 60 Q30 40 40 50 Q50 60 70 45" stroke-opacity=".9" stroke-width="2"/>
+            <circle cx="40" cy="35" r="3" fill="currentColor" fill-opacity=".6"/>
+            <circle cx="70" cy="25" r="2" fill="currentColor" fill-opacity=".4"/>
+          </svg>
+          <span class="visual-label">3D音乐 · 声波冲浪</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="card-tags"><span class="card-tag">3D音乐游戏</span><span class="card-tag">声波冲浪</span><span class="card-tag">Three.js</span></div>
+        <h3>声波冲浪 · Sound Wave Surfer</h3>
+        <p class="card-desc">音频驱动的3D冲浪体验——音乐节拍实时生成地形，霓虹合成波视觉风格，支持导入自定义音乐</p>
+      </div>
+      <div class="card-arrow-hint">→</div>
+    </a>
+
+    <a class="project-card reveal reveal-delay-9" href="skill_g113593/skill_g113593.html" aria-label="更多项目 · 工具集合">
       <div class="card-accent"></div>
       <div class="card-visual">
         <canvas class="cv-particle" data-color="rgba(152,136,216,CLR)" data-count="35"></canvas>

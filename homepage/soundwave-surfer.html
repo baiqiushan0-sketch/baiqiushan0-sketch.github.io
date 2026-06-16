@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>声波冲浪 | Sound Wave Surfer</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { overflow: hidden; background: #000; font-family: 'Arial', sans-serif; }
+  canvas { display: block; }
+
+  #overlay {
+    position: absolute; top: 0; left: 0; width: 100%; pointer-events: none;
+  }
+  #hud {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: 20px 30px;
+  }
+  #score-panel {
+    color: #0ff; font-size: 18px; text-shadow: 0 0 10px #0ff, 0 0 30px #0ff;
+    letter-spacing: 2px;
+  }
+  #score-panel .score { font-size: 48px; font-weight: bold; display: block; }
+  #beat-indicator {
+    width: 60px; height: 60px; border: 2px solid #f0f; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.1s ease-out; opacity: 0.6;
+  }
+  #beat-indicator.on { transform: scale(1.3); opacity: 1; box-shadow: 0 0 30px #f0f; }
+
+  #controls {
+    position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+    color: #0ff; font-size: 13px; letter-spacing: 2px; text-align: center;
+    text-shadow: 0 0 10px #0ff; opacity: 0.7; pointer-events: none;
+  }
+  #upload-btn {
+    position: absolute; bottom: 30px; right: 30px;
+    background: transparent; border: 1px solid #0ff; color: #0ff;
+    padding: 10px 20px; font-size: 13px; cursor: pointer; letter-spacing: 1px;
+    transition: all 0.3s; pointer-events: all;
+  }
+  #upload-btn:hover { background: rgba(0,255,255,0.15); box-shadow: 0 0 20px rgba(0,255,255,0.3); }
+  #upload-btn.playing { border-color: #f0f; color: #f0f; }
+
+  #start-screen {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; z-index: 10;
+    background: radial-gradient(ellipse, rgba(10,0,30,0.9) 0%, rgba(0,0,0,0.95) 100%);
+  }
+  #start-screen h1 {
+    font-size: 64px; letter-spacing: 8px; margin-bottom: 10px;
+    background: linear-gradient(135deg, #0ff, #f0f, #0ff);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 30px #0ff);
+  }
+  #start-screen .subtitle {
+    color: #0ff; font-size: 16px; letter-spacing: 6px; margin-bottom: 50px;
+    opacity: 0.8;
+  }
+  #start-btn {
+    background: transparent; border: 2px solid #0ff; color: #0ff;
+    padding: 16px 60px; font-size: 20px; letter-spacing: 4px; cursor: pointer;
+    transition: all 0.3s; pointer-events: all;
+  }
+  #start-btn:hover { background: rgba(0,255,255,0.2); box-shadow: 0 0 40px rgba(0,255,255,0.5); transform: scale(1.05); }
+  #start-screen .hint { color: #f0f; font-size: 12px; margin-top: 30px; letter-spacing: 2px; opacity: 0.6; }
+
+  #speed-bar {
+    position: absolute; bottom: 100px; right: 30px;
+    width: 4px; height: 150px; background: rgba(255,255,255,0.1); border-radius: 2px;
+  }
+  #speed-fill {
+    width: 100%; background: linear-gradient(to top, #0ff, #f0f);
+    border-radius: 2px; transition: height 0.1s;
+    bottom: 0; position: absolute;
+  }
+</style>
+</head>
+<body>
+
+<div id="start-screen">
+  <h1>声 波 冲 浪</h1>
+  <div class="subtitle">SOUND WAVE SURFER</div>
+  <button id="start-btn" onclick="startGame()">开 始 冲 浪</button>
+  <div class="hint">← → 或 A D 键操控 · 空格加速 · 跟随节拍冲浪</div>
+</div>
+
+<div id="overlay">
+  <div id="hud">
+    <div id="score-panel">
+      <span>冲浪距离</span>
+      <span class="score" id="score">0</span>
+      <span style="font-size:12px;">米</span>
+    </div>
+    <div id="beat-indicator">♫</div>
+  </div>
+</div>
+
+<div id="speed-bar"><div id="speed-fill" style="height:0%"></div></div>
+<div id="controls">
+  ← A / D → 转向 &nbsp;|&nbsp; SPACE 加速 &nbsp;|&nbsp; 踩准节拍得分翻倍
+</div>
+<button id="upload-btn" onclick="triggerUpload()">📂 导入你的音乐</button>
+<input type="file" id="file-input" accept="audio/*" style="display:none" onchange="handleAudioUpload(event)">
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script>
+// ==================== AUDIO ENGINE ====================
+let audioCtx, analyser, freqData;
+let beatEnergy = 0, beatTriggered = false, beatCooldown = 0;
+let bassLevel = 0, midLevel = 0, highLevel = 0;
+let manualBPM = 140;
+let beatInterval, beatTime = 0;
+let customAudioSource = null;
+
+function createProceduralMusic() {
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 512;
+  analyser.smoothingTimeConstant = 0.6;
+  freqData = new Uint8Array(analyser.frequencyBinCount);
+
+  const masterGain = audioCtx.createGain();
+  masterGain.gain.value = 0.3;
+  masterGain.connect(analyser);
+  analyser.connect(audioCtx.destination);
+
+  const bpm = manualBPM;
+  const beatDur = 60 / bpm;
+
+  // Kick drum pattern
+  [0, 1, 2, 3].forEach(i => {
+    const t = audioCtx.currentTime + i * beatDur;
+    playKick(t, masterGain);
+  });
+
+  // Snare on 2 and 4
+  [1, 3].forEach(i => {
+    const t = audioCtx.currentTime + i * beatDur;
+    playSnare(t, masterGain);
+  });
+
+  // Hi-hat pattern (8th notes)
+  for (let i = 0; i < 8; i++) {
+    const t = audioCtx.currentTime + i * beatDur / 2;
+    playHihat(t, masterGain);
+  }
+
+  // Synth bass line
+  const bassNotes = [55, 55, 65.4, 55, 73.4, 73.4, 65.4, 55];
+  bassNotes.forEach((freq, i) => {
+    const t = audioCtx.currentTime + i * beatDur;
+    playBass(t, freq, beatDur * 0.8, masterGain);
+  });
+
+  // Arpeggio melody
+  const melodyNotes = [220, 277, 330, 440, 330, 277, 220, 277, 330, 440, 554, 440, 330, 277, 220, 261];
+  melodyNotes.forEach((freq, i) => {
+    const t = audioCtx.currentTime + i * beatDur / 4;
+    playSynth(t, freq, beatDur / 4, masterGain, 0.04);
+  });
+
+  // Loop: recreate patterns every 8 beats
+  beatInterval = setInterval(() => {
+    const now = audioCtx.currentTime;
+    [0, 1, 2, 3].forEach(i => {
+      playKick(now + i * beatDur, masterGain);
+    });
+    [1, 3].forEach(i => {
+      playSnare(now + i * beatDur, masterGain);
+    });
+    bassNotes.forEach((freq, i) => {
+      playBass(now + i * beatDur, freq, beatDur * 0.8, masterGain);
+    });
+    for (let i = 0; i < 16; i++) {
+      playHihat(now + i * beatDur / 4, masterGain);
+      const mNote = melodyNotes[i % melodyNotes.length];
+      playSynth(now + i * beatDur / 4, mNote, beatDur / 4, masterGain, 0.03);
+    }
+  }, 8000 / (bpm / 60));
+}
+
+function playKick(time, dest) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(150, time);
+  osc.frequency.exponentialRampToValueAtTime(30, time + 0.15);
+  gain.gain.setValueAtTime(0.8, time);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.3);
+  osc.connect(gain); gain.connect(dest);
+  osc.start(time); osc.stop(time + 0.3);
+}
+
+function playSnare(time, dest) {
+  const bufferSize = audioCtx.sampleRate * 0.1;
+  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+    data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.05));
+  }
+  const src = audioCtx.createBufferSource();
+  src.buffer = buffer;
+  const gain = audioCtx.createGain();
+  gain.gain.setValueAtTime(0.5, time);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.15);
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'highpass'; filter.frequency.value = 800;
+  src.connect(filter); filter.connect(gain); gain.connect(dest);
+  src.start(time);
+}
+
+function playHihat(time, dest) {
+  const bufferSize = audioCtx.sampleRate * 0.05;
+  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+    data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.01));
+  }
+  const src = audioCtx.createBufferSource();
+  src.buffer = buffer;
+  const gain = audioCtx.createGain();
+  gain.gain.setValueAtTime(0.15, time);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'highpass'; filter.frequency.value = 5000;
+  src.connect(filter); filter.connect(gain); gain.connect(dest);
+  src.start(time);
+}
+
+function playBass(time, freq, dur, dest) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sawtooth';
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(0.3, time);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'lowpass'; filter.frequency.value = 400;
+  filter.Q.value = 5;
+  osc.connect(filter); filter.connect(gain); gain.connect(dest);
+  osc.start(time); osc.stop(time + dur);
+}
+
+function playSynth(time, freq, dur, dest, vol) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'triangle';
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(vol, time);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + dur * 0.8);
+  osc.connect(gain); gain.connect(dest);
+  osc.start(time); osc.stop(time + dur);
+}
+
+function loadCustomAudio(audioBuffer) {
+  if (customAudioSource) { customAudioSource.stop(); customAudioSource.disconnect(); }
+  if (beatInterval) clearInterval(beatInterval);
+
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 512;
+  analyser.smoothingTimeConstant = 0.5;
+  freqData = new Uint8Array(analyser.frequencyBinCount);
+
+  customAudioSource = audioCtx.createBufferSource();
+  customAudioSource.buffer = audioBuffer;
+  customAudioSource.loop = true;
+  customAudioSource.connect(analyser);
+  analyser.connect(audioCtx.destination);
+  customAudioSource.start(0);
+
+  // Detect BPM roughly
+  manualBPM = 130;
+  document.getElementById('upload-btn').classList.add('playing');
+}
+
+// ==================== THREE.JS SCENE ====================
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x050515, 0.00008);
+
+const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.5, 200);
+camera.position.set(0, 8, 18);
+camera.lookAt(0, 2, -10);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+document.body.appendChild(renderer.domElement);
+
+// Lighting
+const ambientLight = new THREE.AmbientLight(0x110033, 0.5);
+scene.add(ambientLight);
+const dirLight = new THREE.DirectionalLight(0xff00ff, 1.5);
+dirLight.position.set(0, 20, 10);
+scene.add(dirLight);
+const pointLight = new THREE.PointLight(0x00ffff, 30, 40);
+pointLight.position.set(0, 5, 5);
+scene.add(pointLight);
+
+// Ground grid - synthwave style
+const gridHelper = new THREE.PolarGridHelper(60, 64, 32, 256, 0x003344, 0x002233);
+gridHelper.position.y = -8;
+scene.add(gridHelper);
+
+// Stars
+const starsGeo = new THREE.BufferGeometry();
+const starsCount = 800;
+const starsPos = new Float32Array(starsCount * 3);
+for (let i = 0; i < starsCount; i++) {
+  starsPos[i*3] = (Math.random() - 0.5) * 100;
+  starsPos[i*3+1] = Math.random() * 40 + 10;
+  starsPos[i*3+2] = (Math.random() - 0.5) * 80 - 20;
+}
+starsGeo.setAttribute('position', new THREE.BufferAttribute(starsPos, 3));
+const starsMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.08, transparent: true, opacity: 0.7 });
+const stars = new THREE.Points(starsGeo, starsMat);
+scene.add(stars);
+
+// Sun/Moon disc
+const sunGeo = new THREE.CircleGeometry(3, 64);
+const sunMat = new THREE.MeshBasicMaterial({ color: 0xff0066, transparent: true, opacity: 0.3, side: THREE.DoubleSide });
+const sun = new THREE.Mesh(sunGeo, sunMat);
+sun.position.set(0, 25, -50);
+scene.add(sun);
+
+// ==================== WAVE TERRAIN ====================
+const TERRAIN_WIDTH = 21;  // lanes
+const TERRAIN_DEPTH = 80;  // segments ahead
+const LANE_SPACING = 1.2;
+const SEGMENT_LENGTH = 1.5;
+
+const terrainPillars = [];
+const pillarGeo = new THREE.BoxGeometry(0.8, 0.3, SEGMENT_LENGTH);
+pillarGeo.translate(0, 0.15, 0);
+
+for (let x = 0; x < TERRAIN_WIDTH; x++) {
+  terrainPillars[x] = [];
+  for (let z = 0; z < TERRAIN_DEPTH; z++) {
+    const mat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color().setHSL(0.55 + x / TERRAIN_WIDTH * 0.35, 1, 0.5),
+      emissive: new THREE.Color().setHSL(0.55 + x / TERRAIN_WIDTH * 0.35, 1, 0.2),
+      roughness: 0.3,
+      metalness: 0.5,
+    });
+    const pillar = new THREE.Mesh(pillarGeo, mat);
+    pillar.position.set(
+      (x - TERRAIN_WIDTH / 2) * LANE_SPACING,
+      0,
+      -z * SEGMENT_LENGTH
+    );
+    pillar.castShadow = true;
+    pillar.receiveShadow = true;
+    scene.add(pillar);
+    terrainPillars[x][z] = { mesh: pillar, targetY: 0, currentY: 0 };
+  }
+}
+
+// Wave surface mesh (smooth)
+const waveGeo = new THREE.PlaneGeometry(TERRAIN_WIDTH * LANE_SPACING, TERRAIN_DEPTH * SEGMENT_LENGTH, TERRAIN_WIDTH - 1, TERRAIN_DEPTH - 1);
+waveGeo.rotateX(-Math.PI / 2);
+const waveMat = new THREE.MeshStandardMaterial({
+  color: 0x003355,
+  emissive: 0x001122,
+  roughness: 0.4,
+  metalness: 0.7,
+  wireframe: false,
+  transparent: true,
+  opacity: 0.3,
+});
+const waveSurface = new THREE.Mesh(waveGeo, waveMat);
+waveSurface.position.set(0, -0.15, -TERRAIN_DEPTH * SEGMENT_LENGTH / 2 + SEGMENT_LENGTH / 2);
+scene.add(waveSurface);
+
+// Neon grid lines on surface
+const gridLinesMat = new THREE.MeshBasicMaterial({ color: 0x006688, transparent: true, opacity: 0.15 });
+const gridLines = [];
+for (let x = 0; x <= TERRAIN_WIDTH; x++) {
+  const lineGeo = new THREE.BoxGeometry(0.04, 0.05, TERRAIN_DEPTH * SEGMENT_LENGTH);
+  const line = new THREE.Mesh(lineGeo, gridLinesMat);
+  line.position.set((x - TERRAIN_WIDTH / 2) * LANE_SPACING, 0.02, -TERRAIN_DEPTH * SEGMENT_LENGTH / 2);
+  scene.add(line);
+  gridLines.push(line);
+}
+
+// ==================== PLAYER ====================
+const playerGroup = new THREE.Group();
+const boardGeo = new THREE.BoxGeometry(1.2, 0.15, 2.5);
+const boardMat = new THREE.MeshStandardMaterial({
+  color: 0x00ffff,
+  emissive: 0x00ffff,
+  emissiveIntensity: 1.5,
+  roughness: 0.2,
+  metalness: 0.8,
+});
+const board = new THREE.Mesh(boardGeo, boardMat);
+playerGroup.add(board);
+
+// Board fins
+const finGeo = new THREE.BoxGeometry(0.1, 0.4, 0.3);
+const finMat = new THREE.MeshStandardMaterial({ color: 0xff00ff, emissive: 0xff00ff, emissiveIntensity: 1 });
+const finL = new THREE.Mesh(finGeo, finMat);
+finL.position.set(0.4, -0.25, -0.8);
+const finR = new THREE.Mesh(finGeo, finMat);
+finR.position.set(-0.4, -0.25, -0.8);
+playerGroup.add(finL); playerGroup.add(finR);
+
+// Player glow ring
+const ringGeo = new THREE.TorusGeometry(1, 0.08, 16, 32);
+const ringMat = new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.6 });
+const ring = new THREE.Mesh(ringGeo, ringMat);
+ring.rotation.x = Math.PI / 2;
+ring.position.y = 0.1;
+playerGroup.add(ring);
+
+playerGroup.position.set(0, 3, 5);
+scene.add(playerGroup);
+
+// Player trail
+const trailMax = 40;
+const trailPositions = [];
+for (let i = 0; i < trailMax; i++) trailPositions.push(new THREE.Vector3(0, 3, 5 + i * 0.8));
+const trailGeo = new THREE.BufferGeometry();
+trailGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(trailMax * 3), 3));
+const trailMat = new THREE.LineBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.4 });
+const trailLine = new THREE.Line(trailGeo, trailMat);
+scene.add(trailLine);
+
+// ==================== PARTICLES ====================
+const particlesGroup = new THREE.Group();
+scene.add(particlesGroup);
+const activeParticles = [];
+
+function spawnBeatParticles(x, y, z, color) {
+  const count = 30;
+  for (let i = 0; i < count; i++) {
+    const geo = new THREE.SphereGeometry(0.08, 4, 4);
+    const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 1 });
+    const particle = new THREE.Mesh(geo, mat);
+    particle.position.set(x, y, z);
+    particle.userData = {
+      vx: (Math.random() - 0.5) * 8,
+      vy: Math.random() * 8 + 3,
+      vz: (Math.random() - 0.5) * 5,
+      life: 1,
+      decay: 0.02 + Math.random() * 0.04,
+    };
+    particlesGroup.add(particle);
+    activeParticles.push(particle);
+  }
+}
+
+// ==================== GAME STATE ====================
+let playerLane = 10; // center lane (0-20)
+let playerTargetX = 0;
+let playerY = 3;
+let playerTargetY = 3;
+let speed = 0.15;
+let baseSpeed = 0.15;
+let score = 0;
+let comboCount = 0;
+let lastBeatScore = 0;
+let gameRunning = false;
+let gameStarted = false;
+
+// Camera shake
+let shakeAmount = 0;
+
+// ==================== INPUT ====================
+const keys = {};
+window.addEventListener('keydown', e => { keys[e.key.toLowerCase()] = true; e.preventDefault(); });
+window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; e.preventDefault(); });
+
+// Touch controls
+let touchStartX = 0;
+window.addEventListener('touchstart', e => {
+  touchStartX = e.touches[0].clientX;
+});
+window.addEventListener('touchmove', e => {
+  const dx = e.touches[0].clientX - touchStartX;
+  if (Math.abs(dx) > 20) {
+    playerLane += dx > 0 ? 1 : -1;
+    playerLane = Math.max(0, Math.min(TERRAIN_WIDTH - 1, playerLane));
+    touchStartX = e.touches[0].clientX;
+  }
+});
+
+// ==================== UPDATE ====================
+function updateAudioAnalysis() {
+  if (!analyser) return;
+  analyser.getByteFrequencyData(freqData);
+
+  // Split into bands
+  let bass = 0, mid = 0, high = 0;
+  for (let i = 0; i < 256; i++) {
+    if (i < 10) bass += freqData[i];
+    else if (i < 60) mid += freqData[i];
+    else high += freqData[i];
+  }
+  bassLevel = bass / 10 / 255;
+  midLevel = mid / 50 / 255;
+  highLevel = high / 196 / 255;
+
+  // Beat detection on bass
+  beatEnergy = bassLevel;
+  if (beatEnergy > 0.55 && beatCooldown <= 0) {
+    beatTriggered = true;
+    beatCooldown = 8;
+    beatTime = performance.now();
+
+    // Spawn particles at player
+    const px = playerGroup.position.x;
+    const py = playerGroup.position.y;
+    const pz = playerGroup.position.z;
+    spawnBeatParticles(px, py, pz, 0x00ffff);
+    spawnBeatParticles(px - 2, py, pz, 0xff00ff);
+    spawnBeatParticles(px + 2, py, pz, 0xff0066);
+
+    shakeAmount = 0.3;
+    comboCount++;
+
+    document.getElementById('beat-indicator').classList.add('on');
+    setTimeout(() => document.getElementById('beat-indicator').classList.remove('on'), 150);
+
+    // Score bonus
+    if (comboCount > 1) {
+      score += Math.floor(comboCount * 10);
+    }
+  }
+  if (beatCooldown > 0) beatCooldown--;
+  if (beatEnergy < 0.3 && beatTriggered && performance.now() - beatTime > 200) {
+    beatTriggered = false;
+    comboCount = 0;
+  }
+}
+
+function updateTerrain() {
+  // Shift all pillars back and update heights
+  const positions = waveSurface.geometry.attributes.position;
+  const posArray = positions.array;
+
+  for (let z = TERRAIN_DEPTH - 1; z >= 0; z--) {
+    for (let x = 0; x < TERRAIN_WIDTH; x++) {
+      if (z < TERRAIN_DEPTH - 1) {
+        terrainPillars[x][z].targetY = terrainPillars[x][z + 1].targetY;
+      }
+    }
+  }
+
+  // Generate new front row from audio
+  for (let x = 0; x < TERRAIN_WIDTH; x++) {
+    const freqIdx = Math.floor(x / TERRAIN_WIDTH * 200 + 5);
+    const freqVal = freqData[freqIdx] / 255;
+    const phase = performance.now() * 0.001 * (0.5 + bassLevel * 2);
+    const sineVal = Math.sin(x * 0.6 + phase) * 0.5 + 0.5;
+
+    let height = freqVal * 6 + sineVal * 2;
+    if (Math.abs(x - TERRAIN_WIDTH / 2) < 3) {
+      height += bassLevel * 4;
+    }
+    terrainPillars[x][0].targetY = height;
+  }
+
+  // Smooth update pillar positions
+  for (let x = 0; x < TERRAIN_WIDTH; x++) {
+    for (let z = 0; z < TERRAIN_DEPTH; z++) {
+      const p = terrainPillars[x][z];
+      p.currentY += (p.targetY - p.currentY) * 0.3;
+      p.mesh.position.y = p.currentY;
+      p.mesh.scale.y = Math.max(0.1, p.currentY * 2 + 0.3);
+
+      // Update color based on height
+      const hue = 0.55 + p.currentY / 10 * 0.3;
+      const lightness = 0.3 + p.currentY / 10 * 0.4;
+      p.mesh.material.color.setHSL(hue % 1, 1, lightness);
+      p.mesh.material.emissive.setHSL(hue % 1, 1, lightness * 0.4);
+    }
+  }
+
+  // Update wave surface mesh
+  for (let i = 0; i < positions.count; i++) {
+    const xi = i % TERRAIN_WIDTH;
+    const zi = Math.floor(i / TERRAIN_WIDTH);
+    if (zi < TERRAIN_DEPTH && xi < TERRAIN_WIDTH) {
+      posArray[i * 3 + 2] = terrainPillars[xi][zi]?.currentY || 0;
+    }
+  }
+  positions.needsUpdate = true;
+  waveSurface.geometry.computeVertexNormals();
+}
+
+function updatePlayer() {
+  // Steering
+  if (keys['a'] || keys['arrowleft']) { playerLane -= 0.15; }
+  if (keys['d'] || keys['arrowright']) { playerLane += 0.15; }
+  playerLane = Math.max(0, Math.min(TERRAIN_WIDTH - 1, playerLane));
+  playerTargetX = (playerLane - TERRAIN_WIDTH / 2) * LANE_SPACING;
+
+  // Speed boost
+  if (keys[' '] || keys['space']) {
+    speed = baseSpeed * 2.5;
+  } else {
+    speed = baseSpeed + bassLevel * 0.15;
+  }
+
+  // Smooth movement
+  const px = playerGroup.position.x;
+  playerGroup.position.x += (playerTargetX - px) * 0.2;
+
+  // Get terrain height at player position
+  const pxLane = Math.round(playerLane);
+  const terrainHeight = terrainPillars[Math.min(TERRAIN_WIDTH-1, pxLane)][8]?.currentY || 0;
+  playerTargetY = terrainHeight + 2.5;
+
+  playerY += (playerTargetY - playerY) * 0.15;
+  playerGroup.position.y = playerY;
+
+  // Tilt board based on movement direction
+  const dx = playerTargetX - px;
+  playerGroup.rotation.z = -dx * 0.3;
+  playerGroup.rotation.x = (playerTargetY - playerY) * 0.5;
+
+  // Update trail
+  trailPositions.push(playerGroup.position.clone());
+  if (trailPositions.length > trailMax) trailPositions.shift();
+
+  const trailArr = trailLine.geometry.attributes.position.array;
+  for (let i = 0; i < Math.min(trailPositions.length, trailMax); i++) {
+    trailArr[i * 3] = trailPositions[i].x;
+    trailArr[i * 3 + 1] = trailPositions[i].y - 0.3;
+    trailArr[i * 3 + 2] = trailPositions[i].z;
+  }
+  trailLine.geometry.attributes.position.needsUpdate = true;
+
+  // Score
+  score += speed * 0.5;
+  document.getElementById('score').textContent = Math.floor(score);
+
+  // Update speed bar
+  document.getElementById('speed-fill').style.height = ((speed - baseSpeed) / (baseSpeed * 2)) * 100 + '%';
+}
+
+function updateCamera() {
+  const tx = playerGroup.position.x * 0.5;
+  const ty = playerY + 6;
+  const tz = playerGroup.position.z + 14;
+  camera.position.x += (tx - camera.position.x) * 0.05;
+  camera.position.y += (ty - camera.position.y) * 0.05;
+  camera.position.z += (tz - camera.position.z) * 0.05;
+
+  // Shake
+  if (shakeAmount > 0.001) {
+    camera.position.x += (Math.random() - 0.5) * shakeAmount;
+    camera.position.y += (Math.random() - 0.5) * shakeAmount;
+    shakeAmount *= 0.85;
+  }
+
+  camera.lookAt(
+    playerGroup.position.x * 0.3,
+    playerY - 1,
+    playerGroup.position.z - 15
+  );
+}
+
+function updateParticles() {
+  for (let i = activeParticles.length - 1; i >= 0; i--) {
+    const p = activeParticles[i];
+    p.position.x += p.userData.vx * 0.016;
+    p.position.y += p.userData.vy * 0.016;
+    p.position.z += p.userData.vz * 0.016;
+    p.userData.vy -= 0.15;
+    p.userData.life -= p.userData.decay;
+    p.material.opacity = p.userData.life;
+    p.scale.setScalar(p.userData.life);
+    if (p.userData.life <= 0) {
+      particlesGroup.remove(p);
+      p.geometry.dispose();
+      p.material.dispose();
+      activeParticles.splice(i, 1);
+    }
+  }
+}
+
+function updateLighting() {
+  pointLight.intensity = 20 + bassLevel * 30;
+  pointLight.color.setHSL(0.55 + bassLevel * 0.3, 1, 0.5);
+  ring.material.opacity = 0.3 + bassLevel * 0.7;
+  ring.scale.setScalar(1 + bassLevel * 0.5);
+  board.material.emissiveIntensity = 1 + bassLevel * 2;
+  sun.material.opacity = 0.2 + bassLevel * 0.3;
+}
+
+// ==================== GAME LOOP ====================
+function gameLoop() {
+  requestAnimationFrame(gameLoop);
+
+  if (gameRunning) {
+    updateAudioAnalysis();
+    updateTerrain();
+    updatePlayer();
+    updateCamera();
+    updateParticles();
+    updateLighting();
+  }
+
+  // Stars slow rotation
+  stars.rotation.y += 0.0003;
+  stars.rotation.x += 0.0001;
+
+  // Sun pulse
+  sun.scale.setScalar(1 + Math.sin(performance.now() * 0.001) * 0.1 + bassLevel * 0.3);
+
+  renderer.render(scene, camera);
+}
+
+// ==================== START / STOP ====================
+function startGame() {
+  document.getElementById('start-screen').style.display = 'none';
+
+  if (!audioCtx) createProceduralMusic();
+
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+
+  gameRunning = true;
+  if (!gameStarted) {
+    gameStarted = true;
+    gameLoop();
+  }
+}
+
+function triggerUpload() {
+  document.getElementById('file-input').click();
+}
+
+function handleAudioUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    audioCtx.decodeAudioData(e.target.result, function(buffer) {
+      loadCustomAudio(buffer);
+      if (!gameStarted) startGame();
+    });
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ==================== RESIZE ====================
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// Start the render loop immediately (shows static scene)
+gameLoop();
+</script>
+</body>
+</html>
