@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>折纸之境 | Origami Realm</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{overflow:hidden;background:#1a1410;font-family:'PingFang SC','Microsoft YaHei',sans-serif}
+canvas{display:block}
+#ui{
+  position:absolute;top:20px;left:50%;transform:translateX(-50%);
+  display:flex;gap:12px;align-items:center;pointer-events:none;
+}
+.star-slot{
+  width:36px;height:36px;border:2px dashed rgba(255,215,0,.3);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;font-size:20px;
+  transition:all .5s;background:rgba(0,0,0,.3);
+}
+.star-slot.collected{border-color:#ffd700;background:rgba(255,215,0,.15);box-shadow:0 0 20px rgba(255,215,0,.4)}
+#hint{
+  position:absolute;bottom:60px;left:50%;transform:translateX(-50%);
+  color:rgba(255,255,255,.7);font-size:13px;letter-spacing:2px;text-align:center;
+  pointer-events:none;transition:all .3s;
+}
+#hint.pulse{animation:pulse .8s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}
+#title-overlay{
+  position:absolute;top:30px;right:30px;pointer-events:none;
+  color:rgba(255,255,255,.15);font-size:40px;letter-spacing:8px;
+  writing-mode:vertical-rl;text-orientation:upright;
+}
+#fold-indicator{
+  position:absolute;bottom:50%;left:50%;transform:translate(-50%,50%);
+  width:60px;height:60px;border:2px solid rgba(255,200,100,.5);border-radius:50%;
+  display:none;align-items:center;justify-content:center;
+  color:rgba(255,200,100,.8);font-size:12px;letter-spacing:1px;
+  pointer-events:none;
+}
+</style>
+</head>
+<body>
+<div id="ui"></div>
+<div id="hint">W A S D 移动 · E 折叠 · 鼠标旋转视角 · 收集 5 颗纸星星</div>
+<div id="title-overlay">折紙之境</div>
+<div id="fold-indicator">FOLD</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script>
+// ═══════════════════ SCENE ═══════════════════
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#2a2420');
+scene.fog = new THREE.Fog('#2a2420', 15, 60);
+
+const camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.5, 100);
+camera.position.set(8, 12, 14);
+camera.lookAt(0, 2, 0);
+
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+document.body.appendChild(renderer.domElement);
+
+// ═══════════════════ LIGHTING ═══════════════════
+const ambient = new THREE.AmbientLight('#fff5e8', 0.6);
+scene.add(ambient);
+const sun = new THREE.DirectionalLight('#fff8f0', 3);
+sun.position.set(15, 25, 10);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.camera.near = 0.5; sun.shadow.camera.far = 80;
+sun.shadow.camera.left = -20; sun.shadow.camera.right = 20;
+sun.shadow.camera.top = 20; sun.shadow.camera.bottom = -20;
+sun.shadow.bias = -0.0001;
+scene.add(sun);
+const fill = new THREE.DirectionalLight('#ffe0c0', 0.8);
+fill.position.set(-5, 3, -5);
+scene.add(fill);
+
+// ═══════════════════ PAPER TEXTURE (canvas) ═══════════════════
+const texCanvas = document.createElement('canvas');
+texCanvas.width = 512; texCanvas.height = 512;
+const tctx = texCanvas.getContext('2d');
+tctx.fillStyle = '#faf6f0';
+tctx.fillRect(0,0,512,512);
+// Subtle fiber texture
+for(let i=0;i<8000;i++){
+  const x=Math.random()*512,y=Math.random()*512;
+  tctx.fillStyle=`rgba(200,180,160,${Math.random()*0.08})`;
+  tctx.fillRect(x,y,Math.random()*3+1,Math.random()*2+1);
+}
+const paperTex = new THREE.CanvasTexture(texCanvas);
+paperTex.wrapS = paperTex.wrapT = THREE.RepeatWrapping;
+
+// ═══════════════════ MATERIALS ═══════════════════
+function paperMat(color='#f5efe5'){
+  return new THREE.MeshStandardMaterial({
+    color, roughness:0.75, metalness:0,
+    map:paperTex, bumpMap:paperTex, bumpScale:0.02,
+  });
+}
+function accentMat(color='#e8c8a0'){
+  return new THREE.MeshStandardMaterial({color,roughness:0.6,metalness:0.05});
+}
+function edgeMat(color='#8b7355'){
+  return new THREE.LineBasicMaterial({color,transparent:true,opacity:0.35});
+}
+const starMat = new THREE.MeshStandardMaterial({
+  color:'#ffd700',emissive:'#ffa000',emissiveIntensity:0.8,roughness:0.3,metalness:0.3
+});
+
+// ═══════════════════ GROUND (large paper sheet) ═══════════════════
+const groundGeo = new THREE.PlaneGeometry(30, 30);
+const ground = new THREE.Mesh(groundGeo, paperMat('#f8f3ec'));
+ground.rotation.x = -Math.PI/2;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// Crease grid on ground
+const creaseGroup = new THREE.Group();
+for(let i=-14;i<=14;i+=2){
+  const g=new THREE.BoxGeometry(30,0.01,0.02);
+  const m=new THREE.Mesh(g,accentMat('#e0d5c5'));
+  m.position.set(0,0.005,i);creaseGroup.add(m);
+  const g2=new THREE.BoxGeometry(0.02,0.01,30);
+  const m2=new THREE.Mesh(g2,accentMat('#e0d5c5'));
+  m2.position.set(i,0.005,0);creaseGroup.add(m2);
+}
+creaseGroup.position.y=0.003;
+scene.add(creaseGroup);
+
+// Desk border
+const borderGeo = new THREE.BoxGeometry(31,0.3,31);
+const border = new THREE.Mesh(borderGeo, accentMat('#c4a882'));
+border.position.y=-0.16;
+border.receiveShadow=true;
+border.castShadow=true;
+scene.add(border);
+
+// ═══════════════════ FOLDABLE STRUCTURES ═══════════════════
+const foldStructures = [];
+
+function createHingePanel(w, h, color, x, y, z, hingeAxis='x', hingeOffset=0){
+  const group = new THREE.Group();
+  group.position.set(x, y, z);
+
+  const hinge = new THREE.Group();
+  const panelGeo = new THREE.PlaneGeometry(w, h);
+  const panel = new THREE.Mesh(panelGeo, paperMat(color));
+  panel.position.y = h/2;
+  if(hingeAxis==='x') panel.position.z = hingeOffset;
+  else panel.position.x = hingeOffset;
+  panel.castShadow = true;
+  panel.receiveShadow = true;
+  hinge.add(panel);
+
+  // Edge outline
+  const edgeGeo = new THREE.EdgesGeometry(panelGeo);
+  const edge = new THREE.LineSegments(edgeGeo, edgeMat('#8b7355'));
+  edge.position.copy(panel.position);
+  hinge.add(edge);
+
+  group.add(hinge);
+  group.userData = { hinge, panel, edge, hingeAxis, w, h, targetAngle:0, currentAngle:0, foldable:true };
+  foldStructures.push(group);
+  scene.add(group);
+  return group;
+}
+
+// Center paper platform
+const platGeo = new THREE.BoxGeometry(4, 0.4, 4);
+const platform = new THREE.Mesh(platGeo, paperMat('#faf5ee'));
+platform.position.set(0, 0.2, 0);
+platform.castShadow = true; platform.receiveShadow = true;
+platform.name = 'centerPlatform';
+// Edge on platform
+const platEdge = new THREE.LineSegments(new THREE.EdgesGeometry(platGeo), edgeMat('#a09080'));
+platEdge.position.copy(platform.position);
+scene.add(platform); scene.add(platEdge);
+
+// ── Structure 1: Folding Bridge (North) ──
+const bridge = createHingePanel(3, 6, '#f2e8d8', 0, 0.4, -2.5, 'x', 0);
+bridge.userData.hinge.rotation.x = -Math.PI/2; // starts vertical (wall)
+bridge.userData.currentAngle = -Math.PI/2;
+bridge.userData.targetAngle = -Math.PI/2;
+bridge.userData.folded = true;
+bridge.userData.label = 'bridge';
+bridge.userData.activateMsg = '桥面正在折叠...';
+
+// ── Structure 2: Folding Wall (East) ──
+const wall = createHingePanel(5, 4, '#ede0cc', 4.5, 0.4, 0, 'x', 0);
+wall.userData.hinge.rotation.x = Math.PI/2;
+wall.userData.currentAngle = Math.PI/2;
+wall.userData.targetAngle = Math.PI/2;
+wall.userData.folded = true;
+wall.userData.label = 'wall';
+wall.userData.activateMsg = '墙壁正在折叠...';
+
+// ── Structure 3: Folding Stairs (South-West) ──
+const stairs = [];
+for(let i=0;i<4;i++){
+  const step = createHingePanel(2, 1.2, `hsl(35,${30+i*10}%,${85+i*3}%)`, -3+i*0.4, 0.4+i*0.5, 4, 'x', 0);
+  step.userData.hinge.rotation.x = 0;
+  step.userData.currentAngle = 0;
+  step.userData.targetAngle = 0;
+  step.userData.folded = false;
+  step.userData.label = 'step';
+  stairs.push(step);
+}
+
+// ── Structure 4: Rotating Wall (North-West platform) ──
+const highPlatGeo = new THREE.BoxGeometry(3, 1.5, 3);
+const highPlat = new THREE.Mesh(highPlatGeo, paperMat('#faf6f2'));
+highPlat.position.set(-5, 0.75, -5);
+highPlat.castShadow = true; highPlat.receiveShadow = true;
+const highPlatEdge = new THREE.LineSegments(new THREE.EdgesGeometry(highPlatGeo), edgeMat('#a09080'));
+highPlatEdge.position.copy(highPlat.position);
+scene.add(highPlat); scene.add(highPlatEdge);
+
+const rotWall = createHingePanel(4, 3, '#f0e5d5', -5, 1.8, -3.5, 'y', -1.5);
+rotWall.userData.hinge.rotation.y = Math.PI/2;
+rotWall.userData.currentAngle = Math.PI/2;
+rotWall.userData.targetAngle = Math.PI/2;
+rotWall.userData.folded = true;
+rotWall.userData.label = 'rotateWall';
+rotWall.userData.rotateAxis = 'y';
+
+// ── Structure 5: Final bridge to East Island ──
+const eastPlatGeo = new THREE.BoxGeometry(3, 0.3, 3);
+const eastPlat = new THREE.Mesh(eastPlatGeo, paperMat('#faf6f2'));
+eastPlat.position.set(10, 0.15, 0);
+eastPlat.castShadow = true; eastPlat.receiveShadow = true;
+const eastPlatEdge = new THREE.LineSegments(new THREE.EdgesGeometry(eastPlatGeo), edgeMat('#a09080'));
+eastPlatEdge.position.copy(eastPlat.position);
+scene.add(eastPlat); scene.add(eastPlatEdge);
+
+const eastBridge = createHingePanel(3, 7, '#f3e9db', 7, 0.3, 0, 'x', 0);
+eastBridge.userData.hinge.rotation.x = -Math.PI/2;
+eastBridge.userData.currentAngle = -Math.PI/2;
+eastBridge.userData.targetAngle = -Math.PI/2;
+eastBridge.userData.folded = true;
+eastBridge.userData.label = 'eastBridge';
+
+// ═══════════════════ COLLECTIBLE STARS ═══════════════════
+const stars = [];
+function createStar(x, y, z){
+  const group = new THREE.Group();
+  // Star shape from 2 crossed triangles
+  const triGeo = new THREE.ConeGeometry(0.3, 0.6, 4);
+  const tri1 = new THREE.Mesh(triGeo, starMat);
+  const tri2 = new THREE.Mesh(triGeo, starMat);
+  tri2.rotation.y = Math.PI/4;
+  tri2.rotation.z = Math.PI/4;
+  group.add(tri1); group.add(tri2);
+  group.position.set(x, y, z);
+  group.userData = { collected:false, baseY:y };
+  scene.add(group);
+  stars.push(group);
+  return group;
+}
+
+createStar(0, 1.2, -5.5);   // Behind bridge (need to unfold bridge)
+createStar(7.5, 1.2, 0);    // Behind east wall
+createStar(-5, 2.5, -5);    // On high platform
+createStar(12, 1.2, 0);     // On east island (need east bridge)
+createStar(-6.5, 1.2, 3.5); // Behind rotating wall
+
+// ═══════════════════ PLAYER (Paper Crane) ═══════════════════
+const player = new THREE.Group();
+
+// Body - diamond shape
+const bodyGeo = new THREE.ConeGeometry(0.25, 0.9, 4);
+const body = new THREE.Mesh(bodyGeo, accentMat('#fafafa'));
+body.rotation.z = Math.PI/4;
+body.position.y = 0.6;
+player.add(body);
+
+// Wings
+const wingGeo = new THREE.ConeGeometry(0.4, 0.7, 3);
+const wingL = new THREE.Mesh(wingGeo, paperMat('#fefefe'));
+wingL.rotation.z = Math.PI/2.5;
+wingL.position.set(0.2, 0.7, 0);
+player.add(wingL);
+const wingR = new THREE.Mesh(wingGeo, paperMat('#fefefe'));
+wingR.rotation.z = -Math.PI/2.5;
+wingR.position.set(-0.2, 0.7, 0);
+player.add(wingR);
+
+// Head
+const headGeo = new THREE.ConeGeometry(0.12, 0.3, 4);
+const head = new THREE.Mesh(headGeo, accentMat('#fff'));
+head.position.y = 1.1;
+head.rotation.z = Math.PI/4;
+player.add(head);
+
+// Shadow disc
+const shadowGeo = new THREE.CircleGeometry(0.25, 16);
+const shadow = new THREE.Mesh(shadowGeo, new THREE.MeshBasicMaterial({color:'#000',transparent:true,opacity:0.25,depthWrite:false}));
+shadow.rotation.x = -Math.PI/2;
+shadow.position.y = -0.01;
+player.add(shadow);
+
+player.position.set(0, 0.5, 0);
+player.castShadow = true;
+scene.add(player);
+
+// ═══════════════════ GAME STATE ═══════════════════
+const keys = {};
+let collectedCount = 0;
+let nearFoldTarget = null;
+let cameraAngle = Math.PI/4;
+let cameraDistance = 12;
+let cameraHeight = 8;
+let targetAngle = cameraAngle;
+let targetDist = cameraDistance;
+let targetHeight = cameraHeight;
+
+// ═══════════════════ UI ═══════════════════
+const uiEl = document.getElementById('ui');
+for(let i=0;i<5;i++){
+  const slot = document.createElement('div');
+  slot.className='star-slot';
+  slot.textContent='★';
+  uiEl.appendChild(slot);
+}
+const hintEl = document.getElementById('hint');
+const foldIndicator = document.getElementById('fold-indicator');
+
+// ═══════════════════ INPUT ═══════════════════
+window.addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;e.preventDefault()});
+window.addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;e.preventDefault()});
+
+// Mouse rotate
+let isDragging=false, lastMouseX=0;
+window.addEventListener('mousedown',e=>{isDragging=true;lastMouseX=e.clientX});
+window.addEventListener('mouseup',()=>isDragging=false);
+window.addEventListener('mousemove',e=>{
+  if(isDragging){
+    targetAngle-=(e.clientX-lastMouseX)*0.005;
+    lastMouseX=e.clientX;
+  }
+});
+window.addEventListener('wheel',e=>{
+  targetDist=Math.max(6,Math.min(20,targetDist+e.deltaY*0.02));
+  targetHeight=Math.max(4,Math.min(18,targetHeight+e.deltaY*0.015));
+});
+
+// Touch
+window.addEventListener('touchstart',e=>{
+  if(e.touches.length===1){isDragging=true;lastMouseX=e.touches[0].clientX}
+});
+window.addEventListener('touchend',()=>isDragging=false);
+window.addEventListener('touchmove',e=>{
+  if(isDragging&&e.touches.length===1){
+    targetAngle-=(e.touches[0].clientX-lastMouseX)*0.005;
+    lastMouseX=e.touches[0].clientX;
+  }
+  if(e.touches.length===2){
+    const dy=e.touches[0].clientY-e.touches[1].clientY;
+    targetHeight=Math.max(4,Math.min(18,targetHeight+dy*0.02));
+  }
+});
+
+// ═══════════════════ FOLD TRIGGER DETECTION ═══════════════════
+const TRIGGER_DIST = 3.5;
+
+function findNearestFold(){
+  let nearest=null, minDist=TRIGGER_DIST;
+  foldStructures.forEach(s=>{
+    const dist = player.position.distanceTo(new THREE.Vector3(s.position.x, player.position.y, s.position.z));
+    if(dist<minDist&&s.userData.foldable){
+      minDist=dist; nearest=s;
+    }
+  });
+  return nearest;
+}
+
+function toggleFold(structure){
+  if(!structure) return;
+  const ud = structure.userData;
+  if(ud.rotateAxis==='y'){
+    // Rotating wall
+    ud.folded = !ud.folded;
+    ud.targetAngle = ud.folded ? Math.PI/2 : 0;
+  } else {
+    // Hinge fold
+    ud.folded = !ud.folded;
+    ud.targetAngle = ud.folded ? -Math.PI/2 : 0;
+  }
+  hintEl.textContent = ud.folded ? '已折叠 · 再次按 E 展开' : '已展开 · 再次按 E 折叠';
+  hintEl.classList.add('pulse');
+  setTimeout(()=>hintEl.classList.remove('pulse'),1500);
+}
+
+// ═══════════════════ UPDATE ═══════════════════
+function update(){
+  const speed = 0.08;
+  const px=player.position.x, pz=player.position.z, py=player.position.y;
+
+  // Movement
+  const forward = new THREE.Vector3(-Math.sin(cameraAngle), 0, -Math.cos(cameraAngle));
+  const right = new THREE.Vector3(Math.cos(cameraAngle), 0, -Math.sin(cameraAngle));
+
+  if(keys['w']){player.position.x+=forward.x*speed;player.position.z+=forward.z*speed}
+  if(keys['s']){player.position.x-=forward.x*speed;player.position.z-=forward.z*speed}
+  if(keys['a']){player.position.x-=right.x*speed;player.position.z-=right.z*speed}
+  if(keys['d']){player.position.x+=right.x*speed;player.position.z+=right.z*speed}
+
+  // Clamp to ground area
+  player.position.x = Math.max(-14,Math.min(14,player.position.x));
+  player.position.z = Math.max(-14,Math.min(14,player.position.z));
+
+  // Height detection - simple platform logic
+  let groundY = 0.5;
+  // Check if on center platform
+  if(Math.abs(player.position.x)<2.2&&Math.abs(player.position.z)<2.2) groundY=0.7;
+  // Check if on east platform
+  if(Math.abs(player.position.x-10)<1.7&&Math.abs(player.position.z)<1.7) groundY=0.6;
+  // Check high platform
+  if(Math.abs(player.position.x+5)<1.7&&Math.abs(player.position.z+5)<1.7) groundY=1.8;
+  // Bridge surface (when unfolded)
+  if(bridge.userData.currentAngle>-0.3&&Math.abs(player.position.x)<1.7&&player.position.z<-2&&player.position.z>-5.5){
+    const t=(Math.abs(player.position.z)-2)/3.5;
+    groundY=0.7+t*2.5;
+  }
+  // East bridge surface
+  if(eastBridge.userData.currentAngle>-0.3&&player.position.x>5.5&&player.position.x<8.5&&Math.abs(player.position.z)<1.7){
+    groundY=0.6;
+  }
+
+  player.position.y += (groundY - player.position.y) * 0.3;
+
+  // Player rotation faces movement direction
+  if(Math.abs(player.position.x-px)>0.001||Math.abs(player.position.z-pz)>0.001){
+    const moveAngle = Math.atan2(player.position.x-px, player.position.z-pz);
+    player.rotation.y += (moveAngle - player.rotation.y) * 0.3;
+  }
+
+  // Wing flap animation
+  const flapSpeed = keys['w']||keys['a']||keys['s']||keys['d']?15:5;
+  wingL.rotation.z = Math.PI/2.5 + Math.sin(Date.now()*0.01*flapSpeed)*0.3;
+  wingR.rotation.z = -Math.PI/2.5 - Math.sin(Date.now()*0.01*flapSpeed)*0.3;
+
+  // ═══════ FOLD ANIMATIONS ═══════
+  foldStructures.forEach(s=>{
+    const ud = s.userData;
+    if(Math.abs(ud.currentAngle-ud.targetAngle)>0.005){
+      ud.currentAngle += (ud.targetAngle-ud.currentAngle)*0.12;
+      if(ud.rotateAxis==='y') ud.hinge.rotation.y = ud.currentAngle;
+      else ud.hinge.rotation.x = ud.currentAngle;
+      // Update foldable status
+      ud.foldable = Math.abs(ud.currentAngle-ud.targetAngle)<0.05;
+    }
+  });
+
+  // ═══════ CHECK FOLD PROXIMITY ═══════
+  nearFoldTarget = findNearestFold();
+  if(nearFoldTarget){
+    foldIndicator.style.display='flex';
+    foldIndicator.style.borderColor='rgba(255,200,100,.8)';
+  } else {
+    foldIndicator.style.display='none';
+  }
+
+  // E key to fold
+  if(keys['e'] && nearFoldTarget && nearFoldTarget.userData.foldable){
+    toggleFold(nearFoldTarget);
+    keys['e']=false;
+  }
+
+  // ═══════ COLLECT STARS ═══════
+  stars.forEach((star,i)=>{
+    if(star.userData.collected) return;
+    const dist = player.position.distanceTo(star.position);
+    if(dist<2.0){
+      star.userData.collected=true;
+      star.visible=false;
+      collectedCount++;
+      // Update UI
+      const slots = uiEl.querySelectorAll('.star-slot');
+      if(slots[collectedCount-1]) slots[collectedCount-1].classList.add('collected');
+      hintEl.textContent = `收集到纸星星！(${collectedCount}/5)`;
+      hintEl.classList.add('pulse');
+      setTimeout(()=>hintEl.classList.remove('pulse'),2000);
+      if(collectedCount>=5){
+        setTimeout(()=>{
+          hintEl.textContent='✨ 全部收集完毕！折纸之境，已然解谜 ✨';
+          hintEl.classList.add('pulse');
+        },1500);
+      }
+    }
+    // Bob animation
+    star.rotation.y += 0.03;
+    star.position.y = star.userData.baseY + Math.sin(Date.now()*0.003+i)*0.4;
+  });
+
+  // ═══════ CAMERA ═══════
+  cameraAngle += (targetAngle-cameraAngle)*0.05;
+  cameraDistance += (targetDist-cameraDistance)*0.05;
+  cameraHeight += (targetHeight-cameraHeight)*0.05;
+  const cx = player.position.x + Math.sin(cameraAngle)*cameraDistance;
+  const cz = player.position.z + Math.cos(cameraAngle)*cameraDistance;
+  const cy = player.position.y + cameraHeight;
+  camera.position.set(cx, cy, cz);
+  camera.lookAt(player.position.x, player.position.y+1, player.position.z);
+}
+
+// ═══════════════════ DECORATIONS ═══════════════════
+// Scattered paper sheets
+for(let i=0;i<20;i++){
+  const g = new THREE.PlaneGeometry(0.3+Math.random()*0.8, 0.3+Math.random()*0.8);
+  const m = new THREE.Mesh(g, paperMat(`hsl(35,${30+Math.random()*20}%,${80+Math.random()*15}%)`));
+  m.rotation.x = -Math.PI/2 + (Math.random()-0.5)*0.3;
+  m.rotation.z = Math.random()*Math.PI;
+  m.position.set((Math.random()-0.5)*28, 0.02, (Math.random()-0.5)*28);
+  m.receiveShadow = true;
+  scene.add(m);
+}
+
+// Origami animals as decorations
+function makeOrigamiAnimal(x, z, color){
+  const g = new THREE.Group();
+  const b = new THREE.Mesh(new THREE.ConeGeometry(0.15,0.5,4), paperMat(color));
+  b.position.y=0.25;g.add(b);
+  const w1 = new THREE.Mesh(new THREE.ConeGeometry(0.2,0.4,3), paperMat(color));
+  w1.rotation.z=0.6;w1.position.set(0.1,0.3,0);g.add(w1);
+  const w2 = new THREE.Mesh(new THREE.ConeGeometry(0.2,0.4,3), paperMat(color));
+  w2.rotation.z=-0.6;w2.position.set(-0.1,0.3,0);g.add(w2);
+  g.position.set(x,0.05,z);
+  g.rotation.y=Math.random()*Math.PI*2;
+  scene.add(g);
+  return g;
+}
+makeOrigamiAnimal(5,5,'#f5e6d0');
+makeOrigamiAnimal(-7,2,'#f0e0cc');
+makeOrigamiAnimal(3,-6,'#f8efe0');
+makeOrigamiAnimal(-8,-3,'#ede0d0');
+makeOrigamiAnimal(7,-7,'#f2e5d5');
+
+// ═══════════════════ GAME LOOP ═══════════════════
+function loop(){
+  requestAnimationFrame(loop);
+  update();
+  renderer.render(scene, camera);
+}
+
+// ═══════════════════ RESIZE ═══════════════════
+window.addEventListener('resize',()=>{
+  camera.aspect = innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight);
+});
+
+loop();
+</script>
+</body>
+</html>

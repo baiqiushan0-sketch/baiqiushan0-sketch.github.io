@@ -140,7 +140,7 @@ body::before{
 .project-card:nth-child(6) .card-accent{background:var(--aqua)}
 .project-card:nth-child(7) .card-accent{background:var(--purple)}
 .project-card:nth-child(8) .card-accent{background:linear-gradient(90deg,#ff44aa,#ff88cc)}
-.project-card:nth-child(9) .card-accent{background:var(--slate)}
+.project-card:nth-child(9) .card-accent{background:linear-gradient(90deg,#50c8a0,#80e0c0)}
 .project-card:hover .card-accent{width:70%}
 
 /* Visual area */
@@ -163,7 +163,7 @@ body::before{
 .project-card:nth-child(6) .card-visual{background:linear-gradient(160deg,#0a1a18 0%,#0c201e 30%,#0a2822 60%,#081e1a 100%)}
 .project-card:nth-child(7) .card-visual{background:linear-gradient(160deg,#121220 0%,#161830 30%,#181a40 60%,#121830 100%)}
 .project-card:nth-child(8) .card-visual{background:linear-gradient(160deg,#1a0a20 0%,#1f0e28 30%,#1a0830 60%,#180a22 100%)}
-.project-card:nth-child(9) .card-visual{background:linear-gradient(160deg,#14181e 0%,#181e26 30%,#1a222c 60%,#141a20 100%)}
+.project-card:nth-child(9) .card-visual{background:linear-gradient(160deg,#0c1a16 0%,#0e2418 30%,#0a2618 60%,#0a1e14 100%)}
 
 /* Card icon SVG */
 .card-icon-svg{width:80px;height:80px;filter:drop-shadow(0 0 20px rgba(200,168,88,.15));transition:all var(--transition)}
@@ -175,7 +175,7 @@ body::before{
 .project-card:nth-child(6) .card-icon-svg{color:var(--aqua)}
 .project-card:nth-child(7) .card-icon-svg{color:var(--purple)}
 .project-card:nth-child(8) .card-icon-svg{color:#ff44aa}
-.project-card:nth-child(9) .card-icon-svg{color:var(--slate)}
+.project-card:nth-child(9) .card-icon-svg{color:#50c8a0}
 .project-card:hover .card-icon-svg{filter:drop-shadow(0 0 30px currentColor)}
 
 /* Card info */
@@ -191,7 +191,7 @@ body::before{
 .project-card:nth-child(6) .card-tag{background:rgba(58,216,208,.07);color:var(--aqua);border:1px solid rgba(58,216,208,.1)}
 .project-card:nth-child(7) .card-tag{background:rgba(152,136,216,.07);color:var(--purple);border:1px solid rgba(152,136,216,.1)}
 .project-card:nth-child(8) .card-tag{background:rgba(255,68,170,.07);color:#ff44aa;border:1px solid rgba(255,68,170,.1)}
-.project-card:nth-child(9) .card-tag{background:rgba(136,153,170,.07);color:var(--slate);border:1px solid rgba(136,153,170,.1)}
+.project-card:nth-child(9) .card-tag{background:rgba(80,200,160,.07);color:#50c8a0;border:1px solid rgba(80,200,160,.1)}
 .card-desc{font-size:.78rem;color:var(--text2);line-height:1.65;flex:1;margin-bottom:.5rem}
 
 /* Arrow hint */
@@ -500,7 +500,29 @@ body::before{
       <div class="card-arrow-hint">→</div>
     </a>
 
-    <a class="project-card reveal reveal-delay-9" href="skill_g113593/skill_g113593.html" aria-label="更多项目 · 工具集合">
+    <a class="project-card reveal reveal-delay-9" href="homepage/origami-realm.html" aria-label="折纸之境 · 3D折纸解谜">
+      <div class="card-accent"></div>
+      <div class="card-visual">
+        <canvas class="cv-particle" data-color="rgba(80,200,160,CLR)" data-count="30"></canvas>
+        <div class="visual-content">
+          <svg class="card-icon-svg" viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="1.5">
+            <polygon points="40,10 55,35 40,50 25,35" stroke-opacity=".6" fill="currentColor" fill-opacity=".06"/>
+            <line x1="40" y1="10" x2="40" y2="50" stroke-opacity=".3"/>
+            <line x1="25" y1="35" x2="55" y2="35" stroke-opacity=".3"/>
+            <polygon points="40,58 52,72 40,78 28,72" stroke-opacity=".4" fill="currentColor" fill-opacity=".04"/>
+          </svg>
+          <span class="visual-label">3D解谜 · 折纸之境</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="card-tags"><span class="card-tag">3D解谜</span><span class="card-tag">折纸美学</span><span class="card-tag">Three.js</span></div>
+        <h3>折纸之境 · Origami Realm</h3>
+        <p class="card-desc">温暖纸艺世界——折叠机关改变地形通路，收集纸星星解开谜题，纸鹤在折纸世界中的奇妙冒险</p>
+      </div>
+      <div class="card-arrow-hint">→</div>
+    </a>
+
+    <a class="project-card reveal reveal-delay-10" href="skill_g113593/skill_g113593.html" aria-label="更多项目 · 工具集合">
       <div class="card-accent"></div>
       <div class="card-visual">
         <canvas class="cv-particle" data-color="rgba(152,136,216,CLR)" data-count="35"></canvas>
