@@ -192,12 +192,18 @@
     transition: box-shadow 0.2s;
     /* Grid columns set via JS style */
   }
-  .board.flag-mode {
-    box-shadow: inset 0 2px 6px rgba(0,0,0,0.3), 0 0 0 3px var(--flag-color), 0 0 20px rgba(230,57,70,0.3);
+    .board.flag-mode {
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.3), 0 0 0 3px var(--flag-color), 0 0 28px rgba(230,57,70,0.35);
     cursor: crosshair;
+    transition: box-shadow 0.25s;
   }
   .board.flag-mode .cell.closed:hover {
-    filter: brightness(1.08) saturate(1.2);
+    filter: brightness(1.12) saturate(1.3);
+    transform: translateY(-2px);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.5),
+      inset 0 -1px 0 rgba(0,0,0,0.15),
+      0 0 14px rgba(230,57,70,0.45);
   }
 
   /* ===== Cell ===== */
@@ -337,10 +343,51 @@
   .ctrl-btn:hover { background: var(--btn-hover); transform: translateY(-2px); }
   .ctrl-btn:active { transform: scale(0.96); }
   .ctrl-btn.active { box-shadow: 0 0 0 2px var(--accent); background: var(--btn-hover); }
-  .ctrl-btn.flag-active {
-    box-shadow: 0 0 0 2px var(--flag-color);
-    background: rgba(230,57,70,0.2);
-    color: var(--flag-color);
+    /* ── Mode Switch: 翻开/插旗 双按钮 ── */
+  .mode-switch {
+    display: flex;
+    gap: 0;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+  }
+  .mode-btn {
+    padding: 10px 20px;
+    border: 2px solid transparent;
+    font-size: 0.95em;
+    font-weight: 700;
+    cursor: pointer;
+    background: var(--btn-bg);
+    color: var(--text-color);
+    transition: all 0.2s;
+    display: flex; align-items: center; gap: 6px;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mode-btn:first-child { border-radius: 10px 0 0 10px; }
+  .mode-btn:last-child { border-radius: 0 10px 10px 0; }
+  .mode-btn:hover { filter: brightness(1.15); }
+  .mode-btn:active { transform: scale(0.95); }
+
+  .mode-btn.reveal-active {
+    background: #3a7bd5;
+    color: #fff;
+    border-color: #5a9bf5;
+    box-shadow: 0 0 16px rgba(58,123,213,0.45), inset 0 1px 0 rgba(255,255,255,0.2);
+    z-index: 1;
+  }
+
+  .mode-btn.flag-active {
+    background: #e63946;
+    color: #fff;
+    border-color: #ff5a67;
+    box-shadow: 0 0 16px rgba(230,57,70,0.45), inset 0 1px 0 rgba(255,255,255,0.2);
+    z-index: 1;
+    animation: flagPulse 1.4s ease-in-out infinite;
+  }
+  @keyframes flagPulse {
+    0%,100% { box-shadow: 0 0 14px rgba(230,57,70,0.4), inset 0 1px 0 rgba(255,255,255,0.2); }
+    50%     { box-shadow: 0 0 24px rgba(230,57,70,0.65), inset 0 1px 0 rgba(255,255,255,0.3); }
   }
 
   .diff-group {
@@ -433,6 +480,7 @@
   /* ===== Responsive ===== */
   @media (max-width: 480px) {
     .game-container { padding: 10px; border-radius: 12px; }
+    .mode-btn { padding: 8px 14px; font-size: 0.82em; }
     .header { padding: 8px 10px; gap: 6px; }
     .header-title { font-size: 1.1em; }
     .counter { font-size: 1.4em; padding: 3px 8px; min-width: 44px; }
@@ -494,7 +542,17 @@
       <button class="diff-btn" data-diff="medium">😐 中级 16×16</button>
       <button class="diff-btn" data-diff="hard">😈 高级 30×16</button>
     </div>
-	    <button class="ctrl-btn" id="flagModeBtn" title="切换插旗模式 (F键)">🚩 插旗模式</button>
+	    <!-- 翻开/插旗 模式切换 -->
+	    <div class="mode-switch" id="modeSwitch">
+	      <button class="mode-btn reveal-active" id="revealModeBtn" title="左键翻开格子 (默认)">
+	        <span class="mode-icon">🔍</span>
+	        <span class="mode-label">翻开</span>
+	      </button>
+	      <button class="mode-btn" id="flagModeBtn" title="左键插旗标记地雷 (快捷键: F)">
+	        <span class="mode-icon">🚩</span>
+	        <span class="mode-label">插旗</span>
+	      </button>
+	    </div>
     <button class="ctrl-btn" id="themeBtn">🌓 主题</button>
     <button class="ctrl-btn" id="hintBtn">💡 提示</button>
   </div>
@@ -561,6 +619,7 @@ const overlayTitle = document.getElementById('overlayTitle');
 const overlaySubtitle = document.getElementById('overlaySubtitle');
 const overlayBtn = document.getElementById('overlayBtn');
 const flagModeBtn = document.getElementById('flagModeBtn');
+const revealModeBtn = document.getElementById('revealModeBtn');
 
 // ==================== INIT ====================
 function initGame() {
@@ -596,11 +655,9 @@ function initGame() {
   timerEl.classList.remove('ticking');
   overlay.classList.remove('show');
   document.getElementById('hintBtn').textContent = `💡 提示(${hintCount})`;
-  // Reset flag mode
+  // Reset to reveal mode
   flagMode = false;
-  flagModeBtn.classList.remove('flag-active');
-  flagModeBtn.textContent = '🚩 插旗模式';
-  boardEl.classList.remove('flag-mode');
+  setFlagMode(false);
 
   renderBoard();
 }
@@ -1099,17 +1156,21 @@ function hasAdjacentNumber(r, c) {
 }
 
 // ==================== FLAG MODE TOGGLE ====================
-function toggleFlagMode() {
-  flagMode = !flagMode;
-  if (flagMode) {
+function setFlagMode(on) {
+  flagMode = on;
+  if (on) {
+    revealModeBtn.classList.remove('reveal-active');
     flagModeBtn.classList.add('flag-active');
-    flagModeBtn.textContent = '🚩 插旗中…';
     boardEl.classList.add('flag-mode');
   } else {
     flagModeBtn.classList.remove('flag-active');
-    flagModeBtn.textContent = '🚩 插旗模式';
+    revealModeBtn.classList.add('reveal-active');
     boardEl.classList.remove('flag-mode');
   }
+}
+
+function toggleFlagMode() {
+  setFlagMode(!flagMode);
 }
 
 // ==================== THEME TOGGLE ====================
@@ -1192,7 +1253,8 @@ overlay.addEventListener('click', (e) => {
 
 document.getElementById('themeBtn').addEventListener('click', toggleTheme);
 document.getElementById('hintBtn').addEventListener('click', giveHint);
-flagModeBtn.addEventListener('click', toggleFlagMode);
+flagModeBtn.addEventListener('click', () => setFlagMode(true));
+revealModeBtn.addEventListener('click', () => setFlagMode(false));
 
 // Difficulty buttons
 document.getElementById('diffGroup').addEventListener('click', (e) => {
