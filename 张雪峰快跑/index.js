@@ -223,6 +223,7 @@
     spawnTimer = 0.65;
     lastTime = performance.now();
     lastSpeechTime = 0;
+    danmakuLaneBusy = [0, 0, 0, 0, 0];
   }
 
   function startGame() {
@@ -290,14 +291,40 @@
     }
   }
 
+  // Danmaku lane system — prevent overlap
+  var DANMAKU_LANES = [50, 82, 114, 146, 178]; // 5 horizontal lanes, evenly spaced
+  var danmakuLaneBusy = [0, 0, 0, 0, 0]; // timestamp when each lane frees up
+
   function spawnQuote() {
-    if (game.quotes.length > 2) return;
+    var now = performance.now() / 1000;
+    // Find an available lane (not busy)
+    var available = [];
+    for (var i = 0; i < DANMAKU_LANES.length; i++) {
+      if (now >= danmakuLaneBusy[i]) available.push(i);
+    }
+    if (available.length === 0) return; // all lanes occupied
+
+    var laneIdx = available[Math.floor(Math.random() * available.length)];
     var q = QUOTES.gameplay[Math.floor(Math.random() * QUOTES.gameplay.length)];
+
+    // Estimate text width to calculate duration
+    var tempMetrics = ctx.measureText(q.text);
+    var textWidth = tempMetrics.width || q.text.length * 14;
+    var scrollDuration = (W + textWidth + 80) / 280; // 280px/s scroll speed
+
     game.quotes.push({
-      text: q, x: W + 60, y: 55 + Math.random() * 85,
-      life: 2.8, alpha: 1, vy: -25 - Math.random() * 20
+      text: q,
+      x: W + 20,           // start off right edge
+      y: DANMAKU_LANES[laneIdx],
+      baseY: DANMAKU_LANES[laneIdx],
+      life: scrollDuration,
+      alpha: 1,
+      lane: laneIdx,
+      speed: 280            // px/s uniform speed
     });
-    if (Math.random() < 0.25) speakQuote(q);
+
+    // Mark lane busy until this quote fully exits screen
+    danmakuLaneBusy[laneIdx] = now + scrollDuration + 0.5; // 0.5s gap between consecutive
   }
 
   function spawnAchievement(text, emoji) {
@@ -394,7 +421,7 @@
 
     spawnTimer -= dt;
     if (spawnTimer <= 0) spawnObstacle();
-    if (Math.random() < dt * 0.12) spawnQuote();
+    if (Math.random() < dt * 0.04) spawnQuote();
     spawnPowerup();
 
     // Move obstacles
@@ -416,12 +443,15 @@
     game.powerups.forEach(function (p) { p.x -= game.speed * 0.7 * dt; });
     game.powerups = game.powerups.filter(function (p) { return p.x + p.w > -40; });
 
-    // Move quotes
+    // Move danmaku quotes — scroll right to left at uniform speed
     game.quotes.forEach(function (q) {
-      q.x -= game.speed * 0.22 * dt; q.life -= dt;
-      if (q.life < 0.5) q.alpha = q.life / 0.5;
+      q.x -= q.speed * dt;
+      q.life -= dt;
+      // Fade out near the end
+      if (q.life < 0.4) q.alpha = q.life / 0.4;
     });
-    game.quotes = game.quotes.filter(function (q) { return q.life > 0; });
+    // Remove quotes that scrolled off screen or expired
+    game.quotes = game.quotes.filter(function (q) { return q.life > 0 && q.x + 300 > -40; });
 
     // Move achievements
     game.achievements.forEach(function (a) {
@@ -463,7 +493,7 @@
           spawnAchievement("积分加成！", "💎");
         }
         var pq = QUOTES.powerup[Math.floor(Math.random() * QUOTES.powerup.length)];
-        game.quotes.push({ text: pq, x: player.x + 100, y: player.y - 5, life: 1.6, alpha: 1, vy: -35 });
+        game.quotes.push({ text: pq, x: player.x + 100, y: player.y - 20, life: 1.8, alpha: 1, speed: 220 });
       }
     });
 
@@ -628,33 +658,21 @@
   }
 
   function drawQuotes() {
+    // Danmaku style — scrolling text with subtle shadow, no background box
     game.quotes.forEach(function (q) {
-      ctx.save(); ctx.globalAlpha = q.alpha;
-      ctx.font = "bold 13px 'PingFang SC','Microsoft YaHei',sans-serif";
-      var m = ctx.measureText(q.text);
-      var tw = m.width + 18, th = 26, qx = q.x, qy = q.y;
+      ctx.save();
+      ctx.globalAlpha = q.alpha * 0.85;
+      ctx.textAlign = "left";
 
-      ctx.fillStyle = "#FFF";
-      ctx.strokeStyle = "#1f6f4a"; ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(qx - tw / 2 + 8, qy - th / 2);
-      ctx.lineTo(qx + tw / 2 - 8, qy - th / 2);
-      ctx.quadraticCurveTo(qx + tw / 2, qy - th / 2, qx + tw / 2, qy - th / 2 + 8);
-      ctx.lineTo(qx + tw / 2, qy + th / 2 - 8);
-      ctx.quadraticCurveTo(qx + tw / 2, qy + th / 2, qx + tw / 2 - 8, qy + th / 2);
-      ctx.lineTo(qx - 6, qy + th / 2);
-      ctx.lineTo(qx, qy + th / 2 + 7);
-      ctx.lineTo(qx + 6, qy + th / 2);
-      ctx.lineTo(qx - 8, qy + th / 2);
-      ctx.quadraticCurveTo(qx - tw / 2, qy + th / 2, qx - tw / 2, qy + th / 2 - 8);
-      ctx.lineTo(qx - tw / 2, qy - th / 2 + 8);
-      ctx.quadraticCurveTo(qx - tw / 2, qy - th / 2, qx - tw / 2 + 8, qy - th / 2);
-      ctx.closePath();
-      ctx.fill(); ctx.stroke();
+      // Subtle text shadow for readability
+      ctx.font = "bold 14px 'PingFang SC','Microsoft YaHei',sans-serif";
+      ctx.fillStyle = "rgba(0,0,0,0.15)";
+      ctx.fillText(q.text, q.x + 1, q.y + 1);
 
-      ctx.fillStyle = "#18201c";
-      ctx.textAlign = "center";
-      ctx.fillText(q.text, qx, qy + 5);
+      // Main text — green color matching game theme
+      ctx.fillStyle = "#1f6f4a";
+      ctx.fillText(q.text, q.x, q.y);
+
       ctx.restore();
     });
   }
