@@ -13,7 +13,7 @@
 
   var W = canvas.width;
   var H = canvas.height;
-  var groundY = 284;
+  var groundY = 332;
   var gravity = 2350;
   var jumpVelocity = -820;
   var jumpHoldForce = -1450;
