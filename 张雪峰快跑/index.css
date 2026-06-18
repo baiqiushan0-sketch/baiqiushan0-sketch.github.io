@@ -23,8 +23,8 @@ body {
 }
 
 .page-shell {
-  max-width: 960px;
-  width: min(960px, calc(100vw - 24px));
+  max-width: 1000px;
+  width: min(1000px, calc(100vw - 12px));
 }
 
 .game-shell {
@@ -75,7 +75,7 @@ body {
 }
 
 canvas {
-  aspect-ratio: 960 / 420;
+  aspect-ratio: 960 / 500;
   background: #f7fbff;
   display: block;
   height: auto;
