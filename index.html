@@ -142,6 +142,7 @@ body::before{
 .project-card:nth-child(8) .card-accent{background:linear-gradient(90deg,#ff44aa,#ff88cc)}
 .project-card:nth-child(9) .card-accent{background:linear-gradient(90deg,#50c8a0,#80e0c0)}
 .project-card:nth-child(10) .card-accent{background:var(--rust)}
+.project-card:nth-child(11) .card-accent{background:#ff6b35}
 .project-card:hover .card-accent{width:70%}
 
 /* Visual area */
@@ -166,6 +167,7 @@ body::before{
 .project-card:nth-child(8) .card-visual{background:linear-gradient(160deg,#1a0a20 0%,#1f0e28 30%,#1a0830 60%,#180a22 100%)}
 .project-card:nth-child(9) .card-visual{background:linear-gradient(160deg,#0c1a16 0%,#0e2418 30%,#0a2618 60%,#0a1e14 100%)}
 .project-card:nth-child(10) .card-visual{background:linear-gradient(160deg,#1a120c 0%,#1f1410 30%,#281810 60%,#1e100a 100%)}
+.project-card:nth-child(11) .card-visual{background:linear-gradient(160deg,#1a1008 0%,#1f140c 30%,#28180a 60%,#1e1208 100%)}
 
 /* Card icon SVG */
 .card-icon-svg{width:80px;height:80px;filter:drop-shadow(0 0 20px rgba(200,168,88,.15));transition:all var(--transition)}
@@ -179,6 +181,7 @@ body::before{
 .project-card:nth-child(8) .card-icon-svg{color:#ff44aa}
 .project-card:nth-child(9) .card-icon-svg{color:#50c8a0}
 .project-card:nth-child(10) .card-icon-svg{color:var(--rust)}
+.project-card:nth-child(11) .card-icon-svg{color:#ff6b35}
 .project-card:hover .card-icon-svg{filter:drop-shadow(0 0 30px currentColor)}
 
 /* Card info */
@@ -196,6 +199,7 @@ body::before{
 .project-card:nth-child(8) .card-tag{background:rgba(255,68,170,.07);color:#ff44aa;border:1px solid rgba(255,68,170,.1)}
 .project-card:nth-child(9) .card-tag{background:rgba(80,200,160,.07);color:#50c8a0;border:1px solid rgba(80,200,160,.1)}
 .project-card:nth-child(10) .card-tag{background:rgba(200,120,80,.07);color:var(--rust);border:1px solid rgba(200,120,80,.1)}
+.project-card:nth-child(11) .card-tag{background:rgba(255,107,53,.07);color:#ff6b35;border:1px solid rgba(255,107,53,.1)}
 .card-desc{font-size:.78rem;color:var(--text2);line-height:1.65;flex:1;margin-bottom:.5rem}
 
 /* Arrow hint */
@@ -557,7 +561,34 @@ body::before{
       <div class="card-arrow-hint">→</div>
     </a>
 
-    <a class="project-card reveal reveal-delay-11" href="skill_g113593/skill_g113593.html" aria-label="更多项目 · 工具集合">
+    <!-- 张雪峰快跑 -->
+    <a class="project-card reveal reveal-delay-11" href="张雪峰快跑/index.html" aria-label="张雪峰快跑 · 跑酷躲避游戏">
+      <div class="card-accent"></div>
+      <div class="card-visual">
+        <canvas class="cv-particle" data-color="rgba(255,107,53,CLR)" data-count="38"></canvas>
+        <div class="visual-content">
+          <svg class="card-icon-svg" viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="40" cy="40" r="36" stroke-opacity=".12"/>
+            <path d="M22 48 Q34 26 44 34 Q54 42 64 22" stroke-opacity=".35" stroke-width="2" fill="none"/>
+            <path d="M28 52 Q38 36 46 42 Q54 48 60 34" stroke-opacity=".5" stroke-width="2" fill="none"/>
+            <circle cx="44" cy="34" r="4" fill="currentColor" fill-opacity=".4"/>
+            <circle cx="28" cy="48" r="3" fill="currentColor" fill-opacity=".3"/>
+            <line x1="10" y1="54" x2="70" y2="54" stroke-opacity=".2" stroke-width="1.5"/>
+            <rect x="22" y="56" width="8" height="4" rx="2" fill="currentColor" fill-opacity=".3"/>
+            <rect x="50" y="56" width="8" height="4" rx="2" fill="currentColor" fill-opacity=".3"/>
+          </svg>
+          <span class="visual-label">跑酷躲避 · 张雪峰快跑</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="card-tags"><span class="card-tag">动作游戏</span><span class="card-tag">跑酷躲避</span><span class="card-tag">Canvas</span></div>
+        <h3>张雪峰快跑</h3>
+        <p class="card-desc">跑步机上的无尽跑酷——跳跃躲过障碍，下蹲闪避飞行物，速度递增挑战极限反应</p>
+      </div>
+      <div class="card-arrow-hint">→</div>
+    </a>
+
+    <a class="project-card reveal reveal-delay-12" href="skill_g113593/skill_g113593.html" aria-label="更多项目 · 工具集合">
       <div class="card-accent"></div>
       <div class="card-visual">
         <canvas class="cv-particle" data-color="rgba(152,136,216,CLR)" data-count="35"></canvas>
