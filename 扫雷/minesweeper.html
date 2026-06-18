@@ -189,7 +189,15 @@
     border-radius: 4px;
     padding: 3px;
     box-shadow: inset 0 2px 6px rgba(0,0,0,0.3);
+    transition: box-shadow 0.2s;
     /* Grid columns set via JS style */
+  }
+  .board.flag-mode {
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.3), 0 0 0 3px var(--flag-color), 0 0 20px rgba(230,57,70,0.3);
+    cursor: crosshair;
+  }
+  .board.flag-mode .cell.closed:hover {
+    filter: brightness(1.08) saturate(1.2);
   }
 
   /* ===== Cell ===== */
@@ -329,6 +337,11 @@
   .ctrl-btn:hover { background: var(--btn-hover); transform: translateY(-2px); }
   .ctrl-btn:active { transform: scale(0.96); }
   .ctrl-btn.active { box-shadow: 0 0 0 2px var(--accent); background: var(--btn-hover); }
+  .ctrl-btn.flag-active {
+    box-shadow: 0 0 0 2px var(--flag-color);
+    background: rgba(230,57,70,0.2);
+    color: var(--flag-color);
+  }
 
   .diff-group {
     display: flex;
@@ -481,6 +494,7 @@
       <button class="diff-btn" data-diff="medium">😐 中级 16×16</button>
       <button class="diff-btn" data-diff="hard">😈 高级 30×16</button>
     </div>
+	    <button class="ctrl-btn" id="flagModeBtn" title="切换插旗模式 (F键)">🚩 插旗模式</button>
     <button class="ctrl-btn" id="themeBtn">🌓 主题</button>
     <button class="ctrl-btn" id="hintBtn">💡 提示</button>
   </div>
@@ -534,6 +548,7 @@ let revealedCount = 0;
 let timerInterval = null;
 let seconds = 0;
 let hintCount = 3;
+let flagMode = false;
 
 // DOM refs
 const boardEl = document.getElementById('board');
@@ -545,6 +560,7 @@ const overlayEmoji = document.getElementById('overlayEmoji');
 const overlayTitle = document.getElementById('overlayTitle');
 const overlaySubtitle = document.getElementById('overlaySubtitle');
 const overlayBtn = document.getElementById('overlayBtn');
+const flagModeBtn = document.getElementById('flagModeBtn');
 
 // ==================== INIT ====================
 function initGame() {
@@ -580,6 +596,11 @@ function initGame() {
   timerEl.classList.remove('ticking');
   overlay.classList.remove('show');
   document.getElementById('hintBtn').textContent = `💡 提示(${hintCount})`;
+  // Reset flag mode
+  flagMode = false;
+  flagModeBtn.classList.remove('flag-active');
+  flagModeBtn.textContent = '🚩 插旗模式';
+  boardEl.classList.remove('flag-mode');
 
   renderBoard();
 }
@@ -727,6 +748,18 @@ function getCellEl(r, c) {
 // ==================== GAME LOGIC ====================
 function handleClick(r, c, event) {
   if (gameOver || gameWon) return;
+
+  // Flag mode: left-click toggles flag on closed cells
+  if (flagMode && !board[r][c].revealed) {
+    if (firstClick) return; // Can't flag before first click
+    board[r][c].flagged = !board[r][c].flagged;
+    flagCount += board[r][c].flagged ? 1 : -1;
+    updateMineCounter();
+    renderBoard();
+    if (navigator.vibrate) navigator.vibrate(10);
+    return;
+  }
+
   if (board[r][c].flagged) return;
   if (board[r][c].revealed) {
     // Chord: if number cell clicked and adjacent flags match, open neighbors
@@ -1065,6 +1098,20 @@ function hasAdjacentNumber(r, c) {
   return false;
 }
 
+// ==================== FLAG MODE TOGGLE ====================
+function toggleFlagMode() {
+  flagMode = !flagMode;
+  if (flagMode) {
+    flagModeBtn.classList.add('flag-active');
+    flagModeBtn.textContent = '🚩 插旗中…';
+    boardEl.classList.add('flag-mode');
+  } else {
+    flagModeBtn.classList.remove('flag-active');
+    flagModeBtn.textContent = '🚩 插旗模式';
+    boardEl.classList.remove('flag-mode');
+  }
+}
+
 // ==================== THEME TOGGLE ====================
 function toggleTheme() {
   const body = document.body;
@@ -1145,6 +1192,7 @@ overlay.addEventListener('click', (e) => {
 
 document.getElementById('themeBtn').addEventListener('click', toggleTheme);
 document.getElementById('hintBtn').addEventListener('click', giveHint);
+flagModeBtn.addEventListener('click', toggleFlagMode);
 
 // Difficulty buttons
 document.getElementById('diffGroup').addEventListener('click', (e) => {
@@ -1165,6 +1213,7 @@ document.addEventListener('keydown', (e) => {
     case '1': difficulty = 'easy'; updateDiffBtns(); initGame(); break;
     case '2': difficulty = 'medium'; updateDiffBtns(); initGame(); break;
     case '3': difficulty = 'hard'; updateDiffBtns(); initGame(); break;
+    case 'f': toggleFlagMode(); break;
   }
 });
 
