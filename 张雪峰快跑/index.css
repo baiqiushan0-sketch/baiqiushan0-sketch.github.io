@@ -127,6 +127,73 @@ canvas {
   display: none;
 }
 
+/* ── Map Selection ── */
+.map-select {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 0 0 16px;
+  max-width: 420px;
+  width: 100%;
+}
+
+.map-card {
+  align-items: center;
+  background: #f0f4ef;
+  border: 2px solid #d5dcd3;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 6px;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.map-card:hover {
+  background: #e4efe5;
+  border-color: #b5c4b3;
+}
+
+.map-card:active {
+  transform: scale(0.95);
+}
+
+.map-card.active {
+  background: #1f6f4a;
+  border-color: #163826;
+  color: #fff;
+}
+
+.map-card .map-emoji {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.map-card .map-name {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+@media (max-width: 560px) {
+  .map-select {
+    gap: 6px;
+  }
+  .map-card {
+    padding: 8px 4px;
+  }
+  .map-card .map-emoji {
+    font-size: 20px;
+  }
+  .map-card .map-name {
+    font-size: 11px;
+  }
+  .overlay {
+    padding: 16px 10px;
+  }
+}
+
 .footer-link {
   margin: 16px 0 0;
   text-align: center;

@@ -60,8 +60,20 @@
     speed: 410, distance: 0, score: 0,
     obstacles: [], dust: [], quotes: [], powerups: [],
     achievements: [], comboFlash: 0, shakeAmount: 0,
-    theme: 0, lastMilestoneScore: 0
+    lastMilestoneScore: 0
   };
+
+  // ═══════════ 地图系统 ═══════════
+  var MAPS = {
+    campus:  { label: "🎓 校园跑道", sky: "#f7fbff", cloud: "#e8f3ec", belt: "#3f4d44", deck: "#dde7e1", accent: "#1f6f4a" },
+    city:    { label: "🌃 城市夜景", sky: "#1a1a2e", cloud: "#252540", belt: "#3a3050", deck: "#2a2030", accent: "#ffd700" },
+    snow:    { label: "🏔️ 雪山高原", sky: "#e8f0ff", cloud: "#ffffff", belt: "#607080", deck: "#dce4f0", accent: "#4a90d9" },
+    volcano: { label: "🌋 火山地狱", sky: "#2a1010", cloud: "#4a2020", belt: "#5a2828", deck: "#341818", accent: "#ff4500" },
+    cyber:   { label: "🌆 赛博都市", sky: "#08081a", cloud: "#1a1040", belt: "#302050", deck: "#181030", accent: "#ff3ac0" },
+    beach:   { label: "🏖️ 沙滩海岸", sky: "#fff8e8", cloud: "#fff4dc", belt: "#c8a860", deck: "#f0e0c0", accent: "#00aaaa" }
+  };
+  var selectedMap = "campus";
+  var mapData = MAPS[selectedMap];
 
   // ═══════════ 张雪峰经典语录库 ═══════════
   var QUOTES = {
@@ -218,8 +230,8 @@
     game.achievements = [];
     game.comboFlash = 0;
     game.shakeAmount = 0;
-    game.theme = 0;
     game.lastMilestoneScore = 0;
+    mapData = MAPS[selectedMap];
     spawnTimer = 0.65;
     lastTime = performance.now();
     lastSpeechTime = 0;
@@ -406,10 +418,6 @@
     var comboBonus = 1 + Math.floor(player.combo / 5) * 0.25;
     game.score = Math.floor(game.distance / 10 * comboBonus);
 
-    // Theme progression
-    var newTheme = Math.floor(game.score / 500);
-    if (newTheme > game.theme) { game.theme = newTheme; }
-
     // Milestones
     QUOTES.milestone.forEach(function (m) {
       if (game.score >= m.score && game.lastMilestoneScore < m.score) {
@@ -518,19 +526,15 @@
   }
 
   // ═══════════ RENDER ═══════════
-  var THEMES = [
-    { sky: "#f7fbff", cloud: "#e8f3ec", belt: "#3f4d44", deck: "#dde7e1", label: "🎓 校园跑道" },
-    { sky: "#fff8f0", cloud: "#f0e0d0", belt: "#4a4035", deck: "#e8ddd0", label: "🏙️ 城市街道" },
-    { sky: "#f0f4ff", cloud: "#dde4f5", belt: "#2a3040", deck: "#d5dce8", label: "🏢 办公大楼" },
-    { sky: "#fff0f5", cloud: "#f5dde8", belt: "#5a2040", deck: "#ead5e0", label: "👑 巅峰之路" },
-    { sky: "#f0fff0", cloud: "#d8f0d8", belt: "#1a4020", deck: "#c8e0c8", label: "🌟 终极挑战" }
-  ];
-
   function drawBackground() {
-    var t = THEMES[Math.min(game.theme, THEMES.length - 1)];
+    var t = mapData;
     ctx.fillStyle = t.sky;
     ctx.fillRect(0, 0, W, H);
 
+    // Map-specific background elements
+    drawMapDecorations(t);
+
+    // Clouds
     ctx.fillStyle = t.cloud;
     for (var i = 0; i < 6; i++) {
       var cx = (W - ((game.distance * 0.12 + i * 210) % (W + 160))) + 24;
@@ -541,7 +545,121 @@
       ctx.ellipse(cx - 34, cy + 3, 23, 9, 0, 0, Math.PI * 2);
       ctx.fill();
     }
+
     drawTreadmill(t);
+  }
+
+  function drawMapDecorations(t) {
+    switch (selectedMap) {
+      case "city":
+        // Buildings silhouette
+        ctx.fillStyle = "rgba(30,20,50,0.6)";
+        for (var i = 0; i < 8; i++) {
+          var bx = (W - ((game.distance * 0.08 + i * 140) % (W + 200))) + 30;
+          var bh = 40 + (i % 4) * 25 + Math.sin(i * 1.8) * 15;
+          ctx.fillRect(bx, groundY - bh, 30 + (i % 3) * 15, bh);
+          // Windows
+          ctx.fillStyle = "rgba(255,215,0,0.4)";
+          for (var wy = groundY - bh + 6; wy < groundY - 6; wy += 10) {
+            ctx.fillRect(bx + 4, wy, 6, 4);
+            ctx.fillRect(bx + 16, wy, 6, 4);
+          }
+          ctx.fillStyle = "rgba(30,20,50,0.6)";
+        }
+        break;
+
+      case "snow":
+        // Mountain peaks
+        ctx.fillStyle = "rgba(200,215,235,0.5)";
+        for (var mi = 0; mi < 5; mi++) {
+          var mx = (W - ((game.distance * 0.06 + mi * 220) % (W + 300))) + 40;
+          var mh = 60 + (mi % 3) * 35;
+          ctx.beginPath();
+          ctx.moveTo(mx - 60, groundY);
+          ctx.lineTo(mx, groundY - mh);
+          ctx.lineTo(mx + 60, groundY);
+          ctx.fill();
+        }
+        // Snow cap
+        ctx.fillStyle = "rgba(255,255,255,0.7)";
+        for (var si = 0; si < 5; si++) {
+          var sx = (W - ((game.distance * 0.06 + si * 220) % (W + 300))) + 40;
+          var sh = 60 + (si % 3) * 35;
+          ctx.beginPath();
+          ctx.moveTo(sx - 20, groundY - sh + 20);
+          ctx.lineTo(sx, groundY - sh);
+          ctx.lineTo(sx + 20, groundY - sh + 20);
+          ctx.fill();
+        }
+        break;
+
+      case "volcano":
+        // Volcano & lava glow
+        var grad = ctx.createLinearGradient(0, groundY - 80, 0, groundY);
+        grad.addColorStop(0, "rgba(255,69,0,0)");
+        grad.addColorStop(1, "rgba(255,69,0,0.15)");
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, groundY - 80, W, 80);
+        // Volcano cones
+        ctx.fillStyle = "rgba(40,12,12,0.7)";
+        for (var vi = 0; vi < 4; vi++) {
+          var vx = (W - ((game.distance * 0.05 + vi * 260) % (W + 350))) + 50;
+          var vh = 50 + (vi % 2) * 40;
+          ctx.beginPath();
+          ctx.moveTo(vx - 70, groundY);
+          ctx.lineTo(vx, groundY - vh);
+          ctx.lineTo(vx + 70, groundY);
+          ctx.fill();
+        }
+        break;
+
+      case "cyber":
+        // Neon grid lines
+        ctx.strokeStyle = "rgba(255,58,192,0.08)";
+        ctx.lineWidth = 1;
+        var gridOff = (game.distance * 0.3) % 40;
+        for (var gx = -gridOff; gx < W; gx += 40) {
+          ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, groundY); ctx.stroke();
+        }
+        for (var gy = 0; gy < groundY; gy += 40) {
+          ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke();
+        }
+        // Neon towers
+        ctx.fillStyle = "rgba(58,20,80,0.5)";
+        for (var ti = 0; ti < 10; ti++) {
+          var tx = (W - ((game.distance * 0.1 + ti * 110) % (W + 180))) + 20;
+          var th = 30 + (ti * 17) % 60;
+          ctx.fillRect(tx, groundY - th, 14, th);
+          ctx.fillStyle = "rgba(255,58,192,0.3)";
+          ctx.fillRect(tx + 3, groundY - th + 4, 3, th - 6);
+          ctx.fillStyle = "rgba(58,20,80,0.5)";
+        }
+        break;
+
+      case "beach":
+        // Ocean waves
+        ctx.fillStyle = "rgba(0,170,170,0.12)";
+        for (var wi = 0; wi < 6; wi++) {
+          var wx = (W - ((game.distance * 0.07 + wi * 180) % (W + 200))) + 30;
+          ctx.beginPath();
+          ctx.ellipse(wx, 50 + wi * 25, 70, 8, 0, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        // Palm tree silhouettes
+        ctx.fillStyle = "rgba(100,140,100,0.3)";
+        for (var pi = 0; pi < 4; pi++) {
+          var px = (W - ((game.distance * 0.04 + pi * 280) % (W + 350))) + 60;
+          ctx.fillRect(px - 4, groundY - 60, 8, 60);
+          ctx.beginPath();
+          ctx.arc(px, groundY - 65, 22, 0, Math.PI); ctx.fill();
+        }
+        break;
+
+      default: // campus — simple green field
+        ctx.fillStyle = "rgba(31,111,74,0.06)";
+        ctx.fillRect(0, groundY - 30, W, 30);
+        break;
+    }
   }
 
   function drawTreadmill(t) {
@@ -712,12 +830,11 @@
   }
 
   function drawThemeLabel() {
-    var t = THEMES[Math.min(game.theme, THEMES.length - 1)];
-    ctx.save(); ctx.globalAlpha = 0.45;
+    ctx.save(); ctx.globalAlpha = 0.4;
     ctx.font = "11px 'PingFang SC','Microsoft YaHei',sans-serif";
     ctx.textAlign = "right";
     ctx.fillStyle = "#5e665d";
-    ctx.fillText(t.label, W - 14, H - 10);
+    ctx.fillText(mapData.label, W - 14, H - 10);
     ctx.restore();
   }
 
@@ -817,6 +934,16 @@
   duckButton.addEventListener("pointerup", function (e) { e.preventDefault(); setDuck(false); });
   duckButton.addEventListener("pointerleave", function (e) { e.preventDefault(); setDuck(false); });
   duckButton.addEventListener("pointercancel", function (e) { e.preventDefault(); setDuck(false); });
+
+  // Map selection
+  document.querySelectorAll(".map-card").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll(".map-card").forEach(function (b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      selectedMap = btn.dataset.map;
+      mapData = MAPS[selectedMap];
+    });
+  });
 
   startButton.addEventListener("click", function () { playBgm(); startGame(); });
 
