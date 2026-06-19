@@ -374,31 +374,31 @@ const rippleLevels = [
 
 // ── Mode 2: 评墨成韵 (Ripple Push + Star Evaluation) ──
 const settleLevels = [
-  {name:'初评',strokes:5,inks:[{x:.3,y:.4}],targets:[{x:.6,y:.45,r:.12}],seals:[],winds:[],starThresholds:[0.3,0.6,0.85]},
-  {name:'双评',strokes:7,inks:[{x:.25,y:.5},{x:.75,y:.5}],targets:[{x:.35,y:.3,r:.1},{x:.65,y:.7,r:.1}],seals:[],winds:[],starThresholds:[0.3,0.6,0.85]},
-  {name:'印评',strokes:9,inks:[{x:.2,y:.5}],targets:[{x:.75,y:.5,r:.12}],seals:[{x:.42,y:.28,w:.12,h:.40}],winds:[],starThresholds:[0.25,0.55,0.8]},
-  {name:'四评',strokes:10,inks:[{x:.5,y:.5}],targets:[{x:.15,y:.2,r:.08},{x:.85,y:.2,r:.08},{x:.15,y:.8,r:.08},{x:.85,y:.8,r:.08}],seals:[],winds:[],starThresholds:[0.25,0.55,0.8]},
+  {name:'初评',strokes:5,inks:[{x:.3,y:.4}],targets:[{x:.6,y:.45,r:.12}],seals:[],winds:[],starThresholds:[0.25,0.5,1.0]},
+  {name:'双评',strokes:7,inks:[{x:.25,y:.5},{x:.75,y:.5}],targets:[{x:.35,y:.3,r:.1},{x:.65,y:.7,r:.1}],seals:[],winds:[],starThresholds:[0.25,0.5,1.0]},
+  {name:'印评',strokes:9,inks:[{x:.2,y:.5}],targets:[{x:.75,y:.5,r:.12}],seals:[{x:.42,y:.28,w:.12,h:.40}],winds:[],starThresholds:[0.25,0.5,1.0]},
+  {name:'四评',strokes:10,inks:[{x:.5,y:.5}],targets:[{x:.15,y:.2,r:.08},{x:.85,y:.2,r:.08},{x:.15,y:.8,r:.08},{x:.85,y:.8,r:.08}],seals:[],winds:[],starThresholds:[0.25,0.5,1.0]},
   {name:'风评',strokes:8,inks:[{x:.2,y:.5}],targets:[{x:.75,y:.5,r:.12}],seals:[],
-    winds:[{x:.35,y:.15,w:.3,h:.7,dx:0,dy:-40}],starThresholds:[0.25,0.55,0.8]},
+    winds:[{x:.35,y:.15,w:.3,h:.7,dx:0,dy:-40}],starThresholds:[0.25,0.5,1.0]},
   {name:'迷评',strokes:12,inks:[{x:.1,y:.5},{x:.9,y:.5}],targets:[{x:.5,y:.15,r:.1},{x:.5,y:.85,r:.1}],
-    seals:[{x:.32,y:.26,w:.08,h:.45},{x:.58,y:.26,w:.08,h:.45}],winds:[],starThresholds:[0.2,0.5,0.75]},
+    seals:[{x:.32,y:.26,w:.08,h:.45},{x:.58,y:.26,w:.08,h:.45}],winds:[],starThresholds:[0.25,0.5,1.0]},
   {name:'远评',strokes:8,inks:[{x:.08,y:.5}],targets:[{x:.88,y:.5,r:.1}],
-    seals:[{x:.25,y:.35,w:.08,h:.25},{x:.5,y:.35,w:.08,h:.25},{x:.72,y:.35,w:.08,h:.25}],winds:[],starThresholds:[0.2,0.45,0.7]},
+    seals:[{x:.25,y:.35,w:.08,h:.25},{x:.5,y:.35,w:.08,h:.25},{x:.72,y:.35,w:.08,h:.25}],winds:[],starThresholds:[0.25,0.5,1.0]},
   {name:'宗评',strokes:12,inks:[{x:.5,y:.9}],
     targets:[{x:.15,y:.2,r:.08},{x:.38,y:.15,r:.07},{x:.62,y:.15,r:.07},{x:.85,y:.2,r:.08},{x:.5,y:.4,r:.09}],
     seals:[{x:.28,y:.28,w:.12,h:.04},{x:.6,y:.28,w:.12,h:.04}],
-    winds:[{x:.15,y:.35,w:.7,h:.25,dx:0,dy:-25}],starThresholds:[0.2,0.45,0.7]},
+    winds:[{x:.15,y:.35,w:.7,h:.25,dx:0,dy:-25}],starThresholds:[0.25,0.5,1.0]},
   // 新机制评墨关卡
   {name:'动评',strokes:8,inks:[{x:.3,y:.5}],targets:[{x:.65,y:.35,r:.09},{x:.7,y:.6,r:.08}],
-    seals:[],winds:[],movingTargets:true,starThresholds:[0.2,0.5,0.75]},
+    seals:[],winds:[],movingTargets:true,starThresholds:[0.25,0.5,1.0]},
   {name:'急评',strokes:8,inks:[{x:.2,y:.5},{x:.8,y:.5}],
     targets:[{x:.35,y:.3,r:.1},{x:.65,y:.7,r:.1}],seals:[],winds:[],
-    fadingInk:true,comboBonus:true,starThresholds:[0.2,0.45,0.7]},
+    fadingInk:true,comboBonus:true,starThresholds:[0.25,0.5,1.0]},
   {name:'涡评',strokes:10,inks:[{x:.5,y:.85}],
     targets:[{x:.25,y:.25,r:.08},{x:.75,y:.25,r:.08}],
     seals:[{x:.42,y:.3,w:.16,h:.35}],winds:[],
     vortexes:[{x:.3,y:.55,r:.12,strength:1.5},{x:.7,y:.55,r:.12,strength:1.5}],
-    starThresholds:[0.15,0.4,0.65]},
+    starThresholds:[0.25,0.5,1.0]},
 ];
 
 // ═══════════════ MODE MANAGEMENT ═══════════════
@@ -685,7 +685,7 @@ function evaluateStars(){
   if(gameState!=='playing'&&gameState!=='won') return;
   const cov=calcAvgCoverage();
   const lv=settleLevels[currentLevel];
-  const thresholds=lv.starThresholds||[0.3,0.6,0.85];
+  const thresholds=lv.starThresholds||[0.25,0.5,1.0];
   let stars=0;
   if(cov>=thresholds[0]) stars=1;
   if(cov>=thresholds[1]) stars=2;
