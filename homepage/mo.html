@@ -486,7 +486,7 @@ function addRipple(x,y){
   strokesLeft--;
   updateStrokeUI();
   ripples.push({x,y,r:0,maxR:Math.min(W,H)*.7,strength:1,age:0});
-  if(strokesLeft===0) hintEl.textContent=currentMode==='settle'?'评韵中… 点击「完成·评韵」':'';
+  if(strokesLeft===0) hintEl.textContent=currentMode==='settle'?'墨已推出 · 评韵中…':'';
 }
 
 function updateRipples(dt){
@@ -574,11 +574,11 @@ function loadSettleLevel(idx){
   totalStrokes=lv.strokes+getEffectiveStrokeBonus();
   ripples=[];
   inkParticles=[];
-  wonTimer=0; settleTimer=0;
+  wonTimer=0; settleTimer=-1;
   gameState='playing';
   starRating=0;
   msgEl.classList.remove('show','win','info');
-  hintEl.textContent='轻点水面 · 涟漪推墨';
+  hintEl.textContent='推墨入圈 · 覆盖率越高星越多';
   levelNameEl.textContent=lv.name;
   levelNumEl.textContent=`${idx+1} / ${settleLevels.length}`;
   coverageBar.style.width='0%';
@@ -655,6 +655,9 @@ function evaluateStars(){
   if(stars>0){
     starBank+=stars;
     saveProgress();
+    hintEl.textContent='获得 '+stars+' 星！总星辰：'+starBank;
+  } else {
+    hintEl.textContent='墨未入圈 · 点击重试';
   }
 
   const starEls=starsWrap.children;
@@ -799,12 +802,15 @@ function loop(time){
       updateInkRipple(dt);
     }
   }
-  // Mode 2: auto-evaluate after strokes used up
-  if(currentMode==='settle'&&gameState==='playing'&&strokesLeft===0){
-    settleTimer+=dt;
+  // Mode 2: live coverage bar + auto-evaluate
+  if(currentMode==='settle'&&gameState==='playing'){
     const cov=calcAvgCoverage();
     coverageBar.style.width=(cov*100)+'%';
-    if(settleTimer>3) evaluateStars();
+    if(strokesLeft===0){
+      if(settleTimer<0){ settleTimer=0; hintEl.textContent='评韵中…'; }
+      settleTimer+=dt;
+      if(settleTimer>1.5) evaluateStars();
+    }
   }
 
   // Render
