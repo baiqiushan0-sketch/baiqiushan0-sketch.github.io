@@ -679,13 +679,13 @@ function calcAvgCoverage(){
         for(const p of inkParticles){
           const dx=sx-p.x, dy=sy-p.y;
           const dist=Math.sqrt(dx*dx+dy*dy);
-          const reach=p.size*3;  // 墨粒影响半径
+          const reach=p.size*4;  // 墨粒影响半径
           if(dist<reach){
             density+=p.alpha*(1-dist/reach);
           }
         }
-        // 密度≥0.12视为"有墨"（一颗淡墨粒约0.2即可触发）
-        if(density>=0.12) coveredCount++;
+        // 密度≥0.06视为"有墨"（一颗淡墨粒即可触发）
+        if(density>=0.06) coveredCount++;
       }
     }
     if(sampleCount>0) totalCov+=coveredCount/sampleCount;
