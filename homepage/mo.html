@@ -68,6 +68,43 @@ body{
   transition:all .3s;display:none}
 #done-btn:hover{border-color:rgba(200,180,140,.6);color:#d4a843}
 #done-btn.visible{display:block}
+
+/* ── Star bank ── */
+#star-bank-wrap{display:flex;align-items:center;gap:4px;margin-top:2px}
+#star-bank-icon{font-size:.55rem;color:#d4a843}
+#star-bank-num{font-size:.5rem;color:rgba(212,168,67,.7);letter-spacing:1px}
+
+/* ── Shop button ── */
+#shop-btn{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);z-index:20;
+  background:transparent;border:1px solid rgba(212,168,67,.25);color:rgba(212,168,67,.5);
+  padding:6px 20px;font-size:.5rem;letter-spacing:3px;cursor:pointer;font-family:inherit;
+  transition:all .3s;display:none}
+#shop-btn:hover{border-color:rgba(212,168,67,.5);color:#d4a843}
+#shop-btn.visible{display:block}
+
+/* ── Shop overlay ── */
+#shop-overlay{position:fixed;top:0;left:0;width:100%;height:100%;z-index:50;
+  background:rgba(5,4,2,.92);display:none;flex-direction:column;align-items:center;
+  justify-content:center;gap:12px;padding:20px}
+#shop-overlay.open{display:flex}
+#shop-title{font-size:1rem;color:#c8bfa8;letter-spacing:6px;font-weight:200}
+#shop-sub{font-size:.5rem;color:rgba(200,180,140,.4);letter-spacing:2px;margin-bottom:8px}
+#shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+  gap:8px;max-width:480px;width:90vw}
+.shop-item{background:rgba(20,16,10,.6);border:1px solid rgba(200,180,140,.1);
+  border-radius:8px;padding:12px;text-align:center;cursor:pointer;transition:all .3s}
+.shop-item:hover{border-color:rgba(200,180,140,.3);background:rgba(30,24,14,.7)}
+.shop-item.owned{border-color:rgba(80,200,140,.15);background:rgba(80,200,140,.03);cursor:default}
+.shop-item .si-icon{font-size:1.2rem;margin-bottom:4px}
+.shop-item .si-name{font-size:.6rem;color:#c8bfa8;letter-spacing:1px;margin-bottom:2px}
+.shop-item .si-desc{font-size:.45rem;color:rgba(200,180,140,.35);margin-bottom:6px}
+.shop-item .si-price{font-size:.5rem;color:#d4a843}
+.shop-item.owned .si-price{color:rgba(80,200,140,.5)}
+.shop-item .si-price .star-icon{font-size:.45rem}
+#shop-close{background:transparent;border:1px solid rgba(200,180,140,.2);
+  color:rgba(200,180,140,.4);padding:8px 28px;font-size:.55rem;letter-spacing:3px;
+  cursor:pointer;font-family:inherit;margin-top:8px;transition:all .3s}
+#shop-close:hover{border-color:rgba(200,180,140,.5);color:#d4a843}
 </style>
 </head>
 <body>
@@ -96,13 +133,25 @@ body{
   <div id="stars-wrap"></div>
   <div id="coverage-bar-wrap"><div id="coverage-bar"></div></div>
   <div id="level-num"></div>
+  <div id="star-bank-wrap">
+    <span id="star-bank-icon">★</span>
+    <span id="star-bank-num">0</span>
+  </div>
 </div>
 
 <!-- Messages -->
 <div id="msg"></div>
 <div id="hint"></div>
 <button id="done-btn" onclick="evaluateStars()">完成 · 评韵</button>
+<button id="shop-btn" onclick="openShop()">🏪 墨韵商店</button>
 
+<!-- Shop overlay -->
+<div id="shop-overlay">
+  <div id="shop-title">墨 韵 商 店</div>
+  <div id="shop-sub">收集星辰 · 换取墨宝</div>
+  <div id="shop-grid"></div>
+  <div id="shop-close" onclick="closeShop()">关闭</div>
+</div>
 <canvas id="c"></canvas>
 
 <script>
@@ -173,6 +222,115 @@ let starRating = 0;       // 0-3 for settle mode
 let settleTimer = 0;      // timer for settle mode auto-evaluate
 let dropsLeft = 0;
 
+// ── Star bank & shop ──
+let starBank = 0;
+const SHOP_ITEMS = [
+  {id:'extra', name:'涟漪+1', desc:'每关额外获得1次涟漪', price:25, icon:'🌊', owned:false},
+  {id:'strong', name:'强漪', desc:'涟漪推力增强30%', price:35, icon:'💪', owned:false},
+  {id:'thick', name:'浓墨', desc:'墨粒体积增大30%', price:40, icon:'🎨', owned:false},
+  {id:'more', name:'墨量增幅', desc:'墨粒数量增加30%', price:50, icon:'📜', owned:false},
+  {id:'gold', name:'墨色·金', desc:'墨迹化为金色华彩', price:60, icon:'✨', owned:false},
+  {id:'seal', name:'透印', desc:'墨可缓透印章障碍', price:70, icon:'🔓', owned:false},
+];
+
+function loadProgress(){
+  try{
+    const d=JSON.parse(localStorage.getItem('moyun_progress')||'{}');
+    starBank=d.starBank||0;
+    (d.owned||[]).forEach(id=>{
+      const item=SHOP_ITEMS.find(it=>it.id===id);
+      if(item) item.owned=true;
+    });
+  }catch(e){}
+  updateStarBankUI();
+}
+
+function saveProgress(){
+  try{
+    localStorage.setItem('moyun_progress', JSON.stringify({
+      starBank: starBank,
+      owned: SHOP_ITEMS.filter(it=>it.owned).map(it=>it.id)
+    }));
+    updateStarBankUI();
+  }catch(e){}
+}
+
+function updateStarBankUI(){
+  document.getElementById('star-bank-num').textContent=starBank;
+}
+
+// Apply shop buffs to game parameters
+function getEffectiveInkCount(){
+  let count=INK_COUNT;
+  if(SHOP_ITEMS.find(it=>it.id==='more'&&it.owned)) count=Math.floor(count*1.3);
+  return count;
+}
+
+function getEffectiveStrokeBonus(){
+  return SHOP_ITEMS.find(it=>it.id==='extra'&&it.owned)?1:0;
+}
+
+function getEffectiveRippleStrength(){
+  return SHOP_ITEMS.find(it=>it.id==='strong'&&it.owned)?1.3:1;
+}
+
+function getEffectiveInkSize(){
+  return SHOP_ITEMS.find(it=>it.id==='thick'&&it.owned)?1.3:1;
+}
+
+function hasGoldInk(){
+  return SHOP_ITEMS.find(it=>it.id==='gold'&&it.owned);
+}
+
+function hasSealPierce(){
+  return SHOP_ITEMS.find(it=>it.id==='seal'&&it.owned);
+}
+
+function openShop(){
+  const grid=document.getElementById('shop-grid');
+  grid.innerHTML='';
+  SHOP_ITEMS.forEach(item=>{
+    const div=document.createElement('div');
+    div.className='shop-item'+(item.owned?' owned':'');
+    div.innerHTML=\`<div class="si-icon">\${item.icon}</div>
+      <div class="si-name">\${item.name}</div>
+      <div class="si-desc">\${item.desc}</div>
+      <div class="si-price">\${item.owned?'已拥有':'★ '+item.price}</div>\`;
+    if(!item.owned){
+      div.addEventListener('click',e=>{e.stopPropagation();buyItem(item.id);});
+    }
+    grid.appendChild(div);
+  });
+  document.getElementById('shop-overlay').classList.add('open');
+}
+
+function closeShop(){
+  document.getElementById('shop-overlay').classList.remove('open');
+}
+
+function buyItem(id){
+  const item=SHOP_ITEMS.find(it=>it.id===id);
+  if(!item||item.owned) return;
+  if(starBank<item.price){
+    showMsg('星辰不足','info');
+    return;
+  }
+  starBank-=item.price;
+  item.owned=true;
+  saveProgress();
+  openShop(); // refresh shop display
+  showMsg('获得 '+item.name+'！','win');
+  // Reload current level to apply buffs
+  if(currentMode==='settle'&&currentLevel>=0){
+    loadSettleLevel(currentLevel);
+  }
+  if(currentMode==='ripple'&&currentLevel>=0){
+    loadRippleLevel(currentLevel);
+  }
+}
+
+loadProgress();
+
 // ═══════════════════ LEVEL DATA ═══════════════════
 
 // ── Mode 1: 涟漪推墨 (Ripple Push) ──
@@ -237,6 +395,7 @@ function backToMenu() {
   strokesEl.innerHTML = '';
   hintEl.textContent = '';
   msgEl.classList.remove('show','win','info');
+  document.getElementById('shop-btn').classList.remove('visible');
   starRating = 0;
 }
 
@@ -250,6 +409,8 @@ function startMode(mode) {
     hintEl.textContent = '轻点水面 · 涟漪推墨';
     coverageBarWrap.style.display = 'none';
     doneBtn.classList.remove('visible');
+    document.getElementById('shop-btn').classList.remove('visible');
+    updateStarBankUI();
     loadRippleLevel(0);
   } else if (mode === 'settle') {
     modeLabelEl.textContent = '评墨成韵';
@@ -258,6 +419,8 @@ function startMode(mode) {
     coverageBar.style.width = '0%';
     doneBtn.classList.add('visible');
     doneBtn.textContent = '完成 · 评韵';
+    document.getElementById('shop-btn').classList.add('visible');
+    updateStarBankUI();
     // Init star display
     starsWrap.innerHTML = '';
     for(let i=0;i<3;i++){
@@ -295,13 +458,14 @@ function loadRippleLevel(idx) {
   // Spawn ink
   for(const src of lv.inks){
     const sx=src.x*W, sy=src.y*H;
-    const count=Math.floor(INK_COUNT/lv.inks.length);
+    const effInk=getEffectiveInkCount();
+    const count=Math.floor(effInk/lv.inks.length);
     for(let i=0;i<count;i++){
       const angle=Math.random()*Math.PI*2;
       const dist=Math.random()*Math.min(W,H)*.08;
       inkParticles.push({
         x:sx+Math.cos(angle)*dist, y:sy+Math.sin(angle)*dist,
-        size:1.5+Math.random()*4, alpha:.15+Math.random()*.35, vx:0,vy:0
+        size:(1.5+Math.random()*4)*getEffectiveInkSize(), alpha:.15+Math.random()*.35, vx:0,vy:0
       });
     }
   }
@@ -339,7 +503,7 @@ function updateRipples(dt){
       const dist=Math.sqrt(dx*dx+dy*dy);
       if(dist<.1) continue;
       if(dist>=innerR && dist<=outerR){
-        const push=strength*.08*(1-Math.abs(dist-rp.r)/(ringW*.5));
+        const push=strength*.08*(1-Math.abs(dist-rp.r)/(ringW*.5))*getEffectiveRippleStrength();
         const nx=dx/dist, ny=dy/dist;
         p.vx+=nx*push*60; p.vy+=ny*push*60;
         let blocked=false;
@@ -349,6 +513,11 @@ function updateRipples(dt){
           if(newX>b.x&&newX<b.x+b.w&&newY>b.y&&newY<b.y+b.h){blocked=true;break}
         }
         if(!blocked){p.x=newX;p.y=newY}
+        else if(hasSealPierce()){
+          // Seal pierce: slow pass through seals
+          const sx=p.x+nx*push*20, sy=p.y+ny*push*20;
+          p.x=sx; p.y=sy;
+        }
       }
     }
   }
@@ -401,8 +570,8 @@ function updateInkRipple(dt){
 function loadSettleLevel(idx){
   const lv=settleLevels[idx];
   currentLevel=idx;
-  strokesLeft=lv.strokes;
-  totalStrokes=lv.strokes;
+  strokesLeft=lv.strokes+getEffectiveStrokeBonus();
+  totalStrokes=lv.strokes+getEffectiveStrokeBonus();
   ripples=[];
   inkParticles=[];
   wonTimer=0; settleTimer=0;
@@ -429,18 +598,19 @@ function loadSettleLevel(idx){
   // Spawn ink at sources (same as ripple mode)
   for(const src of lv.inks){
     const sx=src.x*W, sy=src.y*H;
-    const count=Math.floor(INK_COUNT/lv.inks.length);
+    const effInk=getEffectiveInkCount();
+    const count=Math.floor(effInk/lv.inks.length);
     for(let i=0;i<count;i++){
       const angle=Math.random()*Math.PI*2;
       const dist=Math.random()*Math.min(W,H)*.08;
       inkParticles.push({
         x:sx+Math.cos(angle)*dist, y:sy+Math.sin(angle)*dist,
-        size:1.5+Math.random()*4, alpha:.15+Math.random()*.35, vx:0,vy:0
+        size:(1.5+Math.random()*4)*getEffectiveInkSize(), alpha:.15+Math.random()*.35, vx:0,vy:0
       });
     }
   }
   strokesEl.innerHTML='';
-  for(let i=0;i<lv.strokes;i++){
+  for(let i=0;i<totalStrokes;i++){
     const s=document.createElement('span');strokesEl.appendChild(s);
   }
   updateStrokeUI();
@@ -480,6 +650,12 @@ function evaluateStars(){
   gameState='evaluated';
   coverageBar.style.width=(cov*100)+'%';
   doneBtn.classList.remove('visible');
+
+  // Deposit earned stars into bank
+  if(stars>0){
+    starBank+=stars;
+    saveProgress();
+  }
 
   const starEls=starsWrap.children;
   for(let i=0;i<3;i++){
@@ -577,8 +753,8 @@ function drawInk(){
     if(p.alpha<.02) continue;
     const g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.size);
     const a=p.alpha;
-    g.addColorStop(0,`rgba(20,15,10,${a})`);
-    g.addColorStop(.4,`rgba(30,25,18,${a*.7})`);
+    if(hasGoldInk()){g.addColorStop(0,`rgba(180,140,40,${a*.9})`);g.addColorStop(.4,`rgba(200,160,60,${a*.6})`);}else{g.addColorStop(0,`rgba(20,15,10,${a})`);}
+    if(!hasGoldInk()) g.addColorStop(.4,`rgba(30,25,18,${a*.7})`);
     g.addColorStop(1,'transparent');
     ctx.fillStyle=g;
     ctx.beginPath();ctx.arc(p.x,p.y,p.size*1.5,0,Math.PI*2);ctx.fill();
