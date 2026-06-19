@@ -665,14 +665,12 @@ function calcAvgCoverage(){
   let totalCov=0;
   for(const t of targets){
     // 固定网格采样 — 结果稳定一致
-    const grid=8;  // 8x8 网格
-    let sampleCount=0, totalDensity=0;
+    const grid=8;  // 8x8 网格，约50个有效采样点
+    let sampleCount=0, coveredCount=0;
     for(let gx=0;gx<grid;gx++){
       for(let gy=0;gy<grid;gy++){
-        // 网格点坐标（圆心相对位置）
         const sx=t.x+(gx/(grid-1)-.5)*t.r*2;
         const sy=t.y+(gy/(grid-1)-.5)*t.r*2;
-        // 只计算在圆内的点
         const sd=Math.sqrt((sx-t.x)**2+(sy-t.y)**2);
         if(sd>t.r) continue;
         sampleCount++;
@@ -681,17 +679,16 @@ function calcAvgCoverage(){
         for(const p of inkParticles){
           const dx=sx-p.x, dy=sy-p.y;
           const dist=Math.sqrt(dx*dx+dy*dy);
-          const reach=p.size*2.5;  // 墨粒影响半径
+          const reach=p.size*3;  // 墨粒影响半径
           if(dist<reach){
-            // 距离越近浓度越高，alpha越大的墨粒贡献越大
             density+=p.alpha*(1-dist/reach);
           }
         }
-        // 饱和上限 1.0（超过即视为完全覆盖）
-        totalDensity+=Math.min(density,1);
+        // 密度≥0.12视为"有墨"（一颗淡墨粒约0.2即可触发）
+        if(density>=0.12) coveredCount++;
       }
     }
-    if(sampleCount>0) totalCov+=totalDensity/sampleCount;
+    if(sampleCount>0) totalCov+=coveredCount/sampleCount;
   }
   return totalCov/targets.length;
 }
