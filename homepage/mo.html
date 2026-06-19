@@ -217,6 +217,9 @@ let totalStrokes = 0;
 let currentLevel = 0;
 let gameState = 'idle';   // idle | playing | won | evaluated
 let wonTimer = 0;
+let lastTapTime = 0;       // combo tracking
+let vortexes = [];         // {x,y,r,strength} 漩涡区
+let fadeTimer = 0;         // fading ink timer
 let currentMode = null;   // 'ripple' | 'settle'
 let starRating = 0;       // 0-3 for settle mode
 let settleTimer = 0;      // timer for settle mode auto-evaluate
@@ -358,6 +361,15 @@ const rippleLevels = [
     targets:[{x:.15,y:.2,r:.08},{x:.38,y:.15,r:.07},{x:.62,y:.15,r:.07},{x:.85,y:.2,r:.08},{x:.5,y:.4,r:.09}],
     seals:[{x:.28,y:.28,w:.12,h:.04},{x:.6,y:.28,w:.12,h:.04}],
     winds:[{x:.15,y:.35,w:.7,h:.25,dx:0,dy:-25}]},
+  // 新机制关卡
+  {name:'移靶',strokes:7,inks:[{x:.3,y:.5}],targets:[{x:.65,y:.35,r:.09},{x:.7,y:.6,r:.08}],
+    seals:[],winds:[],movingTargets:true},
+  {name:'时墨',strokes:8,inks:[{x:.2,y:.5},{x:.8,y:.5}],
+    targets:[{x:.35,y:.3,r:.1},{x:.65,y:.7,r:.1}],seals:[],winds:[],fadingInk:true,comboBonus:true},
+  {name:'漩涡',strokes:10,inks:[{x:.5,y:.85}],
+    targets:[{x:.25,y:.25,r:.08},{x:.75,y:.25,r:.08}],
+    seals:[{x:.42,y:.3,w:.16,h:.35}],winds:[],
+    vortexes:[{x:.3,y:.55,r:.12,strength:1.5},{x:.7,y:.55,r:.12,strength:1.5}]},
 ];
 
 // ── Mode 2: 评墨成韵 (Ripple Push + Star Evaluation) ──
@@ -376,6 +388,17 @@ const settleLevels = [
     targets:[{x:.15,y:.2,r:.08},{x:.38,y:.15,r:.07},{x:.62,y:.15,r:.07},{x:.85,y:.2,r:.08},{x:.5,y:.4,r:.09}],
     seals:[{x:.28,y:.28,w:.12,h:.04},{x:.6,y:.28,w:.12,h:.04}],
     winds:[{x:.15,y:.35,w:.7,h:.25,dx:0,dy:-25}],starThresholds:[0.2,0.45,0.7]},
+  // 新机制评墨关卡
+  {name:'动评',strokes:8,inks:[{x:.3,y:.5}],targets:[{x:.65,y:.35,r:.09},{x:.7,y:.6,r:.08}],
+    seals:[],winds:[],movingTargets:true,starThresholds:[0.2,0.5,0.75]},
+  {name:'急评',strokes:8,inks:[{x:.2,y:.5},{x:.8,y:.5}],
+    targets:[{x:.35,y:.3,r:.1},{x:.65,y:.7,r:.1}],seals:[],winds:[],
+    fadingInk:true,comboBonus:true,starThresholds:[0.2,0.45,0.7]},
+  {name:'涡评',strokes:10,inks:[{x:.5,y:.85}],
+    targets:[{x:.25,y:.25,r:.08},{x:.75,y:.25,r:.08}],
+    seals:[{x:.42,y:.3,w:.16,h:.35}],winds:[],
+    vortexes:[{x:.3,y:.55,r:.12,strength:1.5},{x:.7,y:.55,r:.12,strength:1.5}],
+    starThresholds:[0.15,0.4,0.65]},
 ];
 
 // ═══════════════ MODE MANAGEMENT ═══════════════
@@ -451,9 +474,11 @@ function loadRippleLevel(idx) {
   coverageBarWrap.style.display = 'none';
   doneBtn.classList.remove('visible');
 
-  targets = lv.targets.map(t=>({x:t.x*W,y:t.y*H,r:t.r*Math.min(W,H),covered:false}));
+  targets = lv.targets.map(t=>({x:t.x*W,y:t.y*H,r:t.r*Math.min(W,H),covered:false,origX:t.x*W,origY:t.y*H}));
   seals = (lv.seals||[]).map(s=>({x:s.x*W,y:s.y*H,w:s.w*W,h:s.h*Math.min(W,H)}));
   windZones = (lv.winds||[]).map(w=>({x:w.x*W,y:w.y*H,w:w.w*W,h:w.h*H,dx:w.dx,dy:w.dy}));
+  vortexes = (lv.vortexes||[]).map(v=>({x:v.x*W,y:v.y*H,r:v.r*Math.min(W,H),strength:v.strength||1}));
+  fadeTimer = 0;
 
   // Spawn ink
   for(const src of lv.inks){
@@ -485,7 +510,13 @@ function addRipple(x,y){
   if(strokesLeft<=0||gameState!=='playing') return;
   strokesLeft--;
   updateStrokeUI();
-  ripples.push({x,y,r:0,maxR:Math.min(W,H)*.7,strength:1,age:0});
+  // Combo: quick successive taps give bonus strength
+  const now=performance.now()/1000;
+  let strength=1;
+  const lv=currentMode==='ripple'?rippleLevels[currentLevel]:settleLevels[currentLevel];
+  if(lv.comboBonus&&now-lastTapTime<0.8&&lastTapTime>0) strength=1.5;
+  lastTapTime=now;
+  ripples.push({x,y,r:0,maxR:Math.min(W,H)*.7,strength:strength,age:0});
   if(strokesLeft===0) hintEl.textContent=currentMode==='settle'?'墨已推出 · 评韵中…':'';
 }
 
@@ -531,6 +562,17 @@ function updateInkRipple(dt){
     for(const w of windZones){
       if(p.x>w.x&&p.x<w.x+w.w&&p.y>w.y&&p.y<w.y+w.h){
         p.vx+=w.dx*dt*.3; p.vy+=w.dy*dt*.3;
+      }
+    }
+    // Vortex zones
+    for(const v of vortexes){
+      const vdx=p.x-v.x, vdy=p.y-v.y;
+      const vdist=Math.sqrt(vdx*vdx+vdy*vdy);
+      if(vdist<v.r&&vdist>2){
+        const vtang=Math.atan2(vdy,vdx)+Math.PI/2;
+        const vforce=v.strength*(1-vdist/v.r)*dt*60;
+        p.vx+=Math.cos(vtang)*vforce;
+        p.vy+=Math.sin(vtang)*vforce;
       }
     }
     // Edges
@@ -591,9 +633,11 @@ function loadSettleLevel(idx){
     starsWrap.appendChild(s);
   }
 
-  targets=lv.targets.map(t=>({x:t.x*W,y:t.y*H,r:t.r*Math.min(W,H)}));
+  targets=lv.targets.map(t=>({x:t.x*W,y:t.y*H,r:t.r*Math.min(W,H),origX:t.x*W,origY:t.y*H}));
   seals=(lv.seals||[]).map(s=>({x:s.x*W,y:s.y*H,w:s.w*W,h:s.h*Math.min(W,H)}));
   windZones=(lv.winds||[]).map(w=>({x:w.x*W,y:w.y*H,w:w.w*W,h:w.h*H,dx:w.dx,dy:w.dy}));
+  vortexes=(lv.vortexes||[]).map(v=>({x:v.x*W,y:v.y*H,r:v.r*Math.min(W,H),strength:v.strength||1}));
+  fadeTimer=0;
 
   // Spawn ink at sources (same as ripple mode)
   for(const src of lv.inks){
@@ -720,6 +764,23 @@ function drawTargets(){
   }
 }
 
+function drawVortexes(){
+  for(const v of vortexes){
+    // Swirl ring
+    ctx.strokeStyle='rgba(100,180,220,.15)';
+    ctx.lineWidth=1.5;ctx.setLineDash([4,4]);
+    ctx.beginPath();ctx.arc(v.x,v.y,v.r,0,Math.PI*2);ctx.stroke();
+    ctx.setLineDash([]);
+    // Spiral hints
+    for(let i=0;i<3;i++){
+      const a=(performance.now()/2000+i*2.1)%(Math.PI*2);
+      const r=v.r*(.3+.35*i);
+      const sx=v.x+Math.cos(a)*r, sy=v.y+Math.sin(a)*r;
+      ctx.fillStyle='rgba(100,180,220,.12)';
+      ctx.beginPath();ctx.arc(sx,sy,2,0,Math.PI*2);ctx.fill();
+    }
+  }
+}
 function drawWindZones(){
   for(const w of windZones){
     // Subtle directional hint
@@ -800,6 +861,24 @@ function loop(time){
     if(currentMode==='ripple'||currentMode==='settle'){
       updateRipples(dt);
       updateInkRipple(dt);
+      // Moving targets
+      const lv=currentMode==='ripple'?rippleLevels[currentLevel]:settleLevels[currentLevel];
+      if(lv.movingTargets){
+        const t0=performance.now()/1000;
+        for(let i=0;i<targets.length;i++){
+          const t=targets[i];
+          t.x=t.origX+Math.sin(t0*0.8+i)*Math.min(W,H)*.04;
+          t.y=t.origY+Math.cos(t0*0.6+i+1)*Math.min(W,H)*.04;
+        }
+      }
+      // Fading ink
+      if(lv.fadingInk){
+        fadeTimer+=dt;
+        for(const p of inkParticles){
+          p.alpha-=0.015*dt;
+          if(p.alpha<0) p.alpha=0;
+        }
+      }
     }
   }
   // Mode 2: live coverage bar + auto-evaluate
@@ -815,6 +894,7 @@ function loop(time){
 
   // Render
   drawPaper();
+  drawVortexes();
   drawWindZones();
   drawTargets();
   drawSeals();
