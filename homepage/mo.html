@@ -12,15 +12,47 @@ body{
   user-select:none;-webkit-user-select:none;
 }
 #c{position:fixed;top:0;left:0;width:100%;height:100%}
+
+/* ── Back button ── */
 #back{position:fixed;top:16px;left:16px;z-index:25}
-#back a{color:rgba(255,255,255,.2);text-decoration:none;font-size:.65rem;letter-spacing:2px;transition:color .3s}
-#back a:hover{color:rgba(255,255,255,.5)}
+#back a,#back button{color:rgba(255,255,255,.2);text-decoration:none;font-size:.65rem;letter-spacing:2px;
+  transition:color .3s;background:none;border:none;cursor:pointer;font-family:inherit}
+#back a:hover,#back button:hover{color:rgba(255,255,255,.5)}
+
+/* ── Mode select overlay ── */
+#mode-select{position:fixed;top:0;left:0;width:100%;height:100%;z-index:40;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px}
+#mode-select.hidden{display:none}
+#mode-title{font-size:clamp(1.4rem,4vw,2.2rem);font-weight:200;letter-spacing:12px;
+  color:#c8bfa8;margin-bottom:16px;text-shadow:0 0 60px rgba(200,180,120,.15)}
+.mode-btn{background:transparent;border:1px solid rgba(200,180,140,.25);color:#c8bfa8;
+  padding:18px 48px;font-size:.85rem;letter-spacing:6px;cursor:pointer;font-family:inherit;
+  transition:all .4s;position:relative;min-width:220px}
+.mode-btn:hover{border-color:rgba(200,180,140,.5);background:rgba(200,180,140,.04);
+  box-shadow:0 0 40px rgba(200,180,120,.08)}
+.mode-btn .sub{display:block;font-size:.5rem;color:rgba(200,180,140,.3);letter-spacing:2px;margin-top:6px}
+
+/* ── Game UI ── */
 #ui{position:fixed;top:16px;right:16px;z-index:10;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+#mode-label{font-size:.5rem;color:rgba(200,168,88,.3);letter-spacing:2px}
 #level-name{font-size:.65rem;color:rgba(200,168,88,.5);letter-spacing:3px}
 #strokes{display:flex;gap:3px}
 #strokes span{width:3px;height:18px;background:rgba(200,60,40,.6);border-radius:1px;transition:all .3s}
 #strokes span.used{background:rgba(200,60,40,.1);height:8px}
 #level-num{font-size:.55rem;color:rgba(255,255,255,.15);letter-spacing:1px}
+
+/* ── Star display ── */
+#stars-wrap{display:flex;gap:4px;margin-top:2px}
+#stars-wrap .star{font-size:.8rem;color:rgba(255,255,255,.08);transition:all .5s}
+#stars-wrap .star.lit{color:#d4a843;text-shadow:0 0 12px rgba(212,168,67,.5)}
+#stars-wrap .star.earned{animation:starPop .5s ease-out}
+@keyframes starPop{0%{transform:scale(2);opacity:0}60%{transform:scale(.85)}100%{transform:scale(1);opacity:1}}
+
+/* ── Coverage bar (Mode 2) ── */
+#coverage-bar-wrap{width:80px;height:3px;background:rgba(255,255,255,.05);border-radius:2px;margin-top:2px;overflow:hidden}
+#coverage-bar{height:100%;background:rgba(200,160,60,.5);border-radius:2px;width:0%;transition:width .3s}
+
+/* ── Messages ── */
 #msg{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:30;pointer-events:none;
   font-size:clamp(1rem,3vw,1.8rem);font-weight:300;letter-spacing:6px;opacity:0;transition:opacity .6s}
 #msg.show{opacity:1}
@@ -28,20 +60,56 @@ body{
 #msg.info{color:rgba(255,255,255,.4)}
 #hint{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:10;pointer-events:none;
   font-size:.55rem;color:rgba(255,255,255,.12);letter-spacing:2px}
+
+/* ── Done button (Mode 2) ── */
+#done-btn{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);z-index:20;
+  background:transparent;border:1px solid rgba(200,180,140,.3);color:rgba(200,180,140,.6);
+  padding:10px 32px;font-size:.65rem;letter-spacing:4px;cursor:pointer;font-family:inherit;
+  transition:all .3s;display:none}
+#done-btn:hover{border-color:rgba(200,180,140,.6);color:#d4a843}
+#done-btn.visible{display:block}
 </style>
 </head>
 <body>
-<div id="back"><a href="../index.html">← 返回合集</a></div>
-<div id="ui">
-  <div id="level-name">初探</div>
-  <div id="strokes"></div>
-  <div id="level-num">1 / 6</div>
+
+<!-- Back -->
+<div id="back">
+  <button id="back-btn" onclick="backToMenu()">← 返回选单</button>
 </div>
+
+<!-- Mode Select -->
+<div id="mode-select">
+  <div id="mode-title">墨 韵</div>
+  <button class="mode-btn" onclick="startMode('ripple')">
+    涟漪推墨<span class="sub">点水成漪 · 推墨入韵</span>
+  </button>
+  <button class="mode-btn" onclick="startMode('settle')">
+    落墨成韵<span class="sub">落墨生花 · 晕染丹青</span>
+  </button>
+</div>
+
+<!-- Game UI -->
+<div id="ui">
+  <div id="mode-label"></div>
+  <div id="level-name"></div>
+  <div id="strokes"></div>
+  <div id="stars-wrap"></div>
+  <div id="coverage-bar-wrap"><div id="coverage-bar"></div></div>
+  <div id="level-num"></div>
+</div>
+
+<!-- Messages -->
 <div id="msg"></div>
-<div id="hint">轻点水面 · 涟漪推墨</div>
+<div id="hint"></div>
+<button id="done-btn" onclick="evaluateStars()">完成 · 评韵</button>
+
 <canvas id="c"></canvas>
+
 <script>
-/* ═══════════════ 墨韵 · Ink Ripple ═══════════════ */
+/* ═══════════════════════════════════════════════════
+   墨韵 · Ink Ripple  — v2.0
+   双模式：涟漪推墨 / 落墨成韵
+   ═══════════════════════════════════════════════════ */
 
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
@@ -50,8 +118,15 @@ const strokesEl = document.getElementById('strokes');
 const levelNameEl = document.getElementById('level-name');
 const levelNumEl = document.getElementById('level-num');
 const hintEl = document.getElementById('hint');
+const modeSelectEl = document.getElementById('mode-select');
+const modeLabelEl = document.getElementById('mode-label');
+const starsWrap = document.getElementById('stars-wrap');
+const coverageBar = document.getElementById('coverage-bar');
+const coverageBarWrap = document.getElementById('coverage-bar-wrap');
+const doneBtn = document.getElementById('done-btn');
+const backBtn = document.getElementById('back-btn');
 
-let W,H;
+let W, H;
 
 // ── Paper texture cache ──
 let paperCanvas, paperCtx;
@@ -59,11 +134,9 @@ function buildPaper() {
   paperCanvas = document.createElement('canvas');
   paperCanvas.width = W; paperCanvas.height = H;
   paperCtx = paperCanvas.getContext('2d');
-  // Base: warm rice-paper color with gradient variation
   const bgGrad = paperCtx.createRadialGradient(W*.3,H*.2,0,W*.5,H*.5,W);
   bgGrad.addColorStop(0,'#f5f0e6');bgGrad.addColorStop(.5,'#f0ead8');bgGrad.addColorStop(1,'#e8e0cc');
   paperCtx.fillStyle=bgGrad;paperCtx.fillRect(0,0,W,H);
-  // Fibers
   paperCtx.strokeStyle='rgba(180,160,130,.04)';
   for(let i=0;i<600;i++){
     const x=Math.random()*W,y=Math.random()*H,len=3+Math.random()*15,angle=Math.random()*Math.PI;
@@ -71,7 +144,6 @@ function buildPaper() {
     paperCtx.beginPath();paperCtx.moveTo(x,y);paperCtx.lineTo(x+Math.cos(angle)*len,y+Math.sin(angle)*len);
     paperCtx.stroke();
   }
-  // Subtle brown stains
   for(let i=0;i<8;i++){
     const sx=Math.random()*W,sy=Math.random()*H,sr=20+Math.random()*50;
     const stain=paperCtx.createRadialGradient(sx,sy,0,sx,sy,sr);
@@ -86,29 +158,121 @@ sealImg.src = 'seal_real.png';
 
 // ── Game state ──
 const INK_COUNT = 600;
-let inkParticles = [];     // {x,y,size,alpha,vx,vy}
-let targets = [];          // {x,y,r,covered:bool}
-let seals = [];            // {x,y,w,h} 印章障碍物
-let ripples = [];          // {x,y,r,maxR,strength,age}
+let inkParticles = [];
+let targets = [];
+let seals = [];
+let ripples = [];
+let windZones = [];       // {x,y,w,h,dx,dy} 风区
 let strokesLeft = 0;
 let totalStrokes = 0;
 let currentLevel = 0;
-let gameState = 'idle';    // idle | playing | won
+let gameState = 'idle';   // idle | playing | won | evaluated
 let wonTimer = 0;
-let hintTimer = 0;
+let currentMode = null;   // 'ripple' | 'settle'
+let starRating = 0;       // 0-3 for settle mode
+let settleTimer = 0;      // timer for settle mode auto-evaluate
+let dropsLeft = 0;
 
-// ── Level data ──
-const levels = [
-  {name:'初探',strokes:5,inks:[{x:.3,y:.4}],targets:[{x:.6,y:.45,r:.12}],seals:[]},
-  {name:'双引',strokes:6,inks:[{x:.25,y:.5},{x:.75,y:.5}],targets:[{x:.35,y:.3,r:.1},{x:.65,y:.7,r:.1}],seals:[]},
-  {name:'绕印',strokes:8,inks:[{x:.2,y:.5}],targets:[{x:.75,y:.5,r:.12}],seals:[{x:.42,y:.28,w:.12,h:.40}]},
-  {name:'四散',strokes:9,inks:[{x:.5,y:.5}],targets:[{x:.15,y:.2,r:.08},{x:.85,y:.2,r:.08},{x:.15,y:.8,r:.08},{x:.85,y:.8,r:.08}],seals:[]},
-  {name:'迷宫',strokes:12,inks:[{x:.1,y:.5},{x:.9,y:.5}],targets:[{x:.5,y:.15,r:.1},{x:.5,y:.85,r:.1}],seals:[{x:.32,y:.26,w:.08,h:.45},{x:.58,y:.26,w:.08,h:.45}]},
-  {name:'大师',strokes:10,inks:[{x:.5,y:.8}],targets:[{x:.15,y:.15,r:.08},{x:.85,y:.15,r:.08},{x:.5,y:.25,r:.09}],seals:[{x:.26,y:.3,w:.12,h:.05},{x:.6,y:.3,w:.12,h:.05}]},
+// ═══════════════════ LEVEL DATA ═══════════════════
+
+// ── Mode 1: 涟漪推墨 (Ripple Push) ──
+const rippleLevels = [
+  // 原有6关
+  {name:'初探',strokes:5,inks:[{x:.3,y:.4}],targets:[{x:.6,y:.45,r:.12}],seals:[],winds:[]},
+  {name:'双引',strokes:6,inks:[{x:.25,y:.5},{x:.75,y:.5}],targets:[{x:.35,y:.3,r:.1},{x:.65,y:.7,r:.1}],seals:[],winds:[]},
+  {name:'绕印',strokes:8,inks:[{x:.2,y:.5}],targets:[{x:.75,y:.5,r:.12}],seals:[{x:.42,y:.28,w:.12,h:.40}],winds:[]},
+  {name:'四散',strokes:9,inks:[{x:.5,y:.5}],targets:[{x:.15,y:.2,r:.08},{x:.85,y:.2,r:.08},{x:.15,y:.8,r:.08},{x:.85,y:.8,r:.08}],seals:[],winds:[]},
+  {name:'迷宫',strokes:12,inks:[{x:.1,y:.5},{x:.9,y:.5}],targets:[{x:.5,y:.15,r:.1},{x:.5,y:.85,r:.1}],seals:[{x:.32,y:.26,w:.08,h:.45},{x:.58,y:.26,w:.08,h:.45}],winds:[]},
+  {name:'大师',strokes:10,inks:[{x:.5,y:.8}],targets:[{x:.15,y:.15,r:.08},{x:.85,y:.15,r:.08},{x:.5,y:.25,r:.09}],seals:[{x:.26,y:.3,w:.12,h:.05},{x:.6,y:.3,w:.12,h:.05}],winds:[]},
+  // 新增6关
+  {name:'逆风',strokes:8,inks:[{x:.2,y:.5}],targets:[{x:.75,y:.5,r:.12}],seals:[],
+    winds:[{x:.35,y:.15,w:.3,h:.7,dx:0,dy:-40}]},
+  {name:'双印',strokes:10,inks:[{x:.5,y:.85}],targets:[{x:.2,y:.2,r:.09},{x:.8,y:.2,r:.09}],
+    seals:[{x:.35,y:.28,w:.10,h:.38},{x:.55,y:.28,w:.10,h:.38}],winds:[]},
+  {name:'远引',strokes:7,inks:[{x:.08,y:.5}],targets:[{x:.88,y:.5,r:.1}],
+    seals:[{x:.25,y:.35,w:.08,h:.25},{x:.5,y:.35,w:.08,h:.25},{x:.72,y:.35,w:.08,h:.25}],winds:[]},
+  {name:'三星',strokes:11,inks:[{x:.2,y:.25},{x:.5,y:.75},{x:.8,y:.25}],
+    targets:[{x:.35,y:.7,r:.08},{x:.65,y:.7,r:.08},{x:.5,y:.3,r:.09}],seals:[],winds:[]},
+  {name:'回流',strokes:14,inks:[{x:.5,y:.85}],
+    targets:[{x:.25,y:.3,r:.07},{x:.5,y:.2,r:.07},{x:.75,y:.3,r:.07},{x:.8,y:.55,r:.07},{x:.65,y:.7,r:.07},{x:.35,y:.7,r:.07},{x:.2,y:.55,r:.07}],
+    seals:[{x:.42,y:.35,w:.16,h:.04}],winds:[]},
+  {name:'终极',strokes:12,inks:[{x:.5,y:.9}],
+    targets:[{x:.15,y:.2,r:.08},{x:.38,y:.15,r:.07},{x:.62,y:.15,r:.07},{x:.85,y:.2,r:.08},{x:.5,y:.4,r:.09}],
+    seals:[{x:.28,y:.28,w:.12,h:.04},{x:.6,y:.28,w:.12,h:.04}],
+    winds:[{x:.15,y:.35,w:.7,h:.25,dx:0,dy:-25}]},
 ];
 
-function loadLevel(idx) {
-  const lv = levels[idx];
+// ── Mode 2: 落墨成韵 (Ink Settling) ──
+const settleLevels = [
+  {name:'初墨',drops:3,inks:[],targets:[{x:.5,y:.45,r:.14}],seals:[],starThresholds:[0.3,0.6,0.85]},
+  {name:'双晕',drops:4,inks:[],targets:[{x:.3,y:.4,r:.11},{x:.7,y:.55,r:.11}],seals:[],starThresholds:[0.3,0.6,0.85]},
+  {name:'印障',drops:4,inks:[],targets:[{x:.3,y:.4,r:.1},{x:.7,y:.55,r:.1}],
+    seals:[{x:.44,y:.2,w:.12,h:.55}],starThresholds:[0.25,0.55,0.8]},
+  {name:'四满',drops:5,inks:[],targets:[{x:.2,y:.25,r:.08},{x:.8,y:.25,r:.08},{x:.2,y:.7,r:.08},{x:.8,y:.7,r:.08}],
+    seals:[],starThresholds:[0.25,0.55,0.8]},
+  {name:'迷散',drops:5,inks:[],targets:[{x:.25,y:.3,r:.09},{x:.7,y:.25,r:.08},{x:.5,y:.6,r:.1},{x:.8,y:.65,r:.07}],
+    seals:[{x:.35,y:.3,w:.08,h:.35},{x:.55,y:.35,w:.08,h:.3}],starThresholds:[0.25,0.5,0.75]},
+  {name:'夹缝',drops:4,inks:[],targets:[{x:.2,y:.45,r:.1},{x:.8,y:.45,r:.1}],
+    seals:[{x:.34,y:.2,w:.08,h:.55},{x:.58,y:.2,w:.08,h:.55}],starThresholds:[0.25,0.5,0.75]},
+  {name:'七曜',drops:6,inks:[],targets:[
+    {x:.5,y:.25,r:.06},{x:.7,y:.35,r:.06},{x:.7,y:.58,r:.06},{x:.5,y:.68,r:.06},{x:.3,y:.58,r:.06},{x:.3,y:.35,r:.06},{x:.5,y:.46,r:.07}
+  ],seals:[],starThresholds:[0.2,0.45,0.7]},
+  {name:'宗师',drops:5,inks:[],targets:[{x:.2,y:.25,r:.08},{x:.8,y:.25,r:.08},{x:.5,y:.55,r:.1},{x:.2,y:.75,r:.07},{x:.8,y:.75,r:.07}],
+    seals:[{x:.38,y:.28,w:.1,h:.04},{x:.52,y:.28,w:.1,h:.04},{x:.4,y:.48,w:.06,h:.3}],starThresholds:[0.2,0.45,0.7]},
+];
+
+// ═══════════════ MODE MANAGEMENT ═══════════════
+
+function backToMenu() {
+  gameState = 'idle';
+  currentMode = null;
+  ripples = [];
+  inkParticles = [];
+  modeSelectEl.classList.remove('hidden');
+  starsWrap.innerHTML = '';
+  coverageBarWrap.style.display = 'none';
+  doneBtn.classList.remove('visible');
+  modeLabelEl.textContent = '';
+  levelNameEl.textContent = '';
+  levelNumEl.textContent = '';
+  strokesEl.innerHTML = '';
+  hintEl.textContent = '';
+  msgEl.classList.remove('show','win','info');
+  starRating = 0;
+}
+
+function startMode(mode) {
+  currentMode = mode;
+  modeSelectEl.classList.add('hidden');
+  starRating = 0;
+  starsWrap.innerHTML = '';
+  if (mode === 'ripple') {
+    modeLabelEl.textContent = '涟漪推墨';
+    hintEl.textContent = '轻点水面 · 涟漪推墨';
+    coverageBarWrap.style.display = 'none';
+    doneBtn.classList.remove('visible');
+    loadRippleLevel(0);
+  } else if (mode === 'settle') {
+    modeLabelEl.textContent = '落墨成韵';
+    hintEl.textContent = '落墨于纸 · 晕染红圈';
+    coverageBarWrap.style.display = 'block';
+    coverageBar.style.width = '0%';
+    doneBtn.classList.add('visible');
+    doneBtn.textContent = '完成 · 评韵';
+    // Init star display
+    starsWrap.innerHTML = '';
+    for(let i=0;i<3;i++){
+      const s=document.createElement('span');s.className='star';s.textContent='★';
+      starsWrap.appendChild(s);
+    }
+    loadSettleLevel(0);
+  }
+}
+
+// ═══════════════ MODE 1: RIPPLE PUSH ═══════════════
+
+function loadRippleLevel(idx) {
+  const lv = rippleLevels[idx];
   currentLevel = idx;
   strokesLeft = lv.strokes;
   totalStrokes = lv.strokes;
@@ -116,87 +280,73 @@ function loadLevel(idx) {
   inkParticles = [];
   wonTimer = 0;
   gameState = 'playing';
+  starRating = 0;
   msgEl.classList.remove('show','win','info');
   hintEl.textContent = '轻点水面 · 涟漪推墨';
   levelNameEl.textContent = lv.name;
-  levelNumEl.textContent = `${idx+1} / ${levels.length}`;
+  levelNumEl.textContent = `${idx+1} / ${rippleLevels.length}`;
+  starsWrap.innerHTML = '';
+  coverageBarWrap.style.display = 'none';
+  doneBtn.classList.remove('visible');
 
-  // Parse targets & seals
   targets = lv.targets.map(t=>({x:t.x*W,y:t.y*H,r:t.r*Math.min(W,H),covered:false}));
   seals = (lv.seals||[]).map(s=>({x:s.x*W,y:s.y*H,w:s.w*W,h:s.h*Math.min(W,H)}));
+  windZones = (lv.winds||[]).map(w=>({x:w.x*W,y:w.y*H,w:w.w*W,h:w.h*H,dx:w.dx,dy:w.dy}));
 
-  // Spawn ink particles around ink sources
+  // Spawn ink
   for(const src of lv.inks){
-    const sx = src.x*W, sy = src.y*H;
-    const count = Math.floor(INK_COUNT / lv.inks.length);
+    const sx=src.x*W, sy=src.y*H;
+    const count=Math.floor(INK_COUNT/lv.inks.length);
     for(let i=0;i<count;i++){
-      const angle = Math.random()*Math.PI*2;
-      const dist = Math.random()*Math.min(W,H)*.08;
+      const angle=Math.random()*Math.PI*2;
+      const dist=Math.random()*Math.min(W,H)*.08;
       inkParticles.push({
-        x: sx+Math.cos(angle)*dist,
-        y: sy+Math.sin(angle)*dist,
-        size: 1.5+Math.random()*4,
-        alpha: .15+Math.random()*.35,
-        vx:0, vy:0
+        x:sx+Math.cos(angle)*dist, y:sy+Math.sin(angle)*dist,
+        size:1.5+Math.random()*4, alpha:.15+Math.random()*.35, vx:0,vy:0
       });
     }
   }
-  // Build stroke indicators
-  strokesEl.innerHTML = '';
+  strokesEl.innerHTML='';
   for(let i=0;i<lv.strokes;i++){
-    const s = document.createElement('span');
-    strokesEl.appendChild(s);
+    const s=document.createElement('span');strokesEl.appendChild(s);
   }
   updateStrokeUI();
 }
 
-function updateStrokeUI() {
-  const spans = strokesEl.children;
-  for(let i=0;i<spans.length;i++){
-    spans[i].classList.toggle('used', i >= strokesLeft);
-  }
+function updateStrokeUI(){
+  const spans=strokesEl.children;
+  for(let i=0;i<spans.length;i++) spans[i].classList.toggle('used',i>=strokesLeft);
 }
 
-// ── Ripple effect ──
-function addRipple(x,y) {
+function addRipple(x,y){
   if(strokesLeft<=0||gameState!=='playing') return;
   strokesLeft--;
   updateStrokeUI();
   ripples.push({x,y,r:0,maxR:Math.min(W,H)*.7,strength:1,age:0});
-  if(strokesLeft===0) hintEl.textContent = '';
+  if(strokesLeft===0) hintEl.textContent='';
 }
 
-function updateRipples(dt) {
-  const speed = Math.min(W,H)*.8; // pixels per second
+function updateRipples(dt){
+  const speed=Math.min(W,H)*.8;
   for(let i=ripples.length-1;i>=0;i--){
-    const rp = ripples[i];
-    rp.r += speed*dt;
-    rp.age += dt;
-    if(rp.r > rp.maxR){
-      ripples.splice(i,1);
-      continue;
-    }
-    // Push ink particles in expanding ring
-    const ringW = Math.min(W,H)*.04;
-    const innerR = rp.r - ringW*.5;
-    const outerR = rp.r + ringW*.5;
-    const strength = rp.strength*(1-rp.r/rp.maxR);
-
+    const rp=ripples[i];
+    rp.r+=speed*dt; rp.age+=dt;
+    if(rp.r>rp.maxR){ripples.splice(i,1);continue;}
+    const ringW=Math.min(W,H)*.04;
+    const innerR=rp.r-ringW*.5, outerR=rp.r+ringW*.5;
+    const strength=rp.strength*(1-rp.r/rp.maxR);
     for(const p of inkParticles){
-      const dx = p.x - rp.x, dy = p.y - rp.y;
-      const dist = Math.sqrt(dx*dx+dy*dy);
-      if(dist<.1) continue; // avoid center singularity
+      const dx=p.x-rp.x, dy=p.y-rp.y;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<.1) continue;
       if(dist>=innerR && dist<=outerR){
-        // Push radially outward
-        const push = strength*.08*(1-Math.abs(dist-rp.r)/(ringW*.5));
-        const nx = dx/dist, ny = dy/dist;
-        p.vx += nx*push*60;
-        p.vy += ny*push*60;
-        // Check seal collision against displayed square
-        let blocked = false;
-        const newX = p.x+nx*push*60, newY = p.y+ny*push*60;
+        const push=strength*.08*(1-Math.abs(dist-rp.r)/(ringW*.5));
+        const nx=dx/dist, ny=dy/dist;
+        p.vx+=nx*push*60; p.vy+=ny*push*60;
+        let blocked=false;
+        const newX=p.x+nx*push*60, newY=p.y+ny*push*60;
         for(const s of seals){
-          const b = sealBounds(s);
+          const b=sealBounds(s);
           if(newX>b.x&&newX<b.x+b.w&&newY>b.y&&newY<b.y+b.h){blocked=true;break}
         }
         if(!blocked){p.x=newX;p.y=newY}
@@ -205,189 +355,277 @@ function updateRipples(dt) {
   }
 }
 
-// ── Update ──
-function updateInk(dt) {
-  // Apply velocity with damping
+function updateInkRipple(dt){
   for(const p of inkParticles){
-    p.x += p.vx*dt;
-    p.y += p.vy*dt;
-    p.vx *= .88; p.vy *= .88;
-    // Bounce off edges
-    if(p.x<0){p.x=0;p.vx*=-.5}
-    if(p.x>W){p.x=W;p.vx*=-.5}
-    if(p.y<0){p.y=0;p.vy*=-.5}
-    if(p.y>H){p.y=H;p.vy*=-.5}
-    // Seal collision against displayed square
+    p.x+=p.vx*dt; p.y+=p.vy*dt;
+    p.vx*=.88; p.vy*=.88;
+    // Wind zones
+    for(const w of windZones){
+      if(p.x>w.x&&p.x<w.x+w.w&&p.y>w.y&&p.y<w.y+w.h){
+        p.vx+=w.dx*dt*.3; p.vy+=w.dy*dt*.3;
+      }
+    }
+    // Edges
+    if(p.x<0){p.x=0;p.vx*=-.5}if(p.x>W){p.x=W;p.vx*=-.5}
+    if(p.y<0){p.y=0;p.vy*=-.5}if(p.y>H){p.y=H;p.vy*=-.5}
+    // Seals
     for(const s of seals){
-      const b = sealBounds(s);
+      const b=sealBounds(s);
       if(p.x>b.x&&p.x<b.x+b.w&&p.y>b.y&&p.y<b.y+b.h){
-        // Push to nearest edge
-        const dl=p.x-b.x, dr=b.x+b.w-p.x, dt=p.y-b.y, db=b.y+b.h-p.y;
-        const minD=Math.min(dl,dr,dt,db);
-        if(minD===dl) p.x=b.x;
-        else if(minD===dr) p.x=b.x+b.w;
-        else if(minD===dt) p.y=b.y;
-        else p.y=b.y+b.h;
+        const dl=p.x-b.x,dr=b.x+b.w-p.x,dt2=p.y-b.y,db=b.y+b.h-p.y;
+        const minD=Math.min(dl,dr,dt2,db);
+        if(minD===dl)p.x=b.x;else if(minD===dr)p.x=b.x+b.w;
+        else if(minD===dt2)p.y=b.y;else p.y=b.y+b.h;
         p.vx*=-.5;p.vy*=-.5;
       }
     }
   }
-
-  // Check target coverage
+  // Check targets
   for(const t of targets){
-    let cover = 0, total = 0;
+    let cover=0,total=0;
     for(const p of inkParticles){
-      const dx=p.x-t.x, dy=p.y-t.y;
-      const dist=Math.sqrt(dx*dx+dy*dy);
+      const dx=p.x-t.x,dy=p.y-t.y,dist=Math.sqrt(dx*dx+dy*dy);
       if(dist<t.r){cover+=p.alpha;total++}
     }
-    t.covered = cover > .15 || total > 8;
+    t.covered=cover>.15||total>8;
   }
-
-  // Win check
-  if(gameState==='playing' && targets.every(t=>t.covered)){
+  if(gameState==='playing'&&targets.every(t=>t.covered)){
     gameState='won';wonTimer=0;
-    msgEl.textContent='墨韵已成';
-    msgEl.classList.add('show','win');
-    hintEl.textContent = '';
+    msgEl.textContent='墨韵已成';msgEl.classList.add('show','win');
+    hintEl.textContent='点击任意处继续';
     setTimeout(()=>msgEl.classList.remove('show','win'),2500);
   }
 }
 
-// ── Render ──
-function drawPaper() {
-  ctx.drawImage(paperCanvas,0,0);
+// ═══════════════ MODE 2: INK SETTLING ═══════════════
+
+function loadSettleLevel(idx){
+  const lv=settleLevels[idx];
+  currentLevel=idx;
+  dropsLeft=lv.drops;
+  ripples=[];
+  inkParticles=[];
+  wonTimer=0; settleTimer=0;
+  gameState='playing';
+  starRating=0;
+  msgEl.classList.remove('show','win','info');
+  hintEl.textContent=`轻点落墨 · 余${dropsLeft}滴`;
+  levelNameEl.textContent=lv.name;
+  levelNumEl.textContent=`${idx+1} / ${settleLevels.length}`;
+  coverageBar.style.width='0%';
+  coverageBarWrap.style.display='block';
+  doneBtn.classList.add('visible');
+  doneBtn.textContent='完成 · 评韵';
+  // Reset stars
+  starsWrap.innerHTML='';
+  for(let i=0;i<3;i++){
+    const s=document.createElement('span');s.className='star';s.textContent='★';
+    starsWrap.appendChild(s);
+  }
+
+  targets=lv.targets.map(t=>({x:t.x*W,y:t.y*H,r:t.r*Math.min(W,H)}));
+  seals=(lv.seals||[]).map(s=>({x:s.x*W,y:s.y*H,w:s.w*W,h:s.h*Math.min(W,H)}));
+  windZones=[];
+
+  strokesEl.innerHTML='';
+  for(let i=0;i<lv.drops;i++){
+    const s=document.createElement('span');strokesEl.appendChild(s);
+  }
+  updateStrokeUI();
 }
 
-function drawTargets() {
+function dropInk(x,y){
+  if(dropsLeft<=0||gameState!=='playing') return;
+  // Check not on seal
+  for(const s of seals){
+    const b=sealBounds(s);
+    if(x>b.x&&x<b.x+b.w&&y>b.y&&y<b.y+b.h) return;
+  }
+  dropsLeft--;
+  updateStrokeUI();
+  hintEl.textContent=dropsLeft>0?`轻点落墨 · 余${dropsLeft}滴`:'点击"完成·评韵"';
+  // Create ink splash
+  const count=Math.floor(INK_COUNT/4);
+  for(let i=0;i<count;i++){
+    const angle=Math.random()*Math.PI*2;
+    const dist=Math.random()*Math.min(W,H)*.06;
+    inkParticles.push({
+      x:x+Math.cos(angle)*dist, y:y+Math.sin(angle)*dist,
+      size:1+Math.random()*5, alpha:.2+Math.random()*.4,
+      vx:(Math.random()-.5)*30, vy:(Math.random()-.5)*30
+    });
+  }
+}
+
+function updateInkSettle(dt){
+  // Ink diffuses naturally
+  for(const p of inkParticles){
+    // Brownian-like motion + slow spread
+    p.vx+=(Math.random()-.5)*15*dt;
+    p.vy+=(Math.random()-.5)*15*dt;
+    p.vx*=.95; p.vy*=.95;
+    p.x+=p.vx*dt; p.y+=p.vy*dt;
+    // Edges
+    if(p.x<0){p.x=0;p.vx*=-.3}if(p.x>W){p.x=W;p.vx*=-.3}
+    if(p.y<0){p.y=0;p.vy*=-.3}if(p.y>H){p.y=H;p.vy*=-.3}
+    // Seals block
+    for(const s of seals){
+      const b=sealBounds(s);
+      if(p.x>b.x&&p.x<b.x+b.w&&p.y>b.y&&p.y<b.y+b.h){
+        const dl=p.x-b.x,dr=b.x+b.w-p.x,dt2=p.y-b.y,db=b.y+b.h-p.y;
+        const minD=Math.min(dl,dr,dt2,db);
+        if(minD===dl)p.x=b.x;else if(minD===dr)p.x=b.x+b.w;
+        else if(minD===dt2)p.y=b.y;else p.y=b.y+b.h;
+        p.vx*=-.3;p.vy*=-.3;
+      }
+    }
+  }
+  // Auto-settle timer - if no drops left and ink has spread a bit
+  if(dropsLeft===0&&gameState==='playing'){
+    settleTimer+=dt;
+    // Calculate live coverage
+    const cov=calcAvgCoverage();
+    coverageBar.style.width=(cov*100)+'%';
+    if(settleTimer>4) evaluateStars();
+  }
+}
+
+function calcAvgCoverage(){
+  if(targets.length===0) return 0;
+  let totalCov=0;
   for(const t of targets){
-    // Outer glow ring
-    const glow = ctx.createRadialGradient(t.x,t.y,t.r*.6,t.x,t.y,t.r);
+    // Sample points in circle
+    const samples=40;
+    let hits=0;
+    for(let i=0;i<samples;i++){
+      const angle=Math.random()*Math.PI*2;
+      const dist=Math.random()*t.r;
+      const sx=t.x+Math.cos(angle)*dist;
+      const sy=t.y+Math.sin(angle)*dist;
+      for(const p of inkParticles){
+        const dx=sx-p.x,dy=sy-p.y;
+        if(Math.sqrt(dx*dx+dy*dy)<p.size*1.8){hits++;break}
+      }
+    }
+    totalCov+=hits/samples;
+  }
+  return totalCov/targets.length;
+}
+
+function evaluateStars(){
+  if(gameState!=='playing') return;
+  const cov=calcAvgCoverage();
+  const lv=settleLevels[currentLevel];
+  const thresholds=lv.starThresholds||[0.3,0.6,0.85];
+  let stars=0;
+  if(cov>=thresholds[0]) stars=1;
+  if(cov>=thresholds[1]) stars=2;
+  if(cov>=thresholds[2]) stars=3;
+  starRating=stars;
+  gameState='evaluated';
+  coverageBar.style.width=(cov*100)+'%';
+  doneBtn.classList.remove('visible');
+
+  // Animate stars
+  const starEls=starsWrap.children;
+  for(let i=0;i<3;i++){
+    setTimeout(()=>{
+      if(i<stars){
+        starEls[i].classList.add('lit','earned');
+      }
+    },i*400);
+  }
+
+  // Message
+  const starNames=['','一星 · 初窥','二星 · 入韵','三星 · 墨成'];
+  if(stars>=2){
+    msgEl.textContent=starNames[stars];msgEl.classList.add('show','win');
+    setTimeout(()=>msgEl.classList.remove('show','win'),2500);
+  } else if(stars===1){
+    msgEl.textContent='一星 · 初窥';msgEl.classList.add('show','info');
+    setTimeout(()=>msgEl.classList.remove('show','info'),2000);
+  } else {
+    msgEl.textContent='再试一次';msgEl.classList.add('show','info');
+    setTimeout(()=>msgEl.classList.remove('show','info'),2000);
+  }
+  hintEl.textContent='点击任意处继续';
+}
+
+// ═══════════════ RENDER ═══════════════
+
+function sealBounds(s){
+  const size=Math.min(s.w,s.h);
+  return {x:s.x+(s.w-size)/2,y:s.y+(s.h-size)/2,w:size,h:size};
+}
+
+function drawPaper(){ctx.drawImage(paperCanvas,0,0);}
+
+function drawTargets(){
+  for(const t of targets){
+    // Glow ring
+    const glow=ctx.createRadialGradient(t.x,t.y,t.r*.6,t.x,t.y,t.r);
+    const covered=(currentMode==='ripple'&&t.covered)||(currentMode==='settle'&&gameState==='evaluated');
     glow.addColorStop(0,'transparent');
-    glow.addColorStop(.7,t.covered?'rgba(200,60,40,.04)':'rgba(255,60,30,.12)');
+    glow.addColorStop(.7,covered?'rgba(200,60,40,.04)':'rgba(255,60,30,.12)');
     glow.addColorStop(1,'transparent');
     ctx.fillStyle=glow;ctx.beginPath();ctx.arc(t.x,t.y,t.r,0,Math.PI*2);ctx.fill();
-
-    // Main dashed ring - bolder and more visible
-    ctx.strokeStyle=t.covered?'rgba(200,60,40,.18)':'rgba(255,50,30,.55)';
-    ctx.lineWidth=2.5;
-    ctx.setLineDash([5,4]);
+    // Dashed ring
+    ctx.strokeStyle=covered?'rgba(200,60,40,.18)':'rgba(255,50,30,.55)';
+    ctx.lineWidth=2.5;ctx.setLineDash([5,4]);
     ctx.beginPath();ctx.arc(t.x,t.y,t.r,0,Math.PI*2);ctx.stroke();
-
-    // Inner ring for depth
-    ctx.strokeStyle=t.covered?'rgba(200,60,40,.1)':'rgba(255,80,50,.3)';
-    ctx.lineWidth=.8;
-    ctx.setLineDash([2,6]);
+    // Inner ring
+    ctx.strokeStyle=covered?'rgba(200,60,40,.1)':'rgba(255,80,50,.3)';
+    ctx.lineWidth=.8;ctx.setLineDash([2,6]);
     ctx.beginPath();ctx.arc(t.x,t.y,t.r*.85,0,Math.PI*2);ctx.stroke();
     ctx.setLineDash([]);
-
-    // Center dot anchor
-    if(!t.covered){
+    // Center dot
+    if(!covered){
       ctx.fillStyle='rgba(255,60,25,.6)';
       ctx.beginPath();ctx.arc(t.x,t.y,3,0,Math.PI*2);ctx.fill();
-    } else {
-      const g2 = ctx.createRadialGradient(t.x,t.y,0,t.x,t.y,t.r);
+    }else{
+      const g2=ctx.createRadialGradient(t.x,t.y,0,t.x,t.y,t.r);
       g2.addColorStop(0,'rgba(200,60,40,.08)');g2.addColorStop(1,'transparent');
       ctx.fillStyle=g2;ctx.beginPath();ctx.arc(t.x,t.y,t.r,0,Math.PI*2);ctx.fill();
     }
   }
 }
 
-// ── Realistic Chinese seal renderer ──
-function drawRealSeal(x,y,w,h,text,opacity=1) {
-  ctx.save();
-  // Slight random rotation for natural feel
-  const rx=x+w/2, ry=y+h/2;
-  ctx.translate(rx,ry);
-  ctx.rotate((Math.random()-.5)*.03);
-  ctx.translate(-rx,-ry);
-  ctx.globalAlpha=opacity;
-
-  const pad=w*.08, iw=w-pad*2, ih=h-pad*2;
-
-  // 1. Outer border with irregular edges
-  ctx.strokeStyle='#b83a2a';
-  ctx.lineWidth=w*.06;
-  ctx.beginPath();
-  const segs=24, jitter=w*.02;
-  for(let i=0;i<segs;i++){
-    const t=i/segs*4;
-    let bx,by;
-    if(t<1){bx=x+pad+t*iw; by=y+pad}else if(t<2){bx=x+pad+iw; by=y+pad+(t-1)*ih}
-    else if(t<3){bx=x+pad+(3-t)*iw; by=y+pad+ih}else{bx=x+pad; by=y+pad+(4-t)*ih}
-    // Add jitter for handmade feel
-    const jx=bx+(Math.random()-.5)*jitter;
-    const jy=by+(Math.random()-.5)*jitter;
-    if(i===0) ctx.moveTo(jx,jy); else ctx.lineTo(jx,jy);
-  }
-  ctx.closePath();ctx.stroke();
-
-  // 2. Inner border (thinner)
-  ctx.strokeStyle='#b83a2a';
-  ctx.lineWidth=w*.025;
-  const innerPad=w*.15;
-  ctx.beginPath();
-  ctx.roundRect(x+innerPad,y+innerPad,w-innerPad*2,h-innerPad*2,w*.04);
-  ctx.stroke();
-
-  // 3. Fill with seal paste texture
-  // Base red
-  const fillGrad=ctx.createRadialGradient(rx,ry,0,rx,ry,w*.7);
-  fillGrad.addColorStop(0,'#c94030');fillGrad.addColorStop(.6,'#b83020');fillGrad.addColorStop(1,'#a02018');
-  ctx.fillStyle=fillGrad;
-  ctx.fillRect(x+pad*1.5,y+pad*1.5,w-pad*3,h-pad*3);
-
-  // 4. Uneven paste texture - random darker/lighter spots
-  for(let i=0;i<12;i++){
-    const sx=x+pad+Math.random()*(w-pad*2);
-    const sy=y+pad+Math.random()*(h-pad*2);
-    const sr=w*.03+Math.random()*w*.08;
-    const spot=ctx.createRadialGradient(sx,sy,0,sx,sy,sr);
-    const dark=Math.random()>.5;
-    spot.addColorStop(0,dark?'rgba(80,0,0,.15)':'rgba(255,200,180,.08)');
-    spot.addColorStop(1,'transparent');
-    ctx.fillStyle=spot;
-    ctx.fillRect(sx-sr,sy-sr,sr*2,sr*2);
-  }
-
-  // 5. White carved text (阴刻)
-  ctx.fillStyle='#f5efe0';
-  const fontSize=h*.38;
-  ctx.font=`bold ${fontSize}px 'STKaiti','KaiTi','FangSong','SimSun',serif`;
-  ctx.textAlign='center';ctx.textBaseline='middle';
-  // Slightly uneven text opacity
-  ctx.globalAlpha=opacity*(.78+Math.random()*.08);
-  ctx.fillText(text,rx,ry);
-
-  ctx.restore();
-}
-
-// Get actual displayed seal bounds (square, centered in bounding box)
-function sealBounds(s){
-  const size = Math.min(s.w, s.h);
-  return {
-    x: s.x + (s.w - size)/2,
-    y: s.y + (s.h - size)/2,
-    w: size, h: size
-  };
-}
-
-function drawSeals() {
-  for(const s of seals){
-    if(sealImg.complete && sealImg.naturalWidth>0){
-      const b = sealBounds(s);
-      ctx.drawImage(sealImg, b.x, b.y, b.w, b.h);
+function drawWindZones(){
+  for(const w of windZones){
+    // Subtle directional hint
+    ctx.strokeStyle='rgba(180,200,220,.12)';
+    ctx.lineWidth=1;ctx.setLineDash([3,8]);
+    ctx.beginPath();ctx.rect(w.x,w.y,w.w,w.h);ctx.stroke();
+    ctx.setLineDash([]);
+    // Arrow hints
+    const cx=w.x+w.w/2, cy=w.y+w.h/2;
+    for(let i=0;i<3;i++){
+      const ax=cx+(Math.random()-.5)*w.w*.6;
+      const ay=cy+(Math.random()-.5)*w.h*.6;
+      ctx.fillStyle='rgba(180,200,220,.08)';
+      ctx.beginPath();
+      ctx.moveTo(ax,ay);
+      ctx.lineTo(ax+w.dx*.15,ay+w.dy*.15);
+      ctx.strokeStyle='rgba(180,200,220,.08)';ctx.lineWidth=.5;
+      ctx.stroke();
     }
   }
 }
 
-function drawInk() {
-  // Render ink particles as soft dark blobs
-  // Use multiple passes: larger blur first, then darker core
+function drawSeals(){
+  for(const s of seals){
+    if(sealImg.complete&&sealImg.naturalWidth>0){
+      const b=sealBounds(s);
+      ctx.drawImage(sealImg,b.x,b.y,b.w,b.h);
+    }
+  }
+}
+
+function drawInk(){
   for(const p of inkParticles){
     if(p.alpha<.02) continue;
-    const g = ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.size);
-    const a = p.alpha;
+    const g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.size);
+    const a=p.alpha;
     g.addColorStop(0,`rgba(20,15,10,${a})`);
     g.addColorStop(.4,`rgba(30,25,18,${a*.7})`);
     g.addColorStop(1,'transparent');
@@ -396,15 +634,14 @@ function drawInk() {
   }
 }
 
-function drawRipples() {
+function drawRipples(){
   for(const rp of ripples){
-    const alpha = (1-rp.r/rp.maxR)*.15;
+    const alpha=(1-rp.r/rp.maxR)*.15;
     if(alpha<.01) continue;
     ctx.strokeStyle=`rgba(255,255,255,${alpha})`;
     ctx.lineWidth=1.5+Math.random()*.3;
     ctx.beginPath();ctx.arc(rp.x,rp.y,rp.r,0,Math.PI*2);ctx.stroke();
-    // Inner echo
-    const echoR = rp.r-Math.min(W,H)*.02;
+    const echoR=rp.r-Math.min(W,H)*.02;
     if(echoR>0){
       ctx.strokeStyle=`rgba(255,255,255,${alpha*.4})`;
       ctx.lineWidth=.6;
@@ -413,59 +650,77 @@ function drawRipples() {
   }
 }
 
-function drawSealStamp() {
-  const ss = Math.min(W,H)*.07;
-  const sx = W - ss*1.5, sy = H - ss*1.5;
-  if(sealImg.complete && sealImg.naturalWidth>0){
-    ctx.drawImage(sealImg, sx, sy, ss, ss);
+function drawSealStamp(){
+  const ss=Math.min(W,H)*.07;
+  const sx=W-ss*1.5,sy=H-ss*1.5;
+  if(sealImg.complete&&sealImg.naturalWidth>0){
+    ctx.drawImage(sealImg,sx,sy,ss,ss);
   }
 }
 
-// ── Game loop ──
-let lastTime = 0;
-function loop(time) {
-  requestAnimationFrame(loop);
-  const dt = Math.min((time-lastTime)/1000,.05);
-  lastTime = time;
+// ═══════════════ GAME LOOP ═══════════════
 
-  if(gameState==='playing'){
+let lastTime=0;
+function loop(time){
+  requestAnimationFrame(loop);
+  const dt=Math.min((time-lastTime)/1000,.05);
+  lastTime=time;
+
+  if(currentMode==='ripple'&&gameState==='playing'){
     updateRipples(dt);
-    updateInk(dt);
+    updateInkRipple(dt);
+  }
+  if(currentMode==='settle'&&gameState==='playing'){
+    updateInkSettle(dt);
   }
 
   // Render
   drawPaper();
+  drawWindZones();
   drawTargets();
   drawSeals();
   drawInk();
-  drawRipples();
+  if(currentMode==='ripple') drawRipples();
   drawSealStamp();
 
-  // Won state
-  if(gameState==='won'){
+  // Won timer (ripple mode)
+  if(currentMode==='ripple'&&gameState==='won'){
     wonTimer+=dt;
-    if(wonTimer>2.5 && currentLevel<levels.length-1){
-      // Auto-advance
-    }
   }
 }
 
-// ── Input ──
-function handleTap(x,y) {
-  if(gameState==='playing'){
-    // Check if tap is on a seal
-    for(const s of seals){
-      const b = sealBounds(s);
-      if(x>b.x&&x<b.x+b.w&&y>b.y&&y<b.y+b.h) return; // can't tap on seals
+// ═══════════════ INPUT ═══════════════
+
+function handleTap(x,y){
+  if(!currentMode) return;
+
+  if(currentMode==='ripple'){
+    if(gameState==='playing'){
+      for(const s of seals){
+        const b=sealBounds(s);
+        if(x>b.x&&x<b.x+b.w&&y>b.y&&y<b.y+b.h) return;
+      }
+      addRipple(x,y);
+    }else if(gameState==='won'){
+      if(currentLevel<rippleLevels.length-1){
+        loadRippleLevel(currentLevel+1);
+      }else{
+        showMsg('全部完成 · 大师之作','win');
+        setTimeout(()=>loadRippleLevel(0),3000);
+      }
     }
-    addRipple(x,y);
-  } else if(gameState==='won'){
-    // Next level or restart
-    if(currentLevel<levels.length-1){
-      loadLevel(currentLevel+1);
-    } else {
-      showMsg('全部完成 · 大师之作','win');
-      setTimeout(()=>loadLevel(0),3000);
+  }
+
+  if(currentMode==='settle'){
+    if(gameState==='playing'){
+      dropInk(x,y);
+    }else if(gameState==='evaluated'){
+      if(currentLevel<settleLevels.length-1){
+        loadSettleLevel(currentLevel+1);
+      }else{
+        showMsg('全部完成 · 墨韵天成','win');
+        setTimeout(()=>loadSettleLevel(0),3000);
+      }
     }
   }
 }
@@ -477,35 +732,60 @@ canvas.addEventListener('touchstart',e=>{
   handleTap(t.clientX,t.clientY);
 },{passive:false});
 
-// Keyboard
-document.addEventListener('keydown',e=>{
-  if(e.key==='r'||e.key==='R') loadLevel(currentLevel);
-  if(e.key==='n'||e.key==='N'&&currentLevel<levels.length-1) loadLevel(currentLevel+1);
-  if(e.key==='p'||e.key==='P'&&currentLevel>0) loadLevel(currentLevel-1);
+// Done button for settle mode
+doneBtn.addEventListener('click',e=>{
+  e.stopPropagation();
+  if(currentMode==='settle'&&gameState==='playing') evaluateStars();
+});
+doneBtn.addEventListener('touchstart',e=>{
+  e.stopPropagation();e.preventDefault();
+  if(currentMode==='settle'&&gameState==='playing') evaluateStars();
 });
 
-function showMsg(text,cls) {
+// Keyboard
+document.addEventListener('keydown',e=>{
+  if(!currentMode) return;
+  if(e.key==='r'||e.key==='R'){
+    if(currentMode==='ripple') loadRippleLevel(currentLevel);
+    else loadSettleLevel(currentLevel);
+  }
+  if(e.key==='n'||e.key==='N'){
+    const lvls=currentMode==='ripple'?rippleLevels:settleLevels;
+    if(currentLevel<lvls.length-1){
+      if(currentMode==='ripple') loadRippleLevel(currentLevel+1);
+      else loadSettleLevel(currentLevel+1);
+    }
+  }
+  if((e.key==='p'||e.key==='P')&&currentLevel>0){
+    if(currentMode==='ripple') loadRippleLevel(currentLevel-1);
+    else loadSettleLevel(currentLevel-1);
+  }
+  if(e.key==='Escape') backToMenu();
+});
+
+function showMsg(text,cls){
   msgEl.textContent=text;msgEl.classList.add('show',cls);
   setTimeout(()=>msgEl.classList.remove('show',cls),2000);
 }
 
-// ── Resize ──
-function resize() {
+// ═══════════════ RESIZE ═══════════════
+
+function resize(){
   W=window.innerWidth;H=window.innerHeight;
   canvas.width=W;canvas.height=H;
   buildPaper();
-  // Reload current level (reposition everything)
-  if(currentLevel>=0&&currentLevel<levels.length) loadLevel(currentLevel);
+  if(currentMode==='ripple'&&currentLevel>=0&&currentLevel<rippleLevels.length){
+    loadRippleLevel(currentLevel);
+  }else if(currentMode==='settle'&&currentLevel>=0&&currentLevel<settleLevels.length){
+    loadSettleLevel(currentLevel);
+  }
 }
-window.addEventListener('resize',()=>{
-  resize();
-  if(gameState==='playing') gameState='playing'; // preserve state
-});
+window.addEventListener('resize',()=>resize());
 
-// ── Init ──
+// ═══════════════ INIT ═══════════════
+
 resize();
-loadLevel(0);
-lastTime = performance.now();
+lastTime=performance.now();
 requestAnimationFrame(loop);
 </script>
 </body>
