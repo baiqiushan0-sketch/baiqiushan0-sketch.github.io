@@ -292,10 +292,10 @@ function openShop(){
   SHOP_ITEMS.forEach(item=>{
     const div=document.createElement('div');
     div.className='shop-item'+(item.owned?' owned':'');
-    div.innerHTML=\`<div class="si-icon">\${item.icon}</div>
-      <div class="si-name">\${item.name}</div>
-      <div class="si-desc">\${item.desc}</div>
-      <div class="si-price">\${item.owned?'已拥有':'★ '+item.price}</div>\`;
+    div.innerHTML=`<div class="si-icon">${item.icon}</div>
+      <div class="si-name">${item.name}</div>
+      <div class="si-desc">${item.desc}</div>
+      <div class="si-price">${item.owned?'已拥有':'★ '+item.price}</div>`;
     if(!item.owned){
       div.addEventListener('click',e=>{e.stopPropagation();buyItem(item.id);});
     }
