@@ -15,9 +15,9 @@ body{
 
 /* ── Back button ── */
 #back{position:fixed;top:16px;left:16px;z-index:25}
-#back a,#back button{color:rgba(255,255,255,.2);text-decoration:none;font-size:.65rem;letter-spacing:2px;
+#back a,#back button{color:rgba(255,255,255,.45);text-decoration:none;font-size:.65rem;letter-spacing:2px;
   transition:color .3s;background:none;border:none;cursor:pointer;font-family:inherit}
-#back a:hover,#back button:hover{color:rgba(255,255,255,.5)}
+#back a:hover,#back button:hover{color:rgba(255,255,255,.7)}
 
 /* ── Mode select overlay ── */
 #mode-select{position:fixed;top:0;left:0;width:100%;height:100%;z-index:40;
@@ -30,20 +30,20 @@ body{
   transition:all .4s;position:relative;min-width:220px}
 .mode-btn:hover{border-color:rgba(200,180,140,.5);background:rgba(200,180,140,.04);
   box-shadow:0 0 40px rgba(200,180,120,.08)}
-.mode-btn .sub{display:block;font-size:.5rem;color:rgba(200,180,140,.3);letter-spacing:2px;margin-top:6px}
+.mode-btn .sub{display:block;font-size:.5rem;color:rgba(200,180,140,.5);letter-spacing:2px;margin-top:6px}
 
 /* ── Game UI ── */
 #ui{position:fixed;top:16px;right:16px;z-index:10;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
-#mode-label{font-size:.5rem;color:rgba(200,168,88,.3);letter-spacing:2px}
-#level-name{font-size:.65rem;color:rgba(200,168,88,.5);letter-spacing:3px}
+#mode-label{font-size:.5rem;color:rgba(200,168,88,.5);letter-spacing:2px}
+#level-name{font-size:.65rem;color:rgba(200,168,88,.7);letter-spacing:3px}
 #strokes{display:flex;gap:3px}
 #strokes span{width:3px;height:18px;background:rgba(200,60,40,.6);border-radius:1px;transition:all .3s}
 #strokes span.used{background:rgba(200,60,40,.1);height:8px}
-#level-num{font-size:.55rem;color:rgba(255,255,255,.15);letter-spacing:1px}
+#level-num{font-size:.55rem;color:rgba(255,255,255,.38);letter-spacing:1px}
 
 /* ── Star display ── */
 #stars-wrap{display:flex;gap:4px;margin-top:2px}
-#stars-wrap .star{font-size:.8rem;color:rgba(255,255,255,.08);transition:all .5s}
+#stars-wrap .star{font-size:.8rem;color:rgba(255,255,255,.22);transition:all .5s}
 #stars-wrap .star.lit{color:#d4a843;text-shadow:0 0 12px rgba(212,168,67,.5)}
 #stars-wrap .star.earned{animation:starPop .5s ease-out}
 @keyframes starPop{0%{transform:scale(2);opacity:0}60%{transform:scale(.85)}100%{transform:scale(1);opacity:1}}
@@ -57,9 +57,9 @@ body{
   font-size:clamp(1rem,3vw,1.8rem);font-weight:300;letter-spacing:6px;opacity:0;transition:opacity .6s}
 #msg.show{opacity:1}
 #msg.win{color:#d4a843;text-shadow:0 0 40px rgba(212,168,67,.3)}
-#msg.info{color:rgba(255,255,255,.4)}
+#msg.info{color:rgba(255,255,255,.65)}
 #hint{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:10;pointer-events:none;
-  font-size:.55rem;color:rgba(255,255,255,.12);letter-spacing:2px}
+  font-size:.55rem;color:rgba(255,255,255,.4);letter-spacing:2px}
 
 /* ── Done button (Mode 2) ── */
 #done-btn{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);z-index:20;

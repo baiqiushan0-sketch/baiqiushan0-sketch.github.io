@@ -98,9 +98,9 @@ body::before{
 .hero-scroll{
   position:absolute;bottom:2.5rem;left:50%;transform:translateX(-50%);z-index:2;
   display:flex;flex-direction:column;align-items:center;gap:6px;
-  color:var(--text3);font-size:.6rem;letter-spacing:2px;animation:bob 2s ease-in-out infinite;
+  color:var(--text2);font-size:.6rem;letter-spacing:2px;animation:bob 2s ease-in-out infinite;
 }
-.hero-scroll span{display:block;width:1px;height:24px;background:linear-gradient(to bottom,var(--text3),transparent)}
+.hero-scroll span{display:block;width:1px;height:24px;background:linear-gradient(to bottom,var(--text2),transparent)}
 @keyframes bob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}
 
 /* ═══════════════════ SECTION ═══════════════════ */
@@ -154,8 +154,8 @@ body::before{
 .card-visual .visual-content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:10px}
 .card-visual .visual-icon{width:100px;height:100px;display:flex;align-items:center;justify-content:center;transition:transform var(--transition)}
 .project-card:hover .visual-icon{transform:scale(1.1)}
-.card-visual .visual-label{font-size:.65rem;color:rgba(255,255,255,.4);letter-spacing:2px;transition:color .4s}
-.project-card:hover .visual-label{color:rgba(255,255,255,.6)}
+.card-visual .visual-label{font-size:.65rem;color:rgba(255,255,255,.6);letter-spacing:2px;transition:color .4s}
+.project-card:hover .visual-label{color:rgba(255,255,255,.8)}
 
 .project-card:nth-child(1) .card-visual{background:linear-gradient(160deg,#1a1520 0%,#1f1430 30%,#251840 60%,#1a1030 100%)}
 .project-card:nth-child(2) .card-visual{background:linear-gradient(160deg,#0e1820 0%,#101d30 30%,#0d2240 60%,#0a1a30 100%)}
@@ -217,7 +217,7 @@ body::before{
 /* ═══════════════════ FOOTER ═══════════════════ */
 .footer{
   text-align:center;padding:3rem 1.5rem 4rem;border-top:1px solid rgba(255,255,255,.03);
-  color:var(--text3);font-size:.7rem;letter-spacing:1px;
+  color:var(--text2);font-size:.7rem;letter-spacing:1px;
 }
 .footer .love{color:var(--red);display:inline-block;animation:heartbeat 1.5s ease infinite}
 @keyframes heartbeat{0%,100%{transform:scale(1)}15%{transform:scale(1.25)}30%{transform:scale(1)}}
