@@ -87,9 +87,9 @@ body{background:#000;color:#fff;font-family:'PingFang SC','Microsoft YaHei',sans
 <!-- Three.js -->
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <!-- MediaPipe Hands -->
-<script src="mediapipe/hands.js" crossorigin="anonymous"></script>
-<script src="mediapipe/camera_utils.js" crossorigin="anonymous"></script>
-<script src="mediapipe/drawing_utils.js" crossorigin="anonymous"></script>
+<script src="mediapipe/hands.js"></script>
+<script src="mediapipe/camera_utils.js"></script>
+<script src="mediapipe/drawing_utils.js"></script>
 
 <script>
 // ===== DOM =====
@@ -372,8 +372,10 @@ function onHandResults(results){
     handData = lm;
 
     // 在骨骼预览画布上绘制
-    sctx.clearRect(0,0,sc.width,sc.height);
-    sctx.drawImage(V,0,0,sc.width,sc.height);
+    try {
+      sctx.clearRect(0,0,sc.width,sc.height);
+      if(V.readyState>=2) sctx.drawImage(V,0,0,sc.width,sc.height);
+    } catch(e) { console.warn('骨骼画布绘制失败:',e.message); }
 
     // 直接绘制骨骼（不依赖drawing_utils）
     const w=sc.width, h=sc.height;
@@ -461,8 +463,10 @@ function onHandResults(results){
       lastGesture='';gestureStable=0;
     }
     // 无手时只显示摄像头画面
-    sctx.clearRect(0,0,sc.width,sc.height);
-    sctx.drawImage(V,0,0,sc.width,sc.height);
+    try {
+      sctx.clearRect(0,0,sc.width,sc.height);
+      if(V.readyState>=2) sctx.drawImage(V,0,0,sc.width,sc.height);
+    } catch(e) {};
   }
 }
 
@@ -588,11 +592,16 @@ async function start(){
     hands.onResults(onHandResults);
     console.log('✅ Hands对象已创建');
 
-    // 启动摄像头（hands模型由第一帧的send()懒加载）
+    // 显式初始化模型（避免懒加载在某些浏览器上失败）
+    document.getElementById('loading').querySelector('.ld').textContent='⏳ 加载AI模型...';
+    await hands.initialize();
+    console.log('✅ Hands模型已初始化');
+
+    // 启动摄像头
     document.getElementById('loading').querySelector('.ld').textContent='⏳ 启动摄像头...';
     camera = new Camera(V, {
       onFrame: async () => {
-        if(hands) await hands.send({image: V});
+        if(hands) { try { await hands.send({image: V}); } catch(e) { console.warn('hands.send失败:',e.message); } }
       },
       width: 640, height: 480
     });
